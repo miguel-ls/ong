@@ -20,6 +20,11 @@ try {
     $tipos_auxiliar = $stmt_tipos->fetchAll();
     $stmt_tipos->closeCursor();
 
+    // Forzar la reconexión. A pesar de las optimizaciones, la conexión sigue fallando
+    // en este punto específico. Esta es la solución más directa para asegurar una conexión viva.
+    $pdo = null;
+    $pdo = getDbConnection();
+
     // Obtener auxiliares filtrados
     $stmt_items = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
     $stmt_items->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);

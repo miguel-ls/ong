@@ -20,6 +20,11 @@ try {
     $proyectos = $stmt_proyectos->fetchAll();
     $stmt_proyectos->closeCursor();
 
+    // Forzar la reconexión. A pesar de las optimizaciones, la conexión sigue fallando
+    // en este punto específico. Esta es la solución más directa para asegurar una conexión viva.
+    $pdo = null;
+    $pdo = getDbConnection();
+
     // Obtener sub proyectos filtrados
     $stmt_items = $pdo->prepare("CALL sp_read_all_sub_proyectos(?, ?, ?)");
     $stmt_items->execute([$filter_codigo, $filter_nombre, $filter_proyecto]);

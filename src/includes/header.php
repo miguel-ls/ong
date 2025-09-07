@@ -22,13 +22,14 @@
                             <i class="fas fa-chevron-down float-indicator"></i>
                         </a>
                         <ul class="collapse list-unstyled" id="mantenimientoSubmenu">
-                            <li><a href="index.php?page=proyectos"><i class="fas fa-project-diagram"></i> Proyectos</a></li>
-                            <li><a href="index.php?page=sub_proyectos"><i class="fas fa-sitemap"></i> Sub Proyectos</a></li>
-                            <li><a href="index.php?page=centros_costos"><i class="fas fa-bullseye"></i> Centros de Costos</a></li>
-                            <li><a href="index.php?page=tipos_documento"><i class="fas fa-file-alt"></i> Tipos de Documento</a></li>
-                            <li><a href="index.php?page=conceptos"><i class="fas fa-lightbulb"></i> Conceptos</a></li>
-                            <li><a href="index.php?page=tipos_auxiliar"><i class="fas fa-tags"></i> Tipos de Auxiliar</a></li>
-                            <li><a href="index.php?page=usuarios"><i class="fas fa-users"></i> Usuarios</a></li>
+                            <li><a href="index.php?page=proyectos">Proyectos</a></li>
+                            <li><a href="index.php?page=sub_proyectos">Sub Proyectos</a></li>
+                            <li><a href="index.php?page=centros_costos">Centros de Costos</a></li>
+                            <li><a href="index.php?page=tipos_documento">Tipos de Documento</a></li>
+                            <li><a href="index.php?page=conceptos">Conceptos</a></li>
+                            <li><a href="index.php?page=tipos_auxiliar">Tipos de Auxiliar</a></li>
+                            <li><a href="index.php?page=usuarios">Usuarios</a></li>
+                            <li><a href="index.php?page=tipos_cambio">Tipo de Cambio</a></li>
                         </ul>
                     </li>
                     <li>
@@ -37,8 +38,8 @@
                             <i class="fas fa-chevron-down float-indicator"></i>
                         </a>
                         <ul class="collapse list-unstyled" id="operacionesSubmenu">
-                            <li><a href="index.php?page=auxiliares"><i class="fas fa-address-book"></i> Auxiliares</a></li>
-                            <li><a href="index.php?page=ingreso_documentos"><i class="fas fa-edit"></i> Ingreso de documentos</a></li>
+                            <li><a href="index.php?page=auxiliares">Auxiliares</a></li>
+                            <li><a href="index.php?page=ingreso_documentos">Ingreso de documentos</a></li>
                         </ul>
                     </li>
                     <li><a href="index.php?page=reportes"><i class="fas fa-chart-bar"></i> Reportes</a></li>

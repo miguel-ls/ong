@@ -483,3 +483,54 @@ BEGIN
     UPDATE auxiliares SET estado = FALSE WHERE id = p_id;
 END$$
 DELIMITER ;
+
+-- Procedimientos Almacenados para la tabla de Tipos de Cambio
+DELIMITER $$
+CREATE PROCEDURE `sp_create_tipo_cambio`(
+    IN p_fecha DATE,
+    IN p_compra DECIMAL(10, 4),
+    IN p_venta DECIMAL(10, 4)
+)
+BEGIN
+    INSERT INTO tipos_cambio (fecha, compra, venta)
+    VALUES (p_fecha, p_compra, p_venta);
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE `sp_read_all_tipos_cambio`()
+BEGIN
+    SELECT * FROM tipos_cambio ORDER BY fecha DESC;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE `sp_read_tipo_cambio_by_id`(IN p_id INT)
+BEGIN
+    SELECT * FROM tipos_cambio WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE `sp_update_tipo_cambio`(
+    IN p_id INT,
+    IN p_fecha DATE,
+    IN p_compra DECIMAL(10, 4),
+    IN p_venta DECIMAL(10, 4)
+)
+BEGIN
+    UPDATE tipos_cambio
+    SET
+        fecha = p_fecha,
+        compra = p_compra,
+        venta = p_venta
+    WHERE id = p_id;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE PROCEDURE `sp_delete_tipo_cambio`(IN p_id INT)
+BEGIN
+    DELETE FROM tipos_cambio WHERE id = p_id;
+END$$
+DELIMITER ;

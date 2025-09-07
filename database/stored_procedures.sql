@@ -18,10 +18,20 @@ END$$
 DELIMITER ;
 
 -- Leer todos los usuarios
+-- Leer todos los usuarios con filtros
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_usuarios`()
+CREATE PROCEDURE `sp_read_all_usuarios`(
+    IN p_nombre VARCHAR(100),
+    IN p_email VARCHAR(100),
+    IN p_rol VARCHAR(20)
+)
 BEGIN
-    SELECT id, nombre_usuario, rol, nombres, apellidos, email, telefono, estado, is_2fa_enabled FROM usuarios;
+    SELECT id, nombre_usuario, rol, nombres, apellidos, email, telefono, estado, is_2fa_enabled
+    FROM usuarios
+    WHERE
+        (p_nombre IS NULL OR p_nombre = '' OR nombres LIKE CONCAT('%', p_nombre, '%') OR apellidos LIKE CONCAT('%', p_nombre, '%'))
+        AND (p_email IS NULL OR p_email = '' OR email LIKE CONCAT('%', p_email, '%'))
+        AND (p_rol IS NULL OR p_rol = '' OR rol = p_rol);
 END$$
 DELIMITER ;
 
@@ -107,9 +117,15 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_proyectos`()
+CREATE PROCEDURE `sp_read_all_proyectos`(
+    IN p_codigo VARCHAR(20),
+    IN p_nombre VARCHAR(255)
+)
 BEGIN
-    SELECT * FROM proyectos;
+    SELECT * FROM proyectos
+    WHERE
+        (p_codigo IS NULL OR p_codigo = '' OR codigo LIKE CONCAT('%', p_codigo, '%'))
+        AND (p_nombre IS NULL OR p_nombre = '' OR nombre LIKE CONCAT('%', p_nombre, '%'));
 END$$
 DELIMITER ;
 
@@ -165,9 +181,15 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_tipos_documento`()
+CREATE PROCEDURE `sp_read_all_tipos_documento`(
+    IN p_codigo VARCHAR(10),
+    IN p_nombre VARCHAR(100)
+)
 BEGIN
-    SELECT * FROM tipos_documento;
+    SELECT * FROM tipos_documento
+    WHERE
+        (p_codigo IS NULL OR p_codigo = '' OR codigo LIKE CONCAT('%', p_codigo, '%'))
+        AND (p_nombre IS NULL OR p_nombre = '' OR nombre LIKE CONCAT('%', p_nombre, '%'));
 END$$
 DELIMITER ;
 
@@ -218,11 +240,19 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_sub_proyectos`()
+CREATE PROCEDURE `sp_read_all_sub_proyectos`(
+    IN p_codigo VARCHAR(20),
+    IN p_nombre VARCHAR(255),
+    IN p_id_proyecto INT
+)
 BEGIN
     SELECT sp.*, p.nombre as nombre_proyecto
     FROM sub_proyectos sp
-    JOIN proyectos p ON sp.id_proyecto = p.id;
+    JOIN proyectos p ON sp.id_proyecto = p.id
+    WHERE
+        (p_codigo IS NULL OR p_codigo = '' OR sp.codigo LIKE CONCAT('%', p_codigo, '%'))
+        AND (p_nombre IS NULL OR p_nombre = '' OR sp.nombre LIKE CONCAT('%', p_nombre, '%'))
+        AND (p_id_proyecto IS NULL OR p_id_proyecto = 0 OR sp.id_proyecto = p_id_proyecto);
 END$$
 DELIMITER ;
 
@@ -275,9 +305,15 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_centros_costos`()
+CREATE PROCEDURE `sp_read_all_centros_costos`(
+    IN p_codigo VARCHAR(20),
+    IN p_nombre VARCHAR(255)
+)
 BEGIN
-    SELECT * FROM centros_costos;
+    SELECT * FROM centros_costos
+    WHERE
+        (p_codigo IS NULL OR p_codigo = '' OR codigo LIKE CONCAT('%', p_codigo, '%'))
+        AND (p_nombre IS NULL OR p_nombre = '' OR nombre LIKE CONCAT('%', p_nombre, '%'));
 END$$
 DELIMITER ;
 
@@ -327,9 +363,17 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_conceptos`()
+CREATE PROCEDURE `sp_read_all_conceptos`(
+    IN p_codigo VARCHAR(20),
+    IN p_nombre VARCHAR(255),
+    IN p_tipo VARCHAR(10)
+)
 BEGIN
-    SELECT * FROM conceptos;
+    SELECT * FROM conceptos
+    WHERE
+        (p_codigo IS NULL OR p_codigo = '' OR codigo LIKE CONCAT('%', p_codigo, '%'))
+        AND (p_nombre IS NULL OR p_nombre = '' OR nombre LIKE CONCAT('%', p_nombre, '%'))
+        AND (p_tipo IS NULL OR p_tipo = '' OR tipo = p_tipo);
 END$$
 DELIMITER ;
 
@@ -380,9 +424,15 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_tipos_auxiliar`()
+CREATE PROCEDURE `sp_read_all_tipos_auxiliar`(
+    IN p_codigo VARCHAR(10),
+    IN p_nombre VARCHAR(100)
+)
 BEGIN
-    SELECT * FROM tipos_auxiliar;
+    SELECT * FROM tipos_auxiliar
+    WHERE
+        (p_codigo IS NULL OR p_codigo = '' OR codigo LIKE CONCAT('%', p_codigo, '%'))
+        AND (p_nombre IS NULL OR p_nombre = '' OR nombre LIKE CONCAT('%', p_nombre, '%'));
 END$$
 DELIMITER ;
 
@@ -435,11 +485,19 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_auxiliares`()
+CREATE PROCEDURE `sp_read_all_auxiliares`(
+    IN p_nombre VARCHAR(255),
+    IN p_num_doc VARCHAR(20),
+    IN p_tipo_aux INT
+)
 BEGIN
     SELECT a.*, ta.nombre as nombre_tipo_auxiliar
     FROM auxiliares a
-    JOIN tipos_auxiliar ta ON a.id_tipo_auxiliar = ta.id;
+    JOIN tipos_auxiliar ta ON a.id_tipo_auxiliar = ta.id
+    WHERE
+        (p_nombre IS NULL OR p_nombre = '' OR a.razon_social_nombres LIKE CONCAT('%', p_nombre, '%'))
+        AND (p_num_doc IS NULL OR p_num_doc = '' OR a.num_doc_identidad LIKE CONCAT('%', p_num_doc, '%'))
+        AND (p_tipo_aux IS NULL OR p_tipo_aux = 0 OR a.id_tipo_auxiliar = p_tipo_aux);
 END$$
 DELIMITER ;
 
@@ -498,9 +556,16 @@ END$$
 DELIMITER ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_read_all_tipos_cambio`()
+CREATE PROCEDURE `sp_read_all_tipos_cambio`(
+    IN p_fecha_inicio DATE,
+    IN p_fecha_fin DATE
+)
 BEGIN
-    SELECT * FROM tipos_cambio ORDER BY fecha DESC;
+    SELECT * FROM tipos_cambio
+    WHERE
+        (p_fecha_inicio IS NULL OR fecha >= p_fecha_inicio)
+        AND (p_fecha_fin IS NULL OR fecha <= p_fecha_fin)
+    ORDER BY fecha DESC;
 END$$
 DELIMITER ;
 

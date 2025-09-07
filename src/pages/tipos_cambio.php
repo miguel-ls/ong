@@ -6,9 +6,14 @@ if ($_SESSION['user_role'] !== 'administrador') {
     exit();
 }
 
+// Obtener los valores del filtro
+$filter_inicio = $_GET['fecha_inicio'] ?? null;
+$filter_fin = $_GET['fecha_fin'] ?? null;
+
 try {
     $pdo = getDbConnection();
-    $stmt = $pdo->query("CALL sp_read_all_tipos_cambio()");
+    $stmt = $pdo->prepare("CALL sp_read_all_tipos_cambio(?, ?)");
+    $stmt->execute([$filter_inicio, $filter_fin]);
     $items = $stmt->fetchAll();
 } catch (PDOException $e) {
     die("Error al obtener los tipos de cambio: " . $e->getMessage());
@@ -24,6 +29,11 @@ try {
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
     .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
+    .filter-form .form-group { display: flex; flex-direction: column; }
+    .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
+    .filter-form .form-group input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
 </style>
 
 <header>
@@ -31,6 +41,20 @@ try {
 </header>
 <section>
     <a href="index.php?page=tipos_cambio_form" class="btn btn-add">Añadir Nuevo Tipo de Cambio</a>
+
+    <form action="index.php" method="GET" class="filter-form">
+        <input type="hidden" name="page" value="tipos_cambio">
+        <div class="form-group">
+            <label for="fecha_inicio">Fecha Desde</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" value="<?= htmlspecialchars($filter_inicio ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="fecha_fin">Fecha Hasta</label>
+            <input type="date" id="fecha_fin" name="fecha_fin" value="<?= htmlspecialchars($filter_fin ?? '') ?>">
+        </div>
+        <button type="submit" class="btn-filter">Filtrar</button>
+    </form>
+
     <table class="table">
         <thead>
             <tr>

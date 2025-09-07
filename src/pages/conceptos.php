@@ -6,9 +6,15 @@ if ($_SESSION['user_role'] !== 'administrador') {
     exit();
 }
 
+// Obtener los valores del filtro
+$filter_codigo = $_GET['codigo'] ?? null;
+$filter_nombre = $_GET['nombre'] ?? null;
+$filter_tipo = $_GET['tipo'] ?? null;
+
 try {
     $pdo = getDbConnection();
-    $stmt = $pdo->query("CALL sp_read_all_conceptos()");
+    $stmt = $pdo->prepare("CALL sp_read_all_conceptos(?, ?, ?)");
+    $stmt->execute([$filter_codigo, $filter_nombre, $filter_tipo]);
     $items = $stmt->fetchAll();
 } catch (PDOException $e) {
     die("Error al obtener los conceptos: " . $e->getMessage());
@@ -24,6 +30,11 @@ try {
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
     .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
+    .filter-form .form-group { display: flex; flex-direction: column; }
+    .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
+    .filter-form .form-group input, .filter-form .form-group select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
 </style>
 
 <header>
@@ -31,6 +42,28 @@ try {
 </header>
 <section>
     <a href="index.php?page=conceptos_form" class="btn btn-add">Añadir Nuevo Concepto</a>
+
+    <form action="index.php" method="GET" class="filter-form">
+        <input type="hidden" name="page" value="conceptos">
+        <div class="form-group">
+            <label for="codigo">Código</label>
+            <input type="text" id="codigo" name="codigo" value="<?= htmlspecialchars($filter_codigo ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($filter_nombre ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo">
+                <option value="">Todos</option>
+                <option value="INGRESO" <?= ($filter_tipo == 'INGRESO') ? 'selected' : '' ?>>Ingreso</option>
+                <option value="GASTO" <?= ($filter_tipo == 'GASTO') ? 'selected' : '' ?>>Gasto</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-filter">Filtrar</button>
+    </form>
+
     <table class="table">
         <thead>
             <tr>

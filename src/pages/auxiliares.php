@@ -6,10 +6,24 @@ if ($_SESSION['user_role'] !== 'administrador') {
     exit();
 }
 
+// Obtener filtros
+$filter_nombre = $_GET['nombre'] ?? null;
+$filter_num_doc = $_GET['num_doc'] ?? null;
+$filter_tipo_aux = $_GET['tipo_aux'] ?? null;
+
 try {
     $pdo = getDbConnection();
-    $stmt = $pdo->query("CALL sp_read_all_auxiliares()");
-    $items = $stmt->fetchAll();
+
+    // Obtener tipos de auxiliar para el dropdown
+    $stmt_tipos = $pdo->query("CALL sp_read_all_tipos_auxiliar(NULL, NULL)");
+    $tipos_auxiliar = $stmt_tipos->fetchAll();
+    $stmt_tipos->closeCursor();
+
+    // Obtener auxiliares filtrados
+    $stmt_items = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
+    $stmt_items->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);
+    $items = $stmt_items->fetchAll();
+
 } catch (PDOException $e) {
     die("Error al obtener los auxiliares: " . $e->getMessage());
 }
@@ -24,6 +38,11 @@ try {
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
     .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
+    .filter-form .form-group { display: flex; flex-direction: column; }
+    .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
+    .filter-form .form-group input, .filter-form .form-group select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
 </style>
 
 <header>
@@ -31,6 +50,31 @@ try {
 </header>
 <section>
     <a href="index.php?page=auxiliares_form" class="btn btn-add">Añadir Nuevo Auxiliar</a>
+
+    <form action="index.php" method="GET" class="filter-form">
+        <input type="hidden" name="page" value="auxiliares">
+        <div class="form-group">
+            <label for="nombre">Razón Social / Nombre</label>
+            <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($filter_nombre ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="num_doc">Nro. Documento</label>
+            <input type="text" id="num_doc" name="num_doc" value="<?= htmlspecialchars($filter_num_doc ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="tipo_aux">Tipo de Auxiliar</label>
+            <select id="tipo_aux" name="tipo_aux">
+                <option value="">Todos</option>
+                <?php foreach($tipos_auxiliar as $tipo): ?>
+                    <option value="<?= $tipo['id'] ?>" <?= ($filter_tipo_aux == $tipo['id']) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($tipo['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <button type="submit" class="btn-filter">Filtrar</button>
+    </form>
+
     <table class="table">
         <thead>
             <tr>

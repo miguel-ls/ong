@@ -53,6 +53,26 @@ body {
     text-align: center;
 }
 
+/* Estilos para el menú desplegable */
+.sidebar nav ul li a.dropdown-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar nav ul li .collapse a {
+    padding-left: 45px; /* Indentación para sub-menús */
+}
+
+.sidebar nav ul li a .float-indicator {
+    transition: transform 0.3s ease;
+}
+
+.sidebar nav ul li a[aria-expanded="true"] .float-indicator {
+    transform: rotate(180deg);
+}
+
+
 /* Contenido Principal */
 .main-content {
     flex-grow: 1;

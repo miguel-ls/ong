@@ -17,7 +17,10 @@
                 <ul>
                     <li><a href="index.php?page=inicio"><i class="fas fa-home"></i> Inicio</a></li>
                     <li>
-                        <a href="#mantenimientoSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-cogs"></i> Mantenimiento</a>
+                        <a href="#mantenimientoSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                            <span><i class="fas fa-cogs"></i> Mantenimiento</span>
+                            <i class="fas fa-chevron-down float-indicator"></i>
+                        </a>
                         <ul class="collapse list-unstyled" id="mantenimientoSubmenu">
                             <li><a href="index.php?page=proyectos"><i class="fas fa-project-diagram"></i> Proyectos</a></li>
                             <li><a href="index.php?page=sub_proyectos"><i class="fas fa-sitemap"></i> Sub Proyectos</a></li>
@@ -29,7 +32,10 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="#operacionesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-file-invoice-dollar"></i> Operaciones</a>
+                        <a href="#operacionesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                            <span><i class="fas fa-file-invoice-dollar"></i> Operaciones</span>
+                            <i class="fas fa-chevron-down float-indicator"></i>
+                        </a>
                         <ul class="collapse list-unstyled" id="operacionesSubmenu">
                             <li><a href="index.php?page=auxiliares"><i class="fas fa-address-book"></i> Auxiliares</a></li>
                             <li><a href="index.php?page=ingreso_documentos"><i class="fas fa-edit"></i> Ingreso de documentos</a></li>

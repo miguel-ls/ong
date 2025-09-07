@@ -9,7 +9,9 @@ function getDbConnection() {
     if ($pdo !== null) {
         try {
             // Usa una consulta ligera para verificar la conexión.
-            $pdo->query('SELECT 1');
+            // Se suprime el warning con @ porque se espera que esta consulta pueda fallar
+            // y se maneja la excepción para restablecer la conexión.
+            @$pdo->query('SELECT 1');
         } catch (\PDOException $e) {
             // La conexión se ha perdido. Anula el objeto PDO para forzar la reconexión.
             $pdo = null;

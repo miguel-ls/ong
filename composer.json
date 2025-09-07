@@ -3,7 +3,8 @@
     "description": "Sistema de gestion documentaria para una ONG.",
     "require": {
         "php": ">=7.0",
-        "pragmarx/google2fa-qrcode": "^2.0"
+        "pragmarx/google2fa-qrcode": "^2.0",
+        "chillerlan/php-qrcode": "^4.3"
     },
     "authors": [
         {

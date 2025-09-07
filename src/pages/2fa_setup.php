@@ -64,7 +64,7 @@ $qrCodeImage = (new \chillerlan\QRCode\QRCode)->render($qrCodeUrl);
         <img src="<?= htmlspecialchars($qrCodeImage) ?>" alt="QR Code">
     </div>
 
-    <p>Si no puede escanear el código, puede introducir manualmente esta clave:</p>
+    <p>Si no puede escanear el código, puede introducir manually esta clave:</p>
     <p class="secret-key"><?= htmlspecialchars($secretKey) ?></p>
 
     <form action="../src/actions/2fa_setup_process.php" method="POST">

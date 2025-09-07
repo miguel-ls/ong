@@ -13,7 +13,8 @@ $tipos_auxiliar = [];
 try {
     $pdo = getDbConnection();
     // Obtener todos los tipos para el dropdown
-    $stmt_tipos = $pdo->query("CALL sp_read_all_tipos_auxiliar()");
+    $stmt_tipos = $pdo->prepare("CALL sp_read_all_tipos_auxiliar(?, ?)");
+    $stmt_tipos->execute([null, null]);
     $tipos_auxiliar = $stmt_tipos->fetchAll();
     $stmt_tipos->closeCursor();
 

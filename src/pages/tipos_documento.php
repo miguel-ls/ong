@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../database.php';
 
-// Solo los administradores pueden ver esta página
 if ($_SESSION['user_role'] !== 'administrador') {
     echo "<p>Acceso denegado.</p>";
     exit();

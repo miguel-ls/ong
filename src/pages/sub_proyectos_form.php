@@ -13,9 +13,10 @@ $proyectos = [];
 try {
     $pdo = getDbConnection();
     // Obtener todos los proyectos para el dropdown
-    $stmt_proyectos = $pdo->query("CALL sp_read_all_proyectos()");
+    $stmt_proyectos = $pdo->prepare("CALL sp_read_all_proyectos(?, ?)");
+    $stmt_proyectos->execute([null, null]);
     $proyectos = $stmt_proyectos->fetchAll();
-    $stmt_proyectos->closeCursor(); // Limpiar para la siguiente consulta
+    $stmt_proyectos->closeCursor();
 
     if (isset($_GET['id'])) {
         $is_edit = true;

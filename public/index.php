@@ -1,14 +1,12 @@
 <?php
 session_start();
 
-// Si el usuario no está logueado, redirigir a la página de login
+// Si el usuario no está logueado, redirigir a la página de login.
+// Todas las páginas manejadas por este enrutador son protegidas.
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
-
-// Incluir configuración y funciones globales aquí en el futuro
-// require_once('../src/config.php');
 
 // Incluir el header
 require_once('../src/includes/header.php');

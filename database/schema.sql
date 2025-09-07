@@ -92,6 +92,15 @@ CREATE TABLE `conceptos` (
   `estado` BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+-- Tabla de Tipos de Cambio
+CREATE TABLE `tipos_cambio` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `fecha` DATE NOT NULL UNIQUE,
+  `compra` DECIMAL(10, 4) NOT NULL,
+  `venta` DECIMAL(10, 4) NOT NULL,
+  `fecha_registro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Tabla Principal de Documentos
 CREATE TABLE `documentos` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -120,13 +129,4 @@ CREATE TABLE `documentos` (
   FOREIGN KEY (`id_auxiliar`) REFERENCES `auxiliares`(`id`),
   FOREIGN KEY (`id_concepto`) REFERENCES `conceptos`(`id`),
   FOREIGN KEY (`id_usuario_registro`) REFERENCES `usuarios`(`id`)
-);
-
--- Tabla de Tipos de Cambio
-CREATE TABLE `tipos_cambio` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `fecha` DATE NOT NULL UNIQUE,
-  `compra` DECIMAL(10, 4) NOT NULL,
-  `venta` DECIMAL(10, 4) NOT NULL,
-  `fecha_registro` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

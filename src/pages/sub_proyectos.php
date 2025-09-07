@@ -15,7 +15,8 @@ try {
     $pdo = getDbConnection();
 
     // Obtener lista de proyectos para el dropdown del filtro
-    $stmt_proyectos = $pdo->query("CALL sp_read_all_proyectos(NULL, NULL)");
+    $stmt_proyectos = $pdo->prepare("CALL sp_read_all_proyectos(?, ?)");
+    $stmt_proyectos->execute([null, null]);
     $proyectos = $stmt_proyectos->fetchAll();
     $stmt_proyectos->closeCursor();
 

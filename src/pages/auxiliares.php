@@ -15,8 +15,8 @@ try {
     $pdo = getDbConnection();
 
     // Obtener tipos de auxiliar para el dropdown
-    $stmt_tipos = $pdo->prepare("CALL sp_read_all_tipos_auxiliar(?, ?)");
-    $stmt_tipos->execute([null, null]);
+    $stmt_tipos = $pdo->prepare("CALL sp_read_tipos_auxiliar_for_dropdown()");
+    $stmt_tipos->execute();
     $tipos_auxiliar = $stmt_tipos->fetchAll();
     $stmt_tipos->closeCursor();
 

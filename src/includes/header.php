@@ -25,13 +25,13 @@
                             <li><a href="index.php?page=tipos_documento"><i class="fas fa-file-alt"></i> Tipos de Documento</a></li>
                             <li><a href="index.php?page=conceptos"><i class="fas fa-lightbulb"></i> Conceptos</a></li>
                             <li><a href="index.php?page=tipos_auxiliar"><i class="fas fa-tags"></i> Tipos de Auxiliar</a></li>
-                            <li><a href="index.php?page=auxiliares"><i class="fas fa-address-book"></i> Auxiliares</a></li>
                             <li><a href="index.php?page=usuarios"><i class="fas fa-users"></i> Usuarios</a></li>
                         </ul>
                     </li>
                     <li>
                         <a href="#operacionesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle"><i class="fas fa-file-invoice-dollar"></i> Operaciones</a>
                         <ul class="collapse list-unstyled" id="operacionesSubmenu">
+                            <li><a href="index.php?page=auxiliares"><i class="fas fa-address-book"></i> Auxiliares</a></li>
                             <li><a href="index.php?page=ingreso_documentos"><i class="fas fa-edit"></i> Ingreso de documentos</a></li>
                         </ul>
                     </li>

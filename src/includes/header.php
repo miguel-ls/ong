@@ -25,11 +25,16 @@
                             <li><a href="index.php?page=conceptos">Conceptos</a></li>
                             <li><a href="index.php?page=tipos_auxiliar">Tipos de Auxiliar</a></li>
                             <li><a href="index.php?page=auxiliares">Auxiliares</a></li>
+                            <li><a href="index.php?page=usuarios">Usuarios</a></li>
                         </ul>
                     </li>
-                    <li><a href="index.php?page=operaciones">Operaciones</a></li>
+                    <li>
+                        <a href="#operacionesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Operaciones</a>
+                        <ul class="collapse list-unstyled" id="operacionesSubmenu">
+                            <li><a href="index.php?page=ingreso_documentos">Ingreso de documentos</a></li>
+                        </ul>
+                    </li>
                     <li><a href="index.php?page=reportes">Reportes</a></li>
-                    <li><a href="index.php?page=usuarios">Usuarios</a></li>
                 </ul>
             </nav>
         </aside>

@@ -1,0 +1,14 @@
+{
+    "name": "ong/document-manager",
+    "description": "Sistema de gestion documentaria para una ONG.",
+    "require": {
+        "php": ">=7.0",
+        "pragmarx/google2fa-qrcode": "^2.0"
+    },
+    "authors": [
+        {
+            "name": "Jules AI",
+            "email": "jules@example.com"
+        }
+    ]
+}

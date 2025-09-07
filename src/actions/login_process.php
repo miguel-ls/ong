@@ -33,15 +33,22 @@ try {
             exit();
         }
 
-        // --- Lógica de 2FA (se implementará después) ---
-        // Por ahora, iniciamos sesión directamente.
+        // Verificar si 2FA está habilitado para este usuario
+        if ($user['is_2fa_enabled']) {
+            // 2FA está activado. No iniciar sesión completamente todavía.
+            // Guardar el ID de usuario en una sesión temporal y redirigir a la página de verificación de 2FA.
+            $_SESSION['2fa_pending_user_id'] = $user['id'];
+            header('Location: ../../public/2fa_verify.php');
+            exit();
+        } else {
+            // 2FA no está activado. Iniciar sesión directamente.
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['nombre_usuario'];
+            $_SESSION['user_role'] = $user['rol'];
 
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['nombre_usuario'];
-        $_SESSION['user_role'] = $user['rol'];
-
-        header('Location: ../../public/index.php?page=inicio');
-        exit();
+            header('Location: ../../public/index.php?page=inicio');
+            exit();
+        }
 
     } else {
         // Usuario no encontrado o contraseña incorrecta

@@ -12,6 +12,7 @@ CREATE TABLE `usuarios` (
   `email` VARCHAR(100) NOT NULL UNIQUE,
   `telefono` VARCHAR(20),
   `secret_2fa` VARCHAR(255), -- Para la autenticación de 2 factores
+  `is_2fa_enabled` BOOLEAN NOT NULL DEFAULT FALSE,
   `estado` BOOLEAN NOT NULL DEFAULT TRUE,
   `fecha_creacion` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -21,7 +21,7 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_usuarios`()
 BEGIN
-    SELECT id, nombre_usuario, rol, nombres, apellidos, email, telefono, estado FROM usuarios;
+    SELECT id, nombre_usuario, rol, nombres, apellidos, email, telefono, estado, is_2fa_enabled FROM usuarios;
 END$$
 DELIMITER ;
 
@@ -29,7 +29,7 @@ DELIMITER ;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_usuario_by_id`(IN p_id INT)
 BEGIN
-    SELECT id, nombre_usuario, rol, nombres, apellidos, email, telefono, estado FROM usuarios WHERE id = p_id;
+    SELECT id, nombre_usuario, rol, nombres, apellidos, email, telefono, estado, secret_2fa, is_2fa_enabled FROM usuarios WHERE id = p_id;
 END$$
 DELIMITER ;
 
@@ -74,13 +74,19 @@ END$$
 DELIMITER ;
 
 -- Actualizar el secreto de 2FA para un usuario
+-- Actualizar la configuración de 2FA para un usuario
 DELIMITER $$
-CREATE PROCEDURE `sp_update_2fa_secret`(
+CREATE PROCEDURE `sp_update_usuario_2fa`(
     IN p_id INT,
-    IN p_secret_2fa VARCHAR(255)
+    IN p_secret_2fa VARCHAR(255),
+    IN p_is_2fa_enabled BOOLEAN
 )
 BEGIN
-    UPDATE usuarios SET secret_2fa = p_secret_2fa WHERE id = p_id;
+    UPDATE usuarios
+    SET
+        secret_2fa = p_secret_2fa,
+        is_2fa_enabled = p_is_2fa_enabled
+    WHERE id = p_id;
 END$$
 DELIMITER ;
 

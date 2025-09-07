@@ -1,0 +1,66 @@
+/* Estilos Generales */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background-color: #f4f7fa;
+    color: #333;
+}
+
+.container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Menú Lateral */
+.sidebar {
+    width: 240px;
+    background-color: #004a99; /* Azul oscuro */
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding-top: 20px;
+}
+
+.sidebar .logo {
+    text-align: center;
+    padding-bottom: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    border-bottom: 1px solid #005cb3;
+}
+
+.sidebar nav ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sidebar nav ul li a {
+    display: block;
+    padding: 15px 20px;
+    color: #fff;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.sidebar nav ul li a:hover {
+    background-color: #005cb3; /* Azul un poco más claro */
+}
+
+/* Contenido Principal */
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+.main-content header {
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+.main-content h1 {
+    margin: 0;
+    font-size: 28px;
+    color: #004a99;
+}

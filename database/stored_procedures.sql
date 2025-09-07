@@ -1,6 +1,9 @@
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Usuarios
+-- =================================================================
 
 -- Crear un nuevo usuario
+DROP PROCEDURE IF EXISTS sp_create_usuario;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_usuario`(
     IN p_nombre_usuario VARCHAR(50),
@@ -17,8 +20,8 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Leer todos los usuarios
 -- Leer todos los usuarios con filtros
+DROP PROCEDURE IF EXISTS sp_read_all_usuarios;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_usuarios`(
     IN p_nombre VARCHAR(100),
@@ -36,6 +39,7 @@ END$$
 DELIMITER ;
 
 -- Leer un usuario por ID
+DROP PROCEDURE IF EXISTS sp_read_usuario_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_usuario_by_id`(IN p_id INT)
 BEGIN
@@ -44,6 +48,7 @@ END$$
 DELIMITER ;
 
 -- Leer un usuario por nombre de usuario (para login)
+DROP PROCEDURE IF EXISTS sp_read_usuario_by_username;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_usuario_by_username`(IN p_nombre_usuario VARCHAR(50))
 BEGIN
@@ -52,6 +57,7 @@ END$$
 DELIMITER ;
 
 -- Actualizar un usuario
+DROP PROCEDURE IF EXISTS sp_update_usuario;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_usuario`(
     IN p_id INT,
@@ -76,6 +82,7 @@ END$$
 DELIMITER ;
 
 -- Eliminar un usuario (cambio de estado)
+DROP PROCEDURE IF EXISTS sp_delete_usuario;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_usuario`(IN p_id INT)
 BEGIN
@@ -83,8 +90,8 @@ BEGIN
 END$$
 DELIMITER ;
 
--- Actualizar el secreto de 2FA para un usuario
 -- Actualizar la configuración de 2FA para un usuario
+DROP PROCEDURE IF EXISTS sp_update_usuario_2fa;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_usuario_2fa`(
     IN p_id INT,
@@ -100,7 +107,12 @@ BEGIN
 END$$
 DELIMITER ;
 
+
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Proyectos
+-- =================================================================
+
+DROP PROCEDURE IF EXISTS sp_create_proyecto;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_proyecto`(
     IN p_codigo VARCHAR(20),
@@ -116,6 +128,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_all_proyectos;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_proyectos`(
     IN p_codigo VARCHAR(20),
@@ -129,6 +142,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_proyecto_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_proyecto_by_id`(IN p_id INT)
 BEGIN
@@ -136,6 +150,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_update_proyecto;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_proyecto`(
     IN p_id INT,
@@ -159,6 +174,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_delete_proyecto;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_proyecto`(IN p_id INT)
 BEGIN
@@ -167,7 +183,11 @@ END$$
 DELIMITER ;
 
 
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Tipos de Documento
+-- =================================================================
+
+DROP PROCEDURE IF EXISTS sp_create_tipo_documento;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_tipo_documento`(
     IN p_codigo VARCHAR(10),
@@ -180,6 +200,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_all_tipos_documento;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_tipos_documento`(
     IN p_codigo VARCHAR(10),
@@ -193,6 +214,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_tipo_documento_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_tipo_documento_by_id`(IN p_id INT)
 BEGIN
@@ -200,6 +222,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_update_tipo_documento;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_tipo_documento`(
     IN p_id INT,
@@ -217,6 +240,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_delete_tipo_documento;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_tipo_documento`(IN p_id INT)
 BEGIN
@@ -224,7 +248,12 @@ BEGIN
 END$$
 DELIMITER ;
 
+
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Sub Proyectos
+-- =================================================================
+
+DROP PROCEDURE IF EXISTS sp_create_sub_proyecto;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_sub_proyecto`(
     IN p_id_proyecto INT,
@@ -239,6 +268,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_all_sub_proyectos;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_sub_proyectos`(
     IN p_codigo VARCHAR(20),
@@ -256,6 +286,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_sub_proyecto_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_sub_proyecto_by_id`(IN p_id INT)
 BEGIN
@@ -263,6 +294,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_update_sub_proyecto;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_sub_proyecto`(
     IN p_id INT,
@@ -284,6 +316,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_delete_sub_proyecto;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_sub_proyecto`(IN p_id INT)
 BEGIN
@@ -291,7 +324,12 @@ BEGIN
 END$$
 DELIMITER ;
 
+
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Centros de Costos
+-- =================================================================
+
+DROP PROCEDURE IF EXISTS sp_create_centro_costo;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_centro_costo`(
     IN p_codigo VARCHAR(20),
@@ -304,6 +342,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_all_centros_costos;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_centros_costos`(
     IN p_codigo VARCHAR(20),
@@ -317,6 +356,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_centro_costo_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_centro_costo_by_id`(IN p_id INT)
 BEGIN
@@ -324,6 +364,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_update_centro_costo;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_centro_costo`(
     IN p_id INT,
@@ -341,6 +382,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_delete_centro_costo;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_centro_costo`(IN p_id INT)
 BEGIN
@@ -348,7 +390,12 @@ BEGIN
 END$$
 DELIMITER ;
 
+
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Conceptos
+-- =================================================================
+
+DROP PROCEDURE IF EXISTS sp_create_concepto;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_concepto`(
     IN p_codigo VARCHAR(20),
@@ -362,6 +409,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_all_conceptos;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_conceptos`(
     IN p_codigo VARCHAR(20),
@@ -377,6 +425,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_concepto_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_concepto_by_id`(IN p_id INT)
 BEGIN
@@ -384,6 +433,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_update_concepto;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_concepto`(
     IN p_id INT,
@@ -403,6 +453,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_delete_concepto;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_concepto`(IN p_id INT)
 BEGIN
@@ -410,7 +461,12 @@ BEGIN
 END$$
 DELIMITER ;
 
+
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Tipos de Auxiliar
+-- =================================================================
+
+DROP PROCEDURE IF EXISTS sp_create_tipo_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_tipo_auxiliar`(
     IN p_codigo VARCHAR(10),
@@ -423,6 +479,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_all_tipos_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_tipos_auxiliar`(
     IN p_codigo VARCHAR(10),
@@ -436,6 +493,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_tipo_auxiliar_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_tipo_auxiliar_by_id`(IN p_id INT)
 BEGIN
@@ -443,6 +501,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_update_tipo_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_tipo_auxiliar`(
     IN p_id INT,
@@ -460,6 +519,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_delete_tipo_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_tipo_auxiliar`(IN p_id INT)
 BEGIN
@@ -467,7 +527,12 @@ BEGIN
 END$$
 DELIMITER ;
 
+
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Auxiliares
+-- =================================================================
+
+DROP PROCEDURE IF EXISTS sp_create_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_auxiliar`(
     IN p_id_tipo_auxiliar INT,
@@ -484,6 +549,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_all_auxiliares;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_auxiliares`(
     IN p_nombre VARCHAR(255),
@@ -501,6 +567,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_auxiliar_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_auxiliar_by_id`(IN p_id INT)
 BEGIN
@@ -508,6 +575,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_update_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_auxiliar`(
     IN p_id INT,
@@ -535,6 +603,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_delete_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_auxiliar`(IN p_id INT)
 BEGIN
@@ -542,7 +611,12 @@ BEGIN
 END$$
 DELIMITER ;
 
+
+-- =================================================================
 -- Procedimientos Almacenados para la tabla de Tipos de Cambio
+-- =================================================================
+
+DROP PROCEDURE IF EXISTS sp_create_tipo_cambio;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_tipo_cambio`(
     IN p_fecha DATE,
@@ -555,6 +629,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_all_tipos_cambio;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_all_tipos_cambio`(
     IN p_fecha_inicio DATE,
@@ -569,6 +644,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_read_tipo_cambio_by_id;
 DELIMITER $$
 CREATE PROCEDURE `sp_read_tipo_cambio_by_id`(IN p_id INT)
 BEGIN
@@ -576,6 +652,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_update_tipo_cambio;
 DELIMITER $$
 CREATE PROCEDURE `sp_update_tipo_cambio`(
     IN p_id INT,
@@ -593,6 +670,7 @@ BEGIN
 END$$
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS sp_delete_tipo_cambio;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_tipo_cambio`(IN p_id INT)
 BEGIN

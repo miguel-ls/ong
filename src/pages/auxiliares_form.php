@@ -145,31 +145,40 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function updateDocumentLength() {
         const selectedId = tipoDocSelect.value;
-        numDocInput.removeAttribute('maxlength');
-
-        if (!selectedId) return;
+        // No limpiar el maxlength aquí, solo quitarlo si no hay tipo
+        if (!selectedId) {
+            numDocInput.removeAttribute('maxlength');
+            return;
+        }
 
         try {
             const response = await fetch(`../src/ajax/get_tipo_documento_identidad_longitud.php?id=${selectedId}`);
-            if (!response.ok) return;
+            if (!response.ok) {
+                numDocInput.removeAttribute('maxlength');
+                return;
+            }
 
             const data = await response.json();
             if (data && data.longitud && data.longitud > 0) {
                 numDocInput.maxLength = data.longitud;
+            } else {
+                numDocInput.removeAttribute('maxlength');
             }
         } catch (error) {
             console.error('Error al obtener la longitud del tipo de documento:', error);
+            numDocInput.removeAttribute('maxlength');
         }
     }
 
     // --- Event Listeners ---
     tipoDocSelect.addEventListener('change', function() {
-        numDocInput.value = ''; // Limpiar el valor solo en el cambio manual
+        numDocInput.value = ''; // Limpiar el valor del número solo en el cambio manual
         updateSunatButtonVisibility();
         updateDocumentLength();
     });
 
     // --- Carga Inicial ---
+    // Llamar a las funciones para establecer el estado inicial de la página
     updateSunatButtonVisibility();
     updateDocumentLength();
 

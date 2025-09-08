@@ -713,7 +713,19 @@ DROP PROCEDURE IF EXISTS sp_delete_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_auxiliar`(IN p_id INT)
 BEGIN
-    UPDATE auxiliares SET estado = FALSE WHERE id = p_id;
+    DECLARE doc_count INT;
+
+    -- Verificar si existen documentos asociados
+    SELECT COUNT(*) INTO doc_count FROM documentos WHERE id_auxiliar = p_id;
+
+    IF doc_count > 0 THEN
+        -- Si hay documentos, no se puede eliminar. Devolver un status.
+        SELECT 'HAS_DOCS' AS status;
+    ELSE
+        -- Si no hay documentos, eliminar permanentemente.
+        DELETE FROM auxiliares WHERE id = p_id;
+        SELECT 'DELETED' AS status;
+    END IF;
 END$$
 DELIMITER ;
 

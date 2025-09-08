@@ -45,6 +45,13 @@ try {
         case 'delete':
             $stmt = $pdo->prepare("CALL sp_delete_auxiliar(?)");
             $stmt->execute([$_GET['id']]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($result['status'] === 'HAS_DOCS') {
+                header('Location: ../../public/index.php?page=auxiliares&error=delete_failed_has_docs');
+                exit();
+            }
+            // Si es 'DELETED', la redirección de éxito al final del script se encargará.
             break;
 
         default:

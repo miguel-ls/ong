@@ -55,6 +55,11 @@ try {
     <h1>Mantenimiento de Auxiliares</h1>
 </header>
 <section>
+    <?php if (isset($_GET['error']) && $_GET['error'] === 'delete_failed_has_docs'): ?>
+        <script>
+            alert('No se puede eliminar el auxiliar porque tiene documentos asociados.');
+        </script>
+    <?php endif; ?>
     <a href="index.php?page=auxiliares_form" class="btn btn-add">Añadir Nuevo Auxiliar</a>
 
     <form action="index.php" method="GET" class="filter-form">

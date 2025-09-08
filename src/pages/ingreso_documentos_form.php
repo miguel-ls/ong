@@ -423,16 +423,8 @@ document.addEventListener('DOMContentLoaded', function() {
             newRow.querySelector('.concepto-cell').appendChild(conceptoSelect);
         });
 
-        // Disparar el evento change en proyecto para cargar subproyectos
+        // Disparar el evento change en proyecto para cargar subproyectos y seleccionar el valor correcto
         proyectoSelect.dispatchEvent(new Event('change'));
-
-        // Esperar un momento para que el AJAX de subproyectos termine y luego seleccionar el valor
-        setTimeout(() => {
-            const subProyectoInput = document.querySelector('[name="id_sub_proyecto"]');
-            if (subProyectoInput) {
-                subProyectoInput.value = documentoData.header.id_sub_proyecto;
-            }
-        }, 500); // 500ms de espera, puede necesitar ajuste
 
         // Poblar totales iniciales desde la cabecera guardada
         document.getElementById('subtotal').textContent = parseFloat(documentoData.header.subtotal).toFixed(2);
@@ -451,14 +443,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function toggleCurrencyColumns() {
         const selectedMoneda = monedaSelect.value;
-        const showSoles = selectedMoneda === 'DOLARES';
-        const showDolares = selectedMoneda === 'SOLES';
+        const hideSoles = selectedMoneda === 'DOLARES';
+        const hideDolares = selectedMoneda === 'SOLES';
 
         document.querySelectorAll('.col-soles').forEach(el => {
-            el.style.display = showSoles ? '' : 'none';
+            el.style.display = hideSoles ? 'none' : '';
         });
         document.querySelectorAll('.col-dolares').forEach(el => {
-            el.style.display = showDolares ? '' : 'none';
+            el.style.display = hideDolares ? 'none' : '';
         });
     }
 
@@ -497,6 +489,11 @@ document.addEventListener('DOMContentLoaded', function() {
                      subproyectoSelect.innerHTML = '<option value="">No hay sub proyectos</option>';
                 }
                 subproyectoSelect.disabled = false;
+
+                // Si estamos en modo de edición, intentamos seleccionar el subproyecto guardado.
+                if (documentoData && documentoData.header.id_sub_proyecto) {
+                    subproyectoSelect.value = documentoData.header.id_sub_proyecto;
+                }
             })
             .catch(error => {
                 console.error('Error al cargar subproyectos:', error);

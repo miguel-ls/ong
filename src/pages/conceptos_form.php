@@ -58,6 +58,10 @@ if (isset($_GET['id'])) {
             </select>
         </div>
         <div class="form-group">
+            <label for="cuenta_contable">Cuenta Contable</label>
+            <input type="text" id="cuenta_contable" name="cuenta_contable" value="<?= htmlspecialchars($item['cuenta_contable'] ?? '') ?>" maxlength="20">
+        </div>
+        <div class="form-group">
             <label for="descripcion">Descripción</label>
             <textarea id="descripcion" name="descripcion" rows="3"><?= htmlspecialchars($item['descripcion'] ?? '') ?></textarea>
         </div>

@@ -84,17 +84,7 @@ try {
 </header>
 
 <section class="form-container">
-    <?php if (isset($_GET['error']) && $_GET['error'] === 'tipo_cambio_zero'): ?>
-        <div style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px;">
-            <strong>Error:</strong> El tipo de cambio debe ser mayor a cero para poder guardar el documento.
-        </div>
-    <?php elseif (isset($_GET['error'])): ?>
-        <div style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px;">
-            <strong>Error al guardar el documento:</strong><br>
-            <?= htmlspecialchars(urldecode($_GET['error'])) ?>
-        </div>
-    <?php endif; ?>
-    <form action="../src/actions/documentos_process.php" method="POST">
+    <form id="documento-form" action="../src/actions/documentos_process.php" method="POST">
         <input type="hidden" name="id_documento" value="<?= htmlspecialchars($documento['id'] ?? '') ?>">
 
         <div class="form-section">
@@ -207,9 +197,7 @@ try {
                         <th style="width: 5%;"></th>
                     </tr>
                 </thead>
-                <tbody id="details-tbody">
-                    <!-- Filas de detalle se añadirán aquí con JS -->
-                </tbody>
+                <tbody id="details-tbody"></tbody>
                 <tfoot>
                     <tr class="total-row">
                         <td colspan="5">SUBTOTAL</td>
@@ -245,26 +233,24 @@ try {
 </section>
 
 <script>
-// Poner los datos del documento (en modo edición) y de los combos en variables globales de JS
 const isEditMode = <?= json_encode($is_edit_mode) ?>;
 const documentoData = <?= $documento_data_json ?? 'null' ?>;
 const conceptosData = <?= json_encode($conceptos) ?>;
 
 document.addEventListener('DOMContentLoaded', function() {
-    const numeroDocumentoInput = document.getElementById('numero_documento');
+    const mainForm = document.getElementById('documento-form');
     const detailsTbody = document.getElementById('details-tbody');
     const btnAddRow = document.getElementById('btn-add-row');
-
-    numeroDocumentoInput.addEventListener('blur', function() {
-        let value = this.value.trim();
-        if (value.length > 0 && value.length < 8) {
-            this.value = value.padStart(8, '0');
-        }
-    });
+    const monedaSelect = document.getElementById('moneda');
+    const tipoCambioInput = document.getElementById('tipo_cambio');
+    const proyectoSelect = document.getElementById('id_proyecto');
+    const subproyectoSelect = document.getElementById('id_sub_proyecto');
+    const fechaEmisionInput = document.getElementById('fecha_emision');
+    const btnRefreshTC = document.getElementById('btn-refresh-tc');
 
     function calculateAll() {
-        const moneda = document.getElementById('moneda').value;
-        const tipoCambio = parseFloat(document.getElementById('tipo_cambio').value) || 1.0;
+        const moneda = monedaSelect.value;
+        const tipoCambio = parseFloat(tipoCambioInput.value) || 1.0;
         let grandSubtotal = 0;
         detailsTbody.querySelectorAll('tr').forEach(row => {
             const cantidad = parseFloat(row.querySelector('input[name*="[cantidad]"]').value) || 0;
@@ -285,8 +271,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         const grandIgv = grandSubtotal * 0.18;
         const grandTotal = grandSubtotal + grandIgv;
-        const grandTotalSoles = (moneda === 'SOLES') ? grandTotal : grandTotal * tipoCambio;
-        const grandTotalDolares = (moneda === 'DOLARES') ? grandTotal : grandTotal / tipoCambio;
+        const grandTotalSoles = (moneda === 'SOLES') ? grandTotal : (grandTotal * tipoCambio);
+        const grandTotalDolares = (moneda === 'DOLARES') ? grandTotal : (grandTotal / (tipoCambio || 1));
         document.getElementById('subtotal').textContent = grandSubtotal.toFixed(2);
         document.getElementById('igv').textContent = grandIgv.toFixed(2);
         document.getElementById('total').textContent = grandTotal.toFixed(2);
@@ -316,7 +302,6 @@ document.addEventListener('DOMContentLoaded', function() {
             optionsHtml += `<option value="${con.id}" ${isSelected}>${escapeHTML(con.nombre)}</option>`;
         });
         conceptoSelect.innerHTML = optionsHtml;
-
         newRow.innerHTML = `
             <td>${index + 1}</td>
             <td><input type="number" name="detalle[${index}][cantidad]" value="${item ? item.cantidad : '1.00'}" step="0.01" class="row-input"></td>
@@ -340,38 +325,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateRowIndices();
                 calculateAll();
             } else {
-                alert('No se puede eliminar la última fila.');
+                showAlertModal('No se puede eliminar la última fila.');
             }
         }
     });
 
     document.querySelector('.form-container').addEventListener('input', function(e) {
-        if (e.target && (e.target.classList.contains('row-input') || e.target.id === 'tipo_cambio' || e.target.id === 'moneda')) {
+        if (e.target.classList.contains('row-input') || e.target.id === 'tipo_cambio' || e.target.id === 'moneda') {
             calculateAll();
         }
     });
 
     function escapeHTML(str) {
+        if (str === null || str === undefined) return '';
         const p = document.createElement("p");
         p.textContent = str;
         return p.innerHTML;
     }
-
-    const monedaSelect = document.getElementById('moneda');
-    const proyectoSelect = document.getElementById('id_proyecto');
-    const subproyectoSelect = document.getElementById('id_sub_proyecto');
-
-    function toggleCurrencyColumns() {
-        // ... (lógica existente)
-    }
-
-    async function loadAndSelectSubProyecto() {
-        // ... (lógica existente)
-    }
-
-    const fechaEmisionInput = document.getElementById('fecha_emision');
-    const tipoCambioInput = document.getElementById('tipo_cambio');
-    const btnRefreshTC = document.getElementById('btn-refresh-tc');
 
     async function fetchAndSetTipoCambio() {
         const fecha = fechaEmisionInput.value;
@@ -382,32 +352,94 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             if (data && data.venta !== undefined) {
                 tipoCambioInput.value = parseFloat(data.venta).toFixed(4);
-                tipoCambioInput.dispatchEvent(new Event('input', { bubbles: true }));
             } else {
                 tipoCambioInput.value = (0.0).toFixed(4);
-                tipoCambioInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
+            tipoCambioInput.dispatchEvent(new Event('input', { bubbles: true }));
         } catch (error) {
             console.error('Error al obtener el tipo de cambio:', error);
         }
     }
 
-    monedaSelect.addEventListener('change', toggleCurrencyColumns);
-    proyectoSelect.addEventListener('change', loadAndSelectSubProyecto);
+    async function refreshDropdown(selectElement, url, dependencyId = null) {
+        const originalValue = selectElement.value;
+        let fetchUrl = url;
+        if (dependencyId) {
+            const dependencyValue = document.getElementById(dependencyId).value;
+            if (!dependencyValue) {
+                selectElement.innerHTML = '<option value="">Seleccione una dependencia primero</option>';
+                return;
+            }
+            fetchUrl = `${url}?id_proyecto=${dependencyValue}`;
+        }
+        selectElement.innerHTML = '<option value="">Cargando...</option>';
+        try {
+            const response = await fetch(fetchUrl);
+            const data = await response.json();
+            selectElement.innerHTML = '<option value="">Seleccione...</option>';
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.nombre;
+                if (item.id == originalValue) option.selected = true;
+                selectElement.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error al refrescar dropdown:', error);
+            selectElement.innerHTML = '<option value="">Error al cargar</option>';
+        }
+    }
+
+    proyectoSelect.addEventListener('change', () => refreshDropdown(subproyectoSelect, '../src/ajax/get_subproyectos.php', 'id_proyecto'));
     btnRefreshTC.addEventListener('click', fetchAndSetTipoCambio);
     fechaEmisionInput.addEventListener('change', fetchAndSetTipoCambio);
+    document.querySelectorAll('.btn-refresh').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.dataset.target;
+            const sourceUrl = this.dataset.source;
+            const selectElement = document.getElementById(targetId);
+            refreshDropdown(selectElement, sourceUrl, targetId === 'id_sub_proyecto' ? 'id_proyecto' : null);
+        });
+    });
 
     if (isEditMode && documentoData) {
         documentoData.detail.forEach(item => createNewDetailRow(item));
-        loadAndSelectSubProyecto();
-        calculateAll();
-        toggleCurrencyColumns();
+        refreshDropdown(subproyectoSelect, '../src/ajax/get_subproyectos.php', 'id_proyecto').then(() => {
+            if (documentoData.header.id_sub_proyecto) {
+                subproyectoSelect.value = documentoData.header.id_sub_proyecto;
+            }
+        });
     } else {
         createNewDetailRow();
-        toggleCurrencyColumns();
         fetchAndSetTipoCambio();
     }
+    calculateAll();
 
-    // ... (lógica de envío AJAX existente) ...
+    mainForm.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const saveButton = this.querySelector('.btn-save');
+        saveButton.disabled = true;
+        saveButton.textContent = 'Guardando...';
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch(this.action, { method: 'POST', body: formData });
+            if (!response.ok) throw new Error(`Error de red: ${response.statusText}`);
+            const result = await response.json();
+            if (result.status === 'success') {
+                showAlertModal(result.message);
+                document.getElementById('modalOkButton').onclick = function() {
+                    window.location.href = 'index.php?page=ingreso_documentos';
+                };
+            } else {
+                showAlertModal(result.message || 'Ocurrió un error desconocido.');
+            }
+        } catch (error) {
+            showAlertModal(`Error en el envío del formulario: ${error.message}`);
+        } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = 'Guardar Documento';
+        }
+    });
 });
 </script>

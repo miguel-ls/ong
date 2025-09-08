@@ -11,18 +11,27 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Evento para cerrar el modal
-    if (modalOkButton && modal) {
-        modalOkButton.addEventListener('click', function() {
+    // Función para adjuntar el evento de cierre al botón OK
+    function closeModal() {
+        if (modal) {
             modal.style.display = 'none';
-        });
+        }
+        // Limpiar el evento onclick para que no se acumulen si se reutiliza el modal para diferentes acciones
+        if (modalOkButton) {
+            modalOkButton.onclick = closeModal;
+        }
+    }
+
+    // Evento para cerrar el modal con el botón OK
+    if (modalOkButton) {
+        modalOkButton.addEventListener('click', closeModal);
     }
 
     // Opcional: cerrar el modal si se hace clic fuera de él
     if (modal) {
         modal.addEventListener('click', function(event) {
             if (event.target === modal) {
-                modal.style.display = 'none';
+                closeModal();
             }
         });
     }

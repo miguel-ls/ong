@@ -25,9 +25,11 @@
                             <li><a href="index.php?page=proyectos">Proyectos</a></li>
                             <li><a href="index.php?page=sub_proyectos">Sub Proyectos</a></li>
                             <li><a href="index.php?page=centros_costos">Centros de Costos</a></li>
-                            <li><a href="index.php?page=tipos_documento">Tipos de Documento</a></li>
                             <li><a href="index.php?page=conceptos">Conceptos</a></li>
+                            <li><a href="index.php?page=tipos_documento">Tipos de Documento</a></li>
+                            <li><a href="index.php?page=tipos_documento_identidad">Tipos de Doc. Identidad</a></li>
                             <li><a href="index.php?page=tipos_auxiliar">Tipos de Auxiliar</a></li>
+                            <li><a href="index.php?page=auxiliares">Auxiliares</a></li>
                             <li><a href="index.php?page=usuarios">Usuarios</a></li>
                             <li><a href="index.php?page=tipos_cambio">Tipo de Cambio</a></li>
                         </ul>
@@ -38,7 +40,6 @@
                             <i class="fas fa-chevron-down float-indicator"></i>
                         </a>
                         <ul class="collapse list-unstyled" id="operacionesSubmenu">
-                            <li><a href="index.php?page=auxiliares">Auxiliares</a></li>
                             <li><a href="index.php?page=ingreso_documentos">Ingreso de documentos</a></li>
                         </ul>
                     </li>

@@ -9,23 +9,14 @@ if ($_SESSION['user_role'] !== 'administrador') {
 $item = null;
 $is_edit = false;
 $tipos_auxiliar = [];
-$tipos_documento_identidad = [];
 
 try {
     $pdo = getDbConnection();
-
-    // Obtener tipos de auxiliar para el dropdown
-    $stmt_tipos_aux = $pdo->prepare("CALL sp_read_all_tipos_auxiliar(?, ?)");
-    $stmt_tipos_aux->execute([null, null]);
-    $tipos_auxiliar = $stmt_tipos_aux->fetchAll();
-    $stmt_tipos_aux->closeCursor();
-
-    // Obtener tipos de documento de identidad para el dropdown
-    $pdo = getDbConnection(); // Re-establish connection
-    $stmt_tipos_doc = $pdo->prepare("CALL sp_read_tipos_documento_identidad_for_dropdown()");
-    $stmt_tipos_doc->execute();
-    $tipos_documento_identidad = $stmt_tipos_doc->fetchAll();
-    $stmt_tipos_doc->closeCursor();
+    // Obtener todos los tipos para el dropdown
+    $stmt_tipos = $pdo->prepare("CALL sp_read_all_tipos_auxiliar(?, ?)");
+    $stmt_tipos->execute([null, null]);
+    $tipos_auxiliar = $stmt_tipos->fetchAll();
+    $stmt_tipos->closeCursor();
 
     if (isset($_GET['id'])) {
         $is_edit = true;
@@ -50,19 +41,12 @@ try {
     .form-group label { display: block; margin-bottom: 5px; }
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     .btn-submit { background-color: #005cb3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
-    .error-message { padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px; }
 </style>
 
 <header>
     <h1><?= $is_edit ? 'Editar' : 'Añadir' ?> Auxiliar</h1>
 </header>
 <section class="form-container">
-    <?php if (isset($_GET['error']) && $_GET['error'] === 'invalid_doc_type'): ?>
-        <div class="error-message">
-            <strong>Error:</strong> Por favor, seleccione un Tipo de Documento de Identidad válido.
-        </div>
-    <?php endif; ?>
-
     <form action="../src/actions/auxiliares_process.php" method="POST">
         <input type="hidden" name="action" value="<?= $is_edit ? 'update' : 'create' ?>">
         <?php if ($is_edit): ?>
@@ -81,14 +65,13 @@ try {
             </select>
         </div>
         <div class="form-group">
-            <label for="id_tipo_documento_identidad">Tipo Documento Identidad</label>
-            <select id="id_tipo_documento_identidad" name="id_tipo_documento_identidad" required>
-                <option value="">Seleccione un tipo</option>
-                <?php foreach ($tipos_documento_identidad as $tipo): ?>
-                    <option value="<?= $tipo['id'] ?>" <?= (isset($item['id_tipo_documento_identidad']) && $item['id_tipo_documento_identidad'] == $tipo['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($tipo['nombre']) ?>
-                    </option>
-                <?php endforeach; ?>
+            <label for="tipo_doc_identidad">Tipo Documento Identidad</label>
+            <select id="tipo_doc_identidad" name="tipo_doc_identidad" required>
+                <option value="RUC" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'RUC') ? 'selected' : '' ?>>RUC</option>
+                <option value="DNI" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'DNI') ? 'selected' : '' ?>>DNI</option>
+                <option value="CE" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'CE') ? 'selected' : '' ?>>Carnet Extranjería</option>
+                <option value="PASAPORTE" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'PASAPORTE') ? 'selected' : '' ?>>Pasaporte</option>
+                <option value="OTRO" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'OTRO') ? 'selected' : '' ?>>Otro</option>
             </select>
         </div>
         <div class="form-group">
@@ -135,78 +118,44 @@ try {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const btnSunat = document.getElementById('btn-sunat');
-    const tipoDocSelect = document.getElementById('id_tipo_documento_identidad');
-    const numDocInput = document.getElementById('num_doc_identidad');
+    const tipoDocSelect = document.getElementById('tipo_doc_identidad');
 
-    // --- Funciones de Lógica ---
-    function updateSunatButtonVisibility() {
-        const selectedOption = tipoDocSelect.options[tipoDocSelect.selectedIndex];
-        const selectedText = selectedOption ? selectedOption.text.toUpperCase() : '';
-
-        if (selectedText.includes('RUC') || selectedText.includes('DNI')) {
+    // Función para mostrar/ocultar el botón SUNAT
+    function toggleSunatButtonVisibility() {
+        const selectedType = tipoDocSelect.value;
+        if (selectedType === 'RUC' || selectedType === 'DNI') {
             btnSunat.style.display = 'inline-block';
         } else {
             btnSunat.style.display = 'none';
         }
     }
 
-    async function updateDocumentLength() {
-        const selectedId = tipoDocSelect.value;
-        if (!selectedId) {
-            numDocInput.removeAttribute('maxlength');
-            return;
-        }
+    // Listener para el cambio de tipo de documento
+    tipoDocSelect.addEventListener('change', toggleSunatButtonVisibility);
 
-        try {
-            const response = await fetch(`../src/ajax/get_tipo_documento_identidad_longitud.php?id=${selectedId}`);
-            if (!response.ok) {
-                numDocInput.removeAttribute('maxlength');
-                return;
-            }
-
-            const data = await response.json();
-            if (data && data.longitud && data.longitud > 0) {
-                numDocInput.maxLength = data.longitud;
-            } else {
-                numDocInput.removeAttribute('maxlength');
-            }
-        } catch (error) {
-            console.error('Error al obtener la longitud del tipo de documento:', error);
-            numDocInput.removeAttribute('maxlength');
-        }
-    }
-
-    // --- Event Listeners ---
-    tipoDocSelect.addEventListener('change', function() {
-        numDocInput.value = ''; // Limpiar el valor del número solo en el cambio manual
-        updateSunatButtonVisibility();
-        updateDocumentLength();
-    });
-
-    // --- Carga Inicial ---
-    updateSunatButtonVisibility();
-    updateDocumentLength();
+    // Llamada inicial para establecer la visibilidad correcta al cargar la página
+    toggleSunatButtonVisibility();
 
     // Listener para el clic en el botón SUNAT
     btnSunat.addEventListener('click', async function() {
-        const selectedOption = tipoDocSelect.options[tipoDocSelect.selectedIndex];
-        const docType = selectedOption ? selectedOption.text.toUpperCase() : '';
+        const numDocInput = document.getElementById('num_doc_identidad');
+        const docType = tipoDocSelect.value;
         const docNumber = numDocInput.value;
 
         let apiUrl = '';
         let validationRegex = null;
         let validationMessage = '';
 
-        if (docType.includes('RUC')) {
+        if (docType === 'RUC') {
             apiUrl = `../src/ajax/get_ruc.php?numero=${docNumber}`;
             validationRegex = /^\d{11}$/;
             validationMessage = 'Por favor, ingrese un número de RUC válido de 11 dígitos.';
-        } else if (docType.includes('DNI')) {
+        } else if (docType === 'DNI') {
             apiUrl = `../src/ajax/get_dni.php?numero=${docNumber}`;
             validationRegex = /^\d{8}$/;
             validationMessage = 'Por favor, ingrese un número de DNI válido de 8 dígitos.';
         } else {
-            return;
+            return; // No hacer nada si el tipo de documento no es RUC o DNI
         }
 
         if (!validationRegex.test(docNumber)) {

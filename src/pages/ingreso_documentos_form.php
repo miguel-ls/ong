@@ -125,18 +125,6 @@ try {
                     <label for="numero_documento">Número</label>
                     <input type="text" id="numero_documento" name="numero_documento" value="<?= htmlspecialchars($documento['numero_documento'] ?? '') ?>" required>
                 </div>
-                <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
-                    <div style="flex-grow: 1;">
-                        <label for="id_auxiliar">Auxiliar (Proveedor/Cliente)</label>
-                        <select id="id_auxiliar" name="id_auxiliar" required>
-                            <option value="">Seleccione...</option>
-                            <?php foreach($auxiliares as $aux): ?>
-                                <option value="<?= $aux['id'] ?>"><?= htmlspecialchars($aux['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <button type="button" class="btn-refresh" data-target="id_auxiliar" data-source="../src/ajax/get_auxiliares.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
-                </div>
                  <div class="form-group">
                     <label for="moneda">Moneda</label>
                     <select id="moneda" name="moneda" required>
@@ -152,6 +140,20 @@ try {
                     <button type="button" id="btn-refresh-tc" class="btn-refresh" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
                 </div>
             </div>
+
+            <div class="form-group" style="margin-top: 20px; display: flex; flex-direction: row; align-items: flex-end;">
+                <div style="flex-grow: 1;">
+                    <label for="id_auxiliar">Auxiliar (Proveedor/Cliente)</label>
+                    <select id="id_auxiliar" name="id_auxiliar" required>
+                        <option value="">Seleccione...</option>
+                        <?php foreach($auxiliares as $aux): ?>
+                            <option value="<?= $aux['id'] ?>"><?= htmlspecialchars($aux['nombre']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <button type="button" class="btn-refresh" data-target="id_auxiliar" data-source="../src/ajax/get_auxiliares.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
+            </div>
+
              <div class="form-grid" style="margin-top: 20px;">
                  <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
                     <div style="flex-grow: 1;">

@@ -647,12 +647,11 @@ CREATE PROCEDURE `sp_create_auxiliar`(
     IN p_razon_social_nombres VARCHAR(255),
     IN p_direccion VARCHAR(255),
     IN p_telefono VARCHAR(50),
-    IN p_email VARCHAR(100),
-    IN p_ubigeo VARCHAR(6)
+    IN p_email VARCHAR(100)
 )
 BEGIN
-    INSERT INTO auxiliares (id_tipo_auxiliar, id_tipo_documento_identidad, num_doc_identidad, razon_social_nombres, direccion, telefono, email, ubigeo)
-    VALUES (p_id_tipo_auxiliar, p_id_tipo_documento_identidad, p_num_doc_identidad, p_razon_social_nombres, p_direccion, p_telefono, p_email, p_ubigeo);
+    INSERT INTO auxiliares (id_tipo_auxiliar, tipo_doc_identidad, num_doc_identidad, razon_social_nombres, direccion, telefono, email)
+    VALUES (p_id_tipo_auxiliar, p_tipo_doc_identidad, p_num_doc_identidad, p_razon_social_nombres, p_direccion, p_telefono, p_email);
 END$$
 DELIMITER ;
 
@@ -693,7 +692,6 @@ CREATE PROCEDURE `sp_update_auxiliar`(
     IN p_direccion VARCHAR(255),
     IN p_telefono VARCHAR(50),
     IN p_email VARCHAR(100),
-    IN p_ubigeo VARCHAR(6),
     IN p_estado BOOLEAN
 )
 BEGIN
@@ -706,7 +704,6 @@ BEGIN
         direccion = p_direccion,
         telefono = p_telefono,
         email = p_email,
-        ubigeo = p_ubigeo,
         estado = p_estado
     WHERE id = p_id;
 END$$
@@ -716,19 +713,7 @@ DROP PROCEDURE IF EXISTS sp_delete_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_delete_auxiliar`(IN p_id INT)
 BEGIN
-    DECLARE doc_count INT;
-
-    -- Verificar si existen documentos asociados
-    SELECT COUNT(*) INTO doc_count FROM documentos WHERE id_auxiliar = p_id;
-
-    IF doc_count > 0 THEN
-        -- Si hay documentos, no se puede eliminar. Devolver un status.
-        SELECT 'HAS_DOCS' AS status;
-    ELSE
-        -- Si no hay documentos, eliminar permanentemente.
-        DELETE FROM auxiliares WHERE id = p_id;
-        SELECT 'DELETED' AS status;
-    END IF;
+    UPDATE auxiliares SET estado = FALSE WHERE id = p_id;
 END$$
 DELIMITER ;
 

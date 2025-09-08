@@ -458,9 +458,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`https://api.apis.net.pe/v1/tipo-cambio-sunat?fecha=${fecha}`);
+            // Usar el proxy local en lugar de la llamada directa a la API
+            const response = await fetch(`../src/ajax/get_tipo_cambio.php?fecha=${fecha}`);
             if (!response.ok) {
-                throw new Error(`Error de red o API: ${response.statusText}`);
+                // El proxy debería devolver un mensaje de error en JSON, intentamos leerlo
+                try {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Error de red o API: ${response.statusText}`);
+                } catch (e) {
+                    throw new Error(`Error de red o API: ${response.statusText}`);
+                }
             }
             const data = await response.json();
             if (data && data.venta) {

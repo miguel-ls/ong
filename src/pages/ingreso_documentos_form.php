@@ -474,12 +474,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
             const data = await response.json();
-            if (data && data.venta) {
-                tipoCambioInput.value = data.venta.toFixed(4);
+            if (data && data.venta !== undefined) {
+                tipoCambioInput.value = parseFloat(data.venta).toFixed(4);
                 // Disparar el evento input para que se recalculen los totales
                 tipoCambioInput.dispatchEvent(new Event('input', { bubbles: true }));
             } else {
                 console.log('La respuesta de la API no contiene el valor de venta esperado.');
+                tipoCambioInput.value = (0.0).toFixed(4); // Poner 0.0000 si no hay valor
+                tipoCambioInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
         } catch (error) {
             console.error('Error al obtener el tipo de cambio:', error);

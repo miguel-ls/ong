@@ -188,14 +188,16 @@ try {
                         <th style="width: 25%;">Concepto</th>
                         <th style="width: 10%;">P. Unitario</th>
                         <th style="width: 10%;">Total</th>
+                        <th style="width: 10%;">Total Soles</th>
+                        <th style="width: 10%;">Total Dolares</th>
                         <th style="width: 5%;"></th>
                     </tr>
                 </thead>
                 <tbody id="details-tbody">
-                    <!-- Filas de detalle se añadirán aquí con JS en la Fase 4 -->
+                    <!-- Filas de detalle se añadirán aquí con JS -->
                     <tr>
                         <td>1</td>
-                        <td><input type="number" name="detalle[0][cantidad]" value="1" step="0.01"></td>
+                        <td><input type="number" name="detalle[0][cantidad]" value="1" step="0.01" class="row-input"></td>
                         <td><input type="text" name="detalle[0][descripcion]" value=""></td>
                         <td>
                             <select name="detalle[0][id_concepto]">
@@ -205,8 +207,10 @@ try {
                                 <?php endforeach; ?>
                             </select>
                         </td>
-                        <td><input type="number" name="detalle[0][precio_unitario]" value="0.00" step="0.01"></td>
+                        <td><input type="number" name="detalle[0][precio_unitario]" value="0.00" step="0.01" class="row-input"></td>
                         <td><input type="text" name="detalle[0][precio_total]" value="0.00" readonly></td>
+                        <td><input type="text" name="detalle[0][total_soles]" value="0.00" readonly></td>
+                        <td><input type="text" name="detalle[0][total_dolares]" value="0.00" readonly></td>
                         <td><button type="button" class="btn btn-delete-row">X</button></td>
                     </tr>
                 </tbody>
@@ -214,16 +218,22 @@ try {
                     <tr class="total-row">
                         <td colspan="5">SUBTOTAL</td>
                         <td id="subtotal">0.00</td>
+                        <td id="subtotal_soles">0.00</td>
+                        <td id="subtotal_dolares">0.00</td>
                         <td></td>
                     </tr>
                      <tr class="total-row">
                         <td colspan="5">IGV (18%)</td>
                         <td id="igv">0.00</td>
+                        <td id="igv_soles">0.00</td>
+                        <td id="igv_dolares">0.00</td>
                         <td></td>
                     </tr>
                     <tr class="total-row">
                         <td colspan="5">TOTAL</td>
                         <td id="total">0.00</td>
+                        <td id="total_soles">0.00</td>
+                        <td id="total_dolares">0.00</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -251,30 +261,56 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    function calculateRowTotal(row) {
-        const cantidad = parseFloat(row.querySelector('input[name*="[cantidad]"]').value) || 0;
-        const precioUnitario = parseFloat(row.querySelector('input[name*="[precio_unitario]"]').value) || 0;
-        const precioTotalInput = row.querySelector('input[name*="[precio_total]"]');
+    function calculateAll() {
+        const moneda = document.getElementById('moneda').value;
+        const tipoCambio = parseFloat(document.getElementById('tipo_cambio').value) || 1.0;
 
-        const precioTotal = cantidad * precioUnitario;
-        precioTotalInput.value = precioTotal.toFixed(2);
+        let grandSubtotal = 0;
+        let grandSubtotalSoles = 0;
+        let grandSubtotalDolares = 0;
 
-        calculateGrandTotals();
-    }
-
-    function calculateGrandTotals() {
-        let subtotal = 0;
         detailsTbody.querySelectorAll('tr').forEach(row => {
-            const precioTotal = parseFloat(row.querySelector('input[name*="[precio_total]"]').value) || 0;
-            subtotal += precioTotal;
+            const cantidad = parseFloat(row.querySelector('input[name*="[cantidad]"]').value) || 0;
+            const precioUnitario = parseFloat(row.querySelector('input[name*="[precio_unitario]"]').value) || 0;
+            const precioTotal = cantidad * precioUnitario;
+
+            let totalSoles, totalDolares;
+
+            if (moneda === 'SOLES') {
+                totalSoles = precioTotal;
+                totalDolares = tipoCambio > 0 ? precioTotal / tipoCambio : 0;
+            } else { // DOLARES
+                totalDolares = precioTotal;
+                totalSoles = precioTotal * tipoCambio;
+            }
+
+            row.querySelector('input[name*="[precio_total]"]').value = precioTotal.toFixed(2);
+            row.querySelector('input[name*="[total_soles]"]').value = totalSoles.toFixed(2);
+            row.querySelector('input[name*="[total_dolares]"]').value = totalDolares.toFixed(2);
+
+            grandSubtotal += precioTotal;
+            grandSubtotalSoles += totalSoles;
+            grandSubtotalDolares += totalDolares;
         });
 
-        const igv = subtotal * 0.18;
-        const total = subtotal + igv;
+        const grandIgv = grandSubtotal * 0.18;
+        const grandTotal = grandSubtotal + grandIgv;
+        const grandIgvSoles = grandSubtotalSoles * 0.18;
+        const grandTotalSoles = grandSubtotalSoles + grandIgvSoles;
+        const grandIgvDolares = grandSubtotalDolares * 0.18;
+        const grandTotalDolares = grandSubtotalDolares + grandIgvDolares;
 
-        document.getElementById('subtotal').textContent = subtotal.toFixed(2);
-        document.getElementById('igv').textContent = igv.toFixed(2);
-        document.getElementById('total').textContent = total.toFixed(2);
+        document.getElementById('subtotal').textContent = grandSubtotal.toFixed(2);
+        document.getElementById('subtotal_soles').textContent = grandSubtotalSoles.toFixed(2);
+        document.getElementById('subtotal_dolares').textContent = grandSubtotalDolares.toFixed(2);
+
+        document.getElementById('igv').textContent = grandIgv.toFixed(2);
+        document.getElementById('igv_soles').textContent = grandIgvSoles.toFixed(2);
+        document.getElementById('igv_dolares').textContent = grandIgvDolares.toFixed(2);
+
+        document.getElementById('total').textContent = grandTotal.toFixed(2);
+        document.getElementById('total_soles').textContent = grandTotalSoles.toFixed(2);
+        document.getElementById('total_dolares').textContent = grandTotalDolares.toFixed(2);
     }
 
     function updateRowIndices() {
@@ -307,22 +343,22 @@ document.addEventListener('DOMContentLoaded', function() {
             if (detailsTbody.rows.length > 1) {
                 e.target.closest('tr').remove();
                 updateRowIndices();
-                calculateGrandTotals();
+                calculateAll(); // Recalcular todo
             } else {
                 alert('No se puede eliminar la última fila.');
             }
         }
     });
 
-    detailsTbody.addEventListener('input', function(e) {
-        if (e.target && (e.target.name.includes('[cantidad]') || e.target.name.includes('[precio_unitario]'))) {
-            const row = e.target.closest('tr');
-            calculateRowTotal(row);
+    // Event listener para cambios en la tabla o en la cabecera
+    document.querySelector('.form-container').addEventListener('input', function(e) {
+        if (e.target && (e.target.classList.contains('row-input') || e.target.id === 'tipo_cambio' || e.target.id === 'moneda')) {
+            calculateAll();
         }
     });
 
-    // Initial calculation for pre-populated rows (in edit mode)
-    detailsTbody.querySelectorAll('tr').forEach(calculateRowTotal);
+    // Cálculo inicial al cargar la página
+    calculateAll();
 
     // --- Lógica para Dropdowns en Cascada (Proyecto -> Subproyecto) ---
     const proyectoSelect = document.getElementById('id_proyecto');

@@ -76,7 +76,10 @@ try {
         </div>
         <div class="form-group">
             <label for="num_doc_identidad">Número Documento</label>
-            <input type="text" id="num_doc_identidad" name="num_doc_identidad" value="<?= htmlspecialchars($item['num_doc_identidad'] ?? '') ?>" required>
+            <div style="display: flex; align-items: center;">
+                <input type="text" id="num_doc_identidad" name="num_doc_identidad" value="<?= htmlspecialchars($item['num_doc_identidad'] ?? '') ?>" required style="flex-grow: 1;">
+                <button type="button" id="btn-sunat" class="btn-submit" style="margin-left: 10px; flex-shrink: 0;">SUNAT</button>
+            </div>
         </div>
         <div class="form-group">
             <label for="razon_social_nombres">Razón Social / Nombres</label>
@@ -94,6 +97,10 @@ try {
             <label for="email">Email</label>
             <input type="email" id="email" name="email" value="<?= htmlspecialchars($item['email'] ?? '') ?>">
         </div>
+        <div class="form-group">
+            <label for="ubigeo">Ubigeo</label>
+            <input type="text" id="ubigeo" name="ubigeo" value="<?= htmlspecialchars($item['ubigeo'] ?? '') ?>" maxlength="6">
+        </div>
         <?php if ($is_edit): ?>
         <div class="form-group">
             <label for="estado">Estado</label>
@@ -107,3 +114,69 @@ try {
         <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Auxiliar</button>
     </form>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnSunat = document.getElementById('btn-sunat');
+    if (btnSunat) {
+        btnSunat.addEventListener('click', async function() {
+            const tipoDocSelect = document.getElementById('tipo_doc_identidad');
+            const numDocInput = document.getElementById('num_doc_identidad');
+
+            if (tipoDocSelect.value !== 'RUC') {
+                alert('Esta función solo está disponible para el tipo de documento RUC.');
+                return;
+            }
+
+            const ruc = numDocInput.value;
+            if (!/^\d{11}$/.test(ruc)) {
+                alert('Por favor, ingrese un número de RUC válido de 11 dígitos.');
+                return;
+            }
+
+            // Deshabilitar botón para evitar clics múltiples
+            this.disabled = true;
+            this.textContent = 'Buscando...';
+
+            try {
+                const response = await fetch(`../src/ajax/get_ruc.php?numero=${ruc}`);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => null);
+                    throw new Error(errorData?.error || 'No se pudo obtener una respuesta de la API.');
+                }
+
+                const data = await response.json();
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                // Poblar los campos del formulario
+                const razonSocialInput = document.getElementById('razon_social_nombres');
+                const direccionInput = document.getElementById('direccion');
+                const ubigeoInput = document.getElementById('ubigeo');
+
+                if (razonSocialInput && data.nombre) {
+                    razonSocialInput.value = data.nombre;
+                }
+                if (direccionInput && data.direccion) {
+                    let fullDireccion = [data.direccion, data.departamento, data.provincia, data.distrito]
+                        .filter(Boolean) // Filtrar valores nulos o vacíos
+                        .join(' - ');
+                    direccionInput.value = fullDireccion;
+                }
+                if (ubigeoInput && data.ubigeo) {
+                    ubigeoInput.value = data.ubigeo;
+                }
+
+            } catch (error) {
+                console.error('Error al consultar SUNAT:', error);
+                alert(`Error al consultar SUNAT: ${error.message}`);
+            } finally {
+                // Rehabilitar el botón
+                this.disabled = false;
+                this.textContent = 'SUNAT';
+            }
+        });
+    }
+});
+</script>

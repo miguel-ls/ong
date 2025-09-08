@@ -9,23 +9,14 @@ if ($_SESSION['user_role'] !== 'administrador') {
 $item = null;
 $is_edit = false;
 $tipos_auxiliar = [];
-$tipos_documento_identidad = [];
 
 try {
     $pdo = getDbConnection();
-
-    // Obtener tipos de auxiliar para el dropdown
-    $stmt_tipos_aux = $pdo->prepare("CALL sp_read_all_tipos_auxiliar(?, ?)");
-    $stmt_tipos_aux->execute([null, null]);
-    $tipos_auxiliar = $stmt_tipos_aux->fetchAll();
-    $stmt_tipos_aux->closeCursor();
-
-    // Obtener tipos de documento de identidad para el dropdown
-    $pdo = getDbConnection(); // Re-establish connection
-    $stmt_tipos_doc = $pdo->prepare("CALL sp_read_tipos_documento_identidad_for_dropdown()");
-    $stmt_tipos_doc->execute();
-    $tipos_documento_identidad = $stmt_tipos_doc->fetchAll();
-    $stmt_tipos_doc->closeCursor();
+    // Obtener todos los tipos para el dropdown
+    $stmt_tipos = $pdo->prepare("CALL sp_read_all_tipos_auxiliar(?, ?)");
+    $stmt_tipos->execute([null, null]);
+    $tipos_auxiliar = $stmt_tipos->fetchAll();
+    $stmt_tipos->closeCursor();
 
     if (isset($_GET['id'])) {
         $is_edit = true;
@@ -74,14 +65,13 @@ try {
             </select>
         </div>
         <div class="form-group">
-            <label for="id_tipo_documento_identidad">Tipo Documento Identidad</label>
-            <select id="id_tipo_documento_identidad" name="id_tipo_documento_identidad" required>
-                <option value="">Seleccione un tipo</option>
-                <?php foreach ($tipos_documento_identidad as $tipo): ?>
-                    <option value="<?= $tipo['id'] ?>" <?= (isset($item['id_tipo_documento_identidad']) && $item['id_tipo_documento_identidad'] == $tipo['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($tipo['nombre']) ?>
-                    </option>
-                <?php endforeach; ?>
+            <label for="tipo_doc_identidad">Tipo Documento Identidad</label>
+            <select id="tipo_doc_identidad" name="tipo_doc_identidad" required>
+                <option value="RUC" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'RUC') ? 'selected' : '' ?>>RUC</option>
+                <option value="DNI" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'DNI') ? 'selected' : '' ?>>DNI</option>
+                <option value="CE" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'CE') ? 'selected' : '' ?>>Carnet Extranjería</option>
+                <option value="PASAPORTE" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'PASAPORTE') ? 'selected' : '' ?>>Pasaporte</option>
+                <option value="OTRO" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'OTRO') ? 'selected' : '' ?>>Otro</option>
             </select>
         </div>
         <div class="form-group">
@@ -131,23 +121,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const tipoDocSelect = document.getElementById('id_tipo_documento_identidad');
     const numDocInput = document.getElementById('num_doc_identidad');
 
-    async function handleTipoDocChange() {
+    // --- Funciones de Lógica ---
+    function updateSunatButtonVisibility() {
         const selectedOption = tipoDocSelect.options[tipoDocSelect.selectedIndex];
         const selectedText = selectedOption ? selectedOption.text.toUpperCase() : '';
-        const selectedId = tipoDocSelect.value;
 
-        // Limpiar el campo y el maxlength
-        numDocInput.value = '';
-        numDocInput.removeAttribute('maxlength');
-
-        // Lógica para el botón SUNAT
         if (selectedText.includes('RUC') || selectedText.includes('DNI')) {
             btnSunat.style.display = 'inline-block';
         } else {
             btnSunat.style.display = 'none';
         }
+    }
 
-        // Lógica para la longitud
+    async function updateDocumentLength() {
+        const selectedId = tipoDocSelect.value;
+        numDocInput.removeAttribute('maxlength');
+
         if (!selectedId) return;
 
         try {
@@ -163,13 +152,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Listener para el cambio de tipo de documento
-    tipoDocSelect.addEventListener('change', handleTipoDocChange);
+    // --- Event Listeners ---
+    tipoDocSelect.addEventListener('change', function() {
+        numDocInput.value = ''; // Limpiar el valor solo en el cambio manual
+        updateSunatButtonVisibility();
+        updateDocumentLength();
+    });
 
-    // Llamada inicial para establecer la visibilidad y longitud correctas al cargar la página
-    handleTipoDocChange();
+    // --- Carga Inicial ---
+    updateSunatButtonVisibility();
+    updateDocumentLength();
 
-    // Listener para el clic en el botón SUNAT
+    // Listener para el clic en el botón SUNAT (sin cambios, pero lo dejamos aquí)
     btnSunat.addEventListener('click', async function() {
         const selectedOption = tipoDocSelect.options[tipoDocSelect.selectedIndex];
         const docType = selectedOption ? selectedOption.text.toUpperCase() : '';

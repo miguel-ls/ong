@@ -13,7 +13,7 @@ $pdo = getDbConnection();
 try {
     switch ($action) {
         case 'create':
-            $stmt = $pdo->prepare("CALL sp_create_auxiliar(?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_create_auxiliar(?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id_tipo_auxiliar'],
                 $_POST['tipo_doc_identidad'],
@@ -21,12 +21,13 @@ try {
                 $_POST['razon_social_nombres'],
                 $_POST['direccion'],
                 $_POST['telefono'],
-                $_POST['email']
+                $_POST['email'],
+                $_POST['ubigeo']
             ]);
             break;
 
         case 'update':
-            $stmt = $pdo->prepare("CALL sp_update_auxiliar(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_update_auxiliar(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id'],
                 $_POST['id_tipo_auxiliar'],
@@ -36,6 +37,7 @@ try {
                 $_POST['direccion'],
                 $_POST['telefono'],
                 $_POST['email'],
+                $_POST['ubigeo'],
                 $_POST['estado']
             ]);
             break;

@@ -12,11 +12,11 @@ $filter_nombre = $_GET['nombre'] ?? null;
 
 try {
     $pdo = getDbConnection();
-    $stmt = $pdo->prepare("CALL sp_read_all_tipos_documento(?, ?)");
+    $stmt = $pdo->prepare("CALL sp_read_all_tipos_documento_identidad(?, ?)");
     $stmt->execute([$filter_codigo, $filter_nombre]);
     $items = $stmt->fetchAll();
 } catch (PDOException $e) {
-    die("Error al obtener los tipos de documento: " . $e->getMessage());
+    die("Error al obtener los tipos de documento de identidad: " . $e->getMessage());
 }
 ?>
 
@@ -37,13 +37,13 @@ try {
 </style>
 
 <header>
-    <h1>Mantenimiento de Tipos de Documento</h1>
+    <h1>Mantenimiento de Tipos de Documento de Identidad</h1>
 </header>
 <section>
-    <a href="index.php?page=tipos_documento_form" class="btn btn-add">Añadir Nuevo Tipo</a>
+    <a href="index.php?page=tipos_documento_identidad_form" class="btn btn-add">Añadir Nuevo Tipo</a>
 
     <form action="index.php" method="GET" class="filter-form">
-        <input type="hidden" name="page" value="tipos_documento">
+        <input type="hidden" name="page" value="tipos_documento_identidad">
         <div class="form-group">
             <label for="codigo">Código</label>
             <input type="text" id="codigo" name="codigo" value="<?= htmlspecialchars($filter_codigo ?? '') ?>">
@@ -62,6 +62,7 @@ try {
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
+                <th>Longitud</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -73,10 +74,11 @@ try {
                 <td><?= htmlspecialchars($item['codigo']) ?></td>
                 <td><?= htmlspecialchars($item['nombre']) ?></td>
                 <td><?= htmlspecialchars($item['descripcion']) ?></td>
+                <td><?= htmlspecialchars($item['longitud']) ?></td>
                 <td><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></td>
                 <td>
-                    <a href="index.php?page=tipos_documento_form&id=<?= $item['id'] ?>" class="btn btn-edit">Editar</a>
-                    <a href="../src/actions/tipos_documento_process.php?action=delete&id=<?= $item['id'] ?>" class="btn btn-delete" onclick="return confirm('¿Está seguro?');">Eliminar</a>
+                    <a href="index.php?page=tipos_documento_identidad_form&id=<?= $item['id'] ?>" class="btn btn-edit">Editar</a>
+                    <a href="../src/actions/tipos_documento_identidad_process.php?action=delete&id=<?= $item['id'] ?>" class="btn btn-delete" onclick="return confirm('¿Está seguro?');">Eliminar</a>
                 </td>
             </tr>
             <?php endforeach; ?>

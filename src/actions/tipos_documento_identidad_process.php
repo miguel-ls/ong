@@ -13,41 +13,43 @@ $pdo = getDbConnection();
 try {
     switch ($action) {
         case 'create':
-            $stmt = $pdo->prepare("CALL sp_create_tipo_documento(?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_create_tipo_documento_identidad(?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['codigo'],
                 $_POST['nombre'],
-                $_POST['descripcion']
+                $_POST['descripcion'],
+                $_POST['longitud']
             ]);
             break;
 
         case 'update':
-            $stmt = $pdo->prepare("CALL sp_update_tipo_documento(?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_update_tipo_documento_identidad(?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id'],
                 $_POST['nombre'],
                 $_POST['descripcion'],
+                $_POST['longitud'],
                 $_POST['estado']
             ]);
             break;
 
         case 'delete':
-            $stmt = $pdo->prepare("CALL sp_delete_tipo_documento(?)");
+            $stmt = $pdo->prepare("CALL sp_delete_tipo_documento_identidad(?)");
             $stmt->execute([$_GET['id']]);
             break;
 
         default:
-            header('Location: ../../public/index.php?page=tipos_documento&error=Acción no válida');
+            header('Location: ../../public/index.php?page=tipos_documento_identidad&error=Acción no válida');
             exit();
     }
 
-    header('Location: ../../public/index.php?page=tipos_documento&success=Operación realizada con éxito');
+    header('Location: ../../public/index.php?page=tipos_documento_identidad&success=Operación realizada con éxito');
 
 } catch (PDOException $e) {
     if ($e->getCode() == 23000) {
-        header('Location: ../../public/index.php?page=tipos_documento&error=Error: El código ya existe.');
+        header('Location: ../../public/index.php?page=tipos_documento_identidad&error=Error: El código ya existe.');
     } else {
-        header('Location: ../../public/index.php?page=tipos_documento&error=Error en la base de datos: ' . $e->getMessage());
+        header('Location: ../../public/index.php?page=tipos_documento_identidad&error=Error en la base de datos: ' . $e->getMessage());
     }
 }
 ?>

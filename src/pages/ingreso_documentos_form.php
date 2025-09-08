@@ -273,30 +273,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const numeroDocumentoInput = document.getElementById('numero_documento');
     const detailsTbody = document.getElementById('details-tbody');
     const btnAddRow = document.getElementById('btn-add-row');
-    const tipoDocumentoSelect = document.getElementById('id_tipo_documento');
-
-    async function updateNumeroDocumentoLength() {
-        const tipoDocId = tipoDocumentoSelect.value;
-
-        numeroDocumentoInput.value = '';
-        numeroDocumentoInput.removeAttribute('maxlength');
-
-        if (!tipoDocId) return;
-
-        try {
-            const response = await fetch(`../src/ajax/get_tipo_documento_longitud.php?id=${tipoDocId}`);
-            if (!response.ok) return;
-
-            const data = await response.json();
-            if (data && data.longitud && data.longitud > 0) {
-                numeroDocumentoInput.maxLength = data.longitud;
-            }
-        } catch (error) {
-            console.error('Error al obtener la longitud del tipo de documento:', error);
-        }
-    }
-
-    tipoDocumentoSelect.addEventListener('change', updateNumeroDocumentoLength);
 
     // Padrón de ceros a la izquierda para el número de documento
     numeroDocumentoInput.addEventListener('blur', function() {

@@ -200,8 +200,8 @@ try {
                         <th style="width: 25%;">Concepto</th>
                         <th style="width: 10%;">P. Unitario</th>
                         <th style="width: 10%;">Total</th>
-                        <th style="width: 10%;">Total Soles</th>
-                        <th style="width: 10%;">Total Dolares</th>
+                        <th style="width: 10%;" class="col-soles">Total Soles</th>
+                        <th style="width: 10%;" class="col-dolares">Total Dolares</th>
                         <th style="width: 5%;"></th>
                     </tr>
                 </thead>
@@ -221,8 +221,8 @@ try {
                         </td>
                         <td><input type="number" name="detalle[0][precio_unitario]" value="0.00" step="0.01" class="row-input"></td>
                         <td><input type="text" name="detalle[0][precio_total]" value="0.00" readonly></td>
-                        <td><input type="text" name="detalle[0][total_soles]" value="0.00" readonly></td>
-                        <td><input type="text" name="detalle[0][total_dolares]" value="0.00" readonly></td>
+                        <td class="col-soles"><input type="text" name="detalle[0][total_soles]" value="0.00" readonly></td>
+                        <td class="col-dolares"><input type="text" name="detalle[0][total_dolares]" value="0.00" readonly></td>
                         <td><button type="button" class="btn btn-delete-row">X</button></td>
                     </tr>
                 </tbody>
@@ -230,22 +230,22 @@ try {
                     <tr class="total-row">
                         <td colspan="5">SUBTOTAL</td>
                         <td id="subtotal">0.00</td>
-                        <td id="subtotal_soles">0.00</td>
-                        <td id="subtotal_dolares">0.00</td>
+                        <td id="subtotal_soles" class="col-soles">0.00</td>
+                        <td id="subtotal_dolares" class="col-dolares">0.00</td>
                         <td></td>
                     </tr>
                      <tr class="total-row">
                         <td colspan="5">IGV (18%)</td>
                         <td id="igv">0.00</td>
-                        <td id="igv_soles">0.00</td>
-                        <td id="igv_dolares">0.00</td>
+                        <td id="igv_soles" class="col-soles">0.00</td>
+                        <td id="igv_dolares" class="col-dolares">0.00</td>
                         <td></td>
                     </tr>
                     <tr class="total-row">
                         <td colspan="5">TOTAL</td>
                         <td id="total">0.00</td>
-                        <td id="total_soles">0.00</td>
-                        <td id="total_dolares">0.00</td>
+                        <td id="total_soles" class="col-soles">0.00</td>
+                        <td id="total_dolares" class="col-dolares">0.00</td>
                         <td></td>
                     </tr>
                 </tfoot>
@@ -416,8 +416,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td class="concepto-cell"></td>
                 <td><input type="number" name="detalle[${index}][precio_unitario]" value="${item.precio_unitario}" step="0.01" class="row-input"></td>
                 <td><input type="text" name="detalle[${index}][precio_total]" value="${item.precio_total}" readonly></td>
-                <td><input type="text" name="detalle[${index}][total_soles]" value="${item.total_soles}" readonly></td>
-                <td><input type="text" name="detalle[${index}][total_dolares]" value="${item.total_dolares}" readonly></td>
+                <td class="col-soles"><input type="text" name="detalle[${index}][total_soles]" value="${item.total_soles}" readonly></td>
+                <td class="col-dolares"><input type="text" name="detalle[${index}][total_dolares]" value="${item.total_dolares}" readonly></td>
                 <td><button type="button" class="btn btn-delete-row">X</button></td>
             `;
             newRow.querySelector('.concepto-cell').appendChild(conceptoSelect);
@@ -434,9 +434,39 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 500); // 500ms de espera, puede necesitar ajuste
 
-        // Disparar el cálculo inicial
+        // Poblar totales iniciales desde la cabecera guardada
+        document.getElementById('subtotal').textContent = parseFloat(documentoData.header.subtotal).toFixed(2);
+        document.getElementById('igv').textContent = parseFloat(documentoData.header.igv).toFixed(2);
+        document.getElementById('total').textContent = parseFloat(documentoData.header.total).toFixed(2);
+        document.getElementById('total_soles').textContent = parseFloat(documentoData.header.total_soles).toFixed(2);
+        document.getElementById('total_dolares').textContent = parseFloat(documentoData.header.total_dolares).toFixed(2);
+        // El cálculo completo se ejecutará después para consistencia, pero esto muestra los datos guardados inmediatamente.
+
+        // Disparar el cálculo completo para asegurar consistencia
         calculateAll();
     }
+
+    // --- Lógica para Ocultar/Mostrar Columnas de Moneda ---
+    const monedaSelect = document.getElementById('moneda');
+
+    function toggleCurrencyColumns() {
+        const selectedMoneda = monedaSelect.value;
+        const showSoles = selectedMoneda === 'DOLARES';
+        const showDolares = selectedMoneda === 'SOLES';
+
+        document.querySelectorAll('.col-soles').forEach(el => {
+            el.style.display = showSoles ? '' : 'none';
+        });
+        document.querySelectorAll('.col-dolares').forEach(el => {
+            el.style.display = showDolares ? '' : 'none';
+        });
+    }
+
+    monedaSelect.addEventListener('change', toggleCurrencyColumns);
+
+    // Llamada inicial para establecer el estado correcto al cargar
+    toggleCurrencyColumns();
+
 
     // --- Lógica para Dropdowns en Cascada (Proyecto -> Subproyecto) ---
     const proyectoSelect = document.getElementById('id_proyecto');

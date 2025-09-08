@@ -100,20 +100,23 @@ try {
                 </div>
                 <div class="form-group">
                     <label for="serie_documento">Serie</label>
-                    <input type="text" id="serie_documento" name="serie_documento" value="<?= htmlspecialchars($documento['serie_documento'] ?? '') ?>">
+                    <input type="text" id="serie_documento" name="serie_documento" value="<?= htmlspecialchars($documento['serie_documento'] ?? '') ?>" maxlength="4">
                 </div>
                 <div class="form-group">
                     <label for="numero_documento">Número</label>
                     <input type="text" id="numero_documento" name="numero_documento" value="<?= htmlspecialchars($documento['numero_documento'] ?? '') ?>" required>
                 </div>
-                <div class="form-group">
-                    <label for="id_auxiliar">Auxiliar (Proveedor/Cliente)</label>
-                    <select id="id_auxiliar" name="id_auxiliar" required>
-                        <option value="">Seleccione...</option>
-                        <?php foreach($auxiliares as $aux): ?>
-                            <option value="<?= $aux['id'] ?>"><?= htmlspecialchars($aux['nombre']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label for="id_auxiliar">Auxiliar (Proveedor/Cliente)</label>
+                        <select id="id_auxiliar" name="id_auxiliar" required>
+                            <option value="">Seleccione...</option>
+                            <?php foreach($auxiliares as $aux): ?>
+                                <option value="<?= $aux['id'] ?>"><?= htmlspecialchars($aux['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-refresh" data-target="id_auxiliar" data-source="../src/ajax/get_auxiliares.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
                 </div>
                  <div class="form-group">
                     <label for="moneda">Moneda</label>
@@ -128,23 +131,38 @@ try {
                 </div>
             </div>
              <div class="form-grid" style="margin-top: 20px;">
-                 <div class="form-group">
-                    <label for="id_proyecto">Proyecto</label>
-                    <select id="id_proyecto" name="id_proyecto" required>
-                        <option value="">Seleccione...</option>
-                        <?php foreach($proyectos as $proy): ?>
-                            <option value="<?= $proy['id'] ?>"><?= htmlspecialchars($proy['nombre']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                 <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label for="id_proyecto">Proyecto</label>
+                        <select id="id_proyecto" name="id_proyecto" required>
+                            <option value="">Seleccione...</option>
+                            <?php foreach($proyectos as $proy): ?>
+                                <option value="<?= $proy['id'] ?>"><?= htmlspecialchars($proy['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-refresh" data-target="id_proyecto" data-source="../src/ajax/get_proyectos.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
                 </div>
-                <div class="form-group">
-                    <label for="id_centro_costo">Centro de Costo</label>
-                    <select id="id_centro_costo" name="id_centro_costo" required>
-                        <option value="">Seleccione...</option>
-                         <?php foreach($centros_costos as $cc): ?>
-                            <option value="<?= $cc['id'] ?>"><?= htmlspecialchars($cc['nombre']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
+                <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label for="id_sub_proyecto">Sub Proyecto</label>
+                        <select id="id_sub_proyecto" name="id_sub_proyecto">
+                            <option value="">Seleccione un proyecto primero</option>
+                        </select>
+                    </div>
+                     <button type="button" class="btn-refresh" data-target="id_sub_proyecto" data-source="../src/ajax/get_subproyectos.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
+                </div>
+                <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label for="id_centro_costo">Centro de Costo</label>
+                        <select id="id_centro_costo" name="id_centro_costo" required>
+                            <option value="">Seleccione...</option>
+                             <?php foreach($centros_costos as $cc): ?>
+                                <option value="<?= $cc['id'] ?>"><?= htmlspecialchars($cc['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-refresh" data-target="id_centro_costo" data-source="../src/ajax/get_centros_costos.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
                 </div>
             </div>
             <div class="form-group" style="margin-top: 20px;">
@@ -215,8 +233,17 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const numeroDocumentoInput = document.getElementById('numero_documento');
     const detailsTbody = document.getElementById('details-tbody');
     const btnAddRow = document.getElementById('btn-add-row');
+
+    // Padrón de ceros a la izquierda para el número de documento
+    numeroDocumentoInput.addEventListener('blur', function() {
+        let value = this.value.trim();
+        if (value.length > 0 && value.length < 8) {
+            this.value = value.padStart(8, '0');
+        }
+    });
 
     function calculateRowTotal(row) {
         const cantidad = parseFloat(row.querySelector('input[name*="[cantidad]"]').value) || 0;
@@ -290,5 +317,91 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial calculation for pre-populated rows (in edit mode)
     detailsTbody.querySelectorAll('tr').forEach(calculateRowTotal);
+
+    // --- Lógica para Dropdowns en Cascada (Proyecto -> Subproyecto) ---
+    const proyectoSelect = document.getElementById('id_proyecto');
+    const subproyectoSelect = document.getElementById('id_sub_proyecto');
+
+    proyectoSelect.addEventListener('change', function() {
+        const proyectoId = this.value;
+        subproyectoSelect.innerHTML = '<option value="">Cargando...</option>';
+        subproyectoSelect.disabled = true;
+
+        if (!proyectoId) {
+            subproyectoSelect.innerHTML = '<option value="">Seleccione un proyecto primero</option>';
+            return;
+        }
+
+        fetch(`../src/ajax/get_subproyectos.php?id_proyecto=${proyectoId}`)
+            .then(response => response.json())
+            .then(data => {
+                subproyectoSelect.innerHTML = '<option value="">Seleccione un sub proyecto...</option>';
+                if (data.length > 0) {
+                    data.forEach(subproyecto => {
+                        const option = document.createElement('option');
+                        option.value = subproyecto.id;
+                        option.textContent = subproyecto.nombre;
+                        subproyectoSelect.appendChild(option);
+                    });
+                } else {
+                     subproyectoSelect.innerHTML = '<option value="">No hay sub proyectos</option>';
+                }
+                subproyectoSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error('Error al cargar subproyectos:', error);
+                subproyectoSelect.innerHTML = '<option value="">Error al cargar</option>';
+            });
+    });
+
+    // --- Lógica para Botones de Refrescar ---
+    function refreshDropdown(selectElement, url, dependencyId = null) {
+        const originalValue = selectElement.value;
+        let fetchUrl = url;
+
+        if (dependencyId) {
+            const dependencyValue = document.getElementById(dependencyId).value;
+            if (!dependencyValue) {
+                selectElement.innerHTML = '<option value="">Seleccione una dependencia primero</option>';
+                return;
+            }
+            fetchUrl = `${url}?id_proyecto=${dependencyValue}`;
+        }
+
+        selectElement.innerHTML = '<option value="">Cargando...</option>';
+
+        fetch(fetchUrl)
+            .then(response => response.json())
+            .then(data => {
+                selectElement.innerHTML = '<option value="">Seleccione...</option>';
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.nombre;
+                    if (item.id == originalValue) {
+                        option.selected = true;
+                    }
+                    selectElement.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error al refrescar dropdown:', error);
+                selectElement.innerHTML = '<option value="">Error al cargar</option>';
+            });
+    }
+
+    document.querySelectorAll('.btn-refresh').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.dataset.target;
+            const sourceUrl = this.dataset.source;
+            const selectElement = document.getElementById(targetId);
+
+            if (targetId === 'id_sub_proyecto') {
+                refreshDropdown(selectElement, sourceUrl, 'id_proyecto');
+            } else {
+                refreshDropdown(selectElement, sourceUrl);
+            }
+        });
+    });
 });
 </script>

@@ -72,6 +72,7 @@ try {
                 <th>Nombre</th>
                 <th>Tipo</th>
                 <th>Descripción</th>
+                <th>Cta. Contable</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -84,6 +85,7 @@ try {
                 <td><?= htmlspecialchars($item['nombre']) ?></td>
                 <td><?= htmlspecialchars($item['tipo']) ?></td>
                 <td><?= htmlspecialchars($item['descripcion']) ?></td>
+                <td><?= htmlspecialchars($item['cuenta_contable']) ?></td>
                 <td><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></td>
                 <td>
                     <a href="index.php?page=conceptos_form&id=<?= $item['id'] ?>" class="btn btn-edit">Editar</a>

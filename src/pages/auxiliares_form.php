@@ -118,65 +118,92 @@ try {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const btnSunat = document.getElementById('btn-sunat');
-    if (btnSunat) {
-        btnSunat.addEventListener('click', async function() {
-            const tipoDocSelect = document.getElementById('tipo_doc_identidad');
-            const numDocInput = document.getElementById('num_doc_identidad');
+    const tipoDocSelect = document.getElementById('tipo_doc_identidad');
 
-            if (tipoDocSelect.value !== 'RUC') {
-                alert('Esta función solo está disponible para el tipo de documento RUC.');
-                return;
-            }
-
-            const ruc = numDocInput.value;
-            if (!/^\d{11}$/.test(ruc)) {
-                alert('Por favor, ingrese un número de RUC válido de 11 dígitos.');
-                return;
-            }
-
-            // Deshabilitar botón para evitar clics múltiples
-            this.disabled = true;
-            this.textContent = 'Buscando...';
-
-            try {
-                const response = await fetch(`../src/ajax/get_ruc.php?numero=${ruc}`);
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => null);
-                    throw new Error(errorData?.error || 'No se pudo obtener una respuesta de la API.');
-                }
-
-                const data = await response.json();
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                // Poblar los campos del formulario
-                const razonSocialInput = document.getElementById('razon_social_nombres');
-                const direccionInput = document.getElementById('direccion');
-                const ubigeoInput = document.getElementById('ubigeo');
-
-                if (razonSocialInput && data.nombre) {
-                    razonSocialInput.value = data.nombre;
-                }
-                if (direccionInput && data.direccion) {
-                    let fullDireccion = [data.direccion, data.departamento, data.provincia, data.distrito]
-                        .filter(Boolean) // Filtrar valores nulos o vacíos
-                        .join(' - ');
-                    direccionInput.value = fullDireccion;
-                }
-                if (ubigeoInput && data.ubigeo) {
-                    ubigeoInput.value = data.ubigeo;
-                }
-
-            } catch (error) {
-                console.error('Error al consultar SUNAT:', error);
-                alert(`Error al consultar SUNAT: ${error.message}`);
-            } finally {
-                // Rehabilitar el botón
-                this.disabled = false;
-                this.textContent = 'SUNAT';
-            }
-        });
+    // Función para mostrar/ocultar el botón SUNAT
+    function toggleSunatButtonVisibility() {
+        const selectedType = tipoDocSelect.value;
+        if (selectedType === 'RUC' || selectedType === 'DNI') {
+            btnSunat.style.display = 'inline-block';
+        } else {
+            btnSunat.style.display = 'none';
+        }
     }
+
+    // Listener para el cambio de tipo de documento
+    tipoDocSelect.addEventListener('change', toggleSunatButtonVisibility);
+
+    // Llamada inicial para establecer la visibilidad correcta al cargar la página
+    toggleSunatButtonVisibility();
+
+    // Listener para el clic en el botón SUNAT
+    btnSunat.addEventListener('click', async function() {
+        const numDocInput = document.getElementById('num_doc_identidad');
+        const docType = tipoDocSelect.value;
+        const docNumber = numDocInput.value;
+
+        let apiUrl = '';
+        let validationRegex = null;
+        let validationMessage = '';
+
+        if (docType === 'RUC') {
+            apiUrl = `../src/ajax/get_ruc.php?numero=${docNumber}`;
+            validationRegex = /^\d{11}$/;
+            validationMessage = 'Por favor, ingrese un número de RUC válido de 11 dígitos.';
+        } else if (docType === 'DNI') {
+            apiUrl = `../src/ajax/get_dni.php?numero=${docNumber}`;
+            validationRegex = /^\d{8}$/;
+            validationMessage = 'Por favor, ingrese un número de DNI válido de 8 dígitos.';
+        } else {
+            return; // No hacer nada si el tipo de documento no es RUC o DNI
+        }
+
+        if (!validationRegex.test(docNumber)) {
+            alert(validationMessage);
+            return;
+        }
+
+        this.disabled = true;
+        this.textContent = 'Buscando...';
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.error || `No se pudo obtener una respuesta de la API para ${docType}.`);
+            }
+
+            const data = await response.json();
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            const razonSocialInput = document.getElementById('razon_social_nombres');
+            const direccionInput = document.getElementById('direccion');
+            const ubigeoInput = document.getElementById('ubigeo');
+
+            if (razonSocialInput && data.nombre) {
+                razonSocialInput.value = data.nombre;
+            }
+
+            let fullDireccion = [data.direccion, data.departamento, data.provincia, data.distrito]
+                .filter(Boolean)
+                .join(' - ');
+            if (direccionInput) {
+                direccionInput.value = fullDireccion;
+            }
+
+            if (ubigeoInput && data.ubigeo) {
+                ubigeoInput.value = data.ubigeo;
+            }
+
+        } catch (error) {
+            console.error(`Error al consultar ${docType}:`, error);
+            alert(`Error al consultar ${docType}: ${error.message}`);
+        } finally {
+            this.disabled = false;
+            this.textContent = 'SUNAT';
+        }
+    });
 });
 </script>

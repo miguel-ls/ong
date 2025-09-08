@@ -9,14 +9,23 @@ if ($_SESSION['user_role'] !== 'administrador') {
 $item = null;
 $is_edit = false;
 $tipos_auxiliar = [];
+$tipos_documento_identidad = [];
 
 try {
     $pdo = getDbConnection();
-    // Obtener todos los tipos para el dropdown
-    $stmt_tipos = $pdo->prepare("CALL sp_read_all_tipos_auxiliar(?, ?)");
-    $stmt_tipos->execute([null, null]);
-    $tipos_auxiliar = $stmt_tipos->fetchAll();
-    $stmt_tipos->closeCursor();
+
+    // Obtener tipos de auxiliar para el dropdown
+    $stmt_tipos_aux = $pdo->prepare("CALL sp_read_all_tipos_auxiliar(?, ?)");
+    $stmt_tipos_aux->execute([null, null]);
+    $tipos_auxiliar = $stmt_tipos_aux->fetchAll();
+    $stmt_tipos_aux->closeCursor();
+
+    // Obtener tipos de documento de identidad para el dropdown
+    $pdo = getDbConnection(); // Re-establish connection
+    $stmt_tipos_doc = $pdo->prepare("CALL sp_read_tipos_documento_identidad_for_dropdown()");
+    $stmt_tipos_doc->execute();
+    $tipos_documento_identidad = $stmt_tipos_doc->fetchAll();
+    $stmt_tipos_doc->closeCursor();
 
     if (isset($_GET['id'])) {
         $is_edit = true;
@@ -65,13 +74,14 @@ try {
             </select>
         </div>
         <div class="form-group">
-            <label for="tipo_doc_identidad">Tipo Documento Identidad</label>
-            <select id="tipo_doc_identidad" name="tipo_doc_identidad" required>
-                <option value="RUC" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'RUC') ? 'selected' : '' ?>>RUC</option>
-                <option value="DNI" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'DNI') ? 'selected' : '' ?>>DNI</option>
-                <option value="CE" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'CE') ? 'selected' : '' ?>>Carnet Extranjería</option>
-                <option value="PASAPORTE" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'PASAPORTE') ? 'selected' : '' ?>>Pasaporte</option>
-                <option value="OTRO" <?= (isset($item['tipo_doc_identidad']) && $item['tipo_doc_identidad'] == 'OTRO') ? 'selected' : '' ?>>Otro</option>
+            <label for="id_tipo_documento_identidad">Tipo Documento Identidad</label>
+            <select id="id_tipo_documento_identidad" name="id_tipo_documento_identidad" required>
+                <option value="">Seleccione un tipo</option>
+                <?php foreach ($tipos_documento_identidad as $tipo): ?>
+                    <option value="<?= $tipo['id'] ?>" <?= (isset($item['id_tipo_documento_identidad']) && $item['id_tipo_documento_identidad'] == $tipo['id']) ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($tipo['nombre']) ?>
+                    </option>
+                <?php endforeach; ?>
             </select>
         </div>
         <div class="form-group">
@@ -163,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSunatButtonVisibility();
     updateDocumentLength();
 
-    // Listener para el clic en el botón SUNAT (sin cambios, pero lo dejamos aquí)
+    // Listener para el clic en el botón SUNAT
     btnSunat.addEventListener('click', async function() {
         const selectedOption = tipoDocSelect.options[tipoDocSelect.selectedIndex];
         const docType = selectedOption ? selectedOption.text.toUpperCase() : '';
@@ -173,11 +183,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let validationRegex = null;
         let validationMessage = '';
 
-        if (docType === 'RUC') {
+        if (docType.includes('RUC')) {
             apiUrl = `../src/ajax/get_ruc.php?numero=${docNumber}`;
             validationRegex = /^\d{11}$/;
             validationMessage = 'Por favor, ingrese un número de RUC válido de 11 dígitos.';
-        } else if (docType === 'DNI') {
+        } else if (docType.includes('DNI')) {
             apiUrl = `../src/ajax/get_dni.php?numero=${docNumber}`;
             validationRegex = /^\d{8}$/;
             validationMessage = 'Por favor, ingrese un número de DNI válido de 8 dígitos.';

@@ -16,7 +16,7 @@ try {
             $stmt = $pdo->prepare("CALL sp_create_auxiliar(?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id_tipo_auxiliar'],
-                $_POST['id_tipo_documento_identidad'],
+                $_POST['tipo_doc_identidad'],
                 $_POST['num_doc_identidad'],
                 $_POST['razon_social_nombres'],
                 $_POST['direccion'],
@@ -31,7 +31,7 @@ try {
             $stmt->execute([
                 $_POST['id'],
                 $_POST['id_tipo_auxiliar'],
-                $_POST['id_tipo_documento_identidad'],
+                $_POST['tipo_doc_identidad'],
                 $_POST['num_doc_identidad'],
                 $_POST['razon_social_nombres'],
                 $_POST['direccion'],

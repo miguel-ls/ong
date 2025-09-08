@@ -44,10 +44,22 @@ try {
     if ($is_edit_mode) {
         $pdo = null; $pdo = getDbConnection();
         $id_documento = $_GET['id'];
-        // NOTE: Logic for fetching and populating will be fully implemented in a later phase.
-        // $stmt = $pdo->prepare("CALL sp_read_documento_by_id(?)");
-        // $stmt->execute([$id_documento]);
-        // $documento = $stmt->fetch();
+
+        $stmt_header = $pdo->prepare("CALL sp_read_documento_header_by_id(?)");
+        $stmt_header->execute([$id_documento]);
+        $documento = $stmt_header->fetch(PDO::FETCH_ASSOC);
+        $stmt_header->closeCursor();
+
+        $pdo = null; $pdo = getDbConnection();
+        $stmt_detalle = $pdo->prepare("CALL sp_read_documento_detalle_by_id(?)");
+        $stmt_detalle->execute([$id_documento]);
+        $documento_detalle = $stmt_detalle->fetchAll(PDO::FETCH_ASSOC);
+        $stmt_detalle->closeCursor();
+
+        $documento_data_json = json_encode([
+            'header' => $documento,
+            'detail' => $documento_detalle
+        ]);
     }
 
 } catch (PDOException $e) {
@@ -242,12 +254,17 @@ try {
         </div>
 
         <div style="text-align: right;">
+            <a href="index.php?page=ingreso_documentos" class="btn" style="background-color: #6c757d; margin-right: 10px;">Cancelar</a>
             <button type="submit" class="btn btn-save">Guardar Documento</button>
         </div>
     </form>
 </section>
 
 <script>
+// Poner los datos del documento (en modo edición) y de los combos en variables globales de JS
+const documentoData = <?= $documento_data_json ?? 'null' ?>;
+const conceptosData = <?= json_encode($conceptos) ?>;
+
 document.addEventListener('DOMContentLoaded', function() {
     const numeroDocumentoInput = document.getElementById('numero_documento');
     const detailsTbody = document.getElementById('details-tbody');
@@ -359,6 +376,67 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cálculo inicial al cargar la página
     calculateAll();
+
+    function escapeHTML(str) {
+        const p = document.createElement("p");
+        p.textContent = str;
+        return p.innerHTML;
+    }
+
+    // --- Lógica para poblar el formulario en modo de edición ---
+    if (documentoData) {
+        // Poblar cabecera
+        Object.keys(documentoData.header).forEach(key => {
+            const input = document.querySelector(`[name="${key}"]`);
+            if (input) {
+                input.value = documentoData.header[key];
+            }
+        });
+
+        // Poblar detalle
+        detailsTbody.innerHTML = ''; // Limpiar la fila de plantilla
+
+        documentoData.detail.forEach((item, index) => {
+            const newRow = detailsTbody.insertRow();
+
+            // Crear el <select> de conceptos dinámicamente
+            const conceptoSelect = document.createElement('select');
+            conceptoSelect.name = `detalle[${index}][id_concepto]`;
+            let optionsHtml = '<option value="">Seleccione...</option>';
+            conceptosData.forEach(con => {
+                const isSelected = con.id == item.id_concepto ? 'selected' : '';
+                optionsHtml += `<option value="${con.id}" ${isSelected}>${escapeHTML(con.nombre)}</option>`;
+            });
+            conceptoSelect.innerHTML = optionsHtml;
+
+            newRow.innerHTML = `
+                <td>${index + 1}</td>
+                <td><input type="number" name="detalle[${index}][cantidad]" value="${item.cantidad}" step="0.01" class="row-input"></td>
+                <td><input type="text" name="detalle[${index}][descripcion]" value="${escapeHTML(item.descripcion)}"></td>
+                <td class="concepto-cell"></td>
+                <td><input type="number" name="detalle[${index}][precio_unitario]" value="${item.precio_unitario}" step="0.01" class="row-input"></td>
+                <td><input type="text" name="detalle[${index}][precio_total]" value="${item.precio_total}" readonly></td>
+                <td><input type="text" name="detalle[${index}][total_soles]" value="${item.total_soles}" readonly></td>
+                <td><input type="text" name="detalle[${index}][total_dolares]" value="${item.total_dolares}" readonly></td>
+                <td><button type="button" class="btn btn-delete-row">X</button></td>
+            `;
+            newRow.querySelector('.concepto-cell').appendChild(conceptoSelect);
+        });
+
+        // Disparar el evento change en proyecto para cargar subproyectos
+        proyectoSelect.dispatchEvent(new Event('change'));
+
+        // Esperar un momento para que el AJAX de subproyectos termine y luego seleccionar el valor
+        setTimeout(() => {
+            const subProyectoInput = document.querySelector('[name="id_sub_proyecto"]');
+            if (subProyectoInput) {
+                subProyectoInput.value = documentoData.header.id_sub_proyecto;
+            }
+        }, 500); // 500ms de espera, puede necesitar ajuste
+
+        // Disparar el cálculo inicial
+        calculateAll();
+    }
 
     // --- Lógica para Dropdowns en Cascada (Proyecto -> Subproyecto) ---
     const proyectoSelect = document.getElementById('id_proyecto');

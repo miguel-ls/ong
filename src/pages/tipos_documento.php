@@ -62,6 +62,7 @@ try {
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
+                <th>Longitud</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
@@ -73,6 +74,7 @@ try {
                 <td><?= htmlspecialchars($item['codigo']) ?></td>
                 <td><?= htmlspecialchars($item['nombre']) ?></td>
                 <td><?= htmlspecialchars($item['descripcion']) ?></td>
+                <td><?= htmlspecialchars($item['longitud']) ?></td>
                 <td><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></td>
                 <td>
                     <a href="index.php?page=tipos_documento_form&id=<?= $item['id'] ?>" class="btn btn-edit">Editar</a>

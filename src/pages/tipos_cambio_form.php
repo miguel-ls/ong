@@ -80,8 +80,8 @@ document.addEventListener('DOMContentLoaded', function() {
         this.textContent = '...';
 
         try {
-            // Este endpoint ahora consulta la DB local, pero la funcionalidad del botón es la misma.
-            const response = await fetch(`../src/ajax/get_tipo_cambio.php?fecha=${fecha}`);
+            // Este endpoint ahora consulta la API externa de SUNAT.
+            const response = await fetch(`../src/ajax/get_sunat_tipo_cambio.php?fecha=${fecha}`);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: 'Error de red o respuesta no válida.' }));
                 throw new Error(errorData.error || `Error: ${response.statusText}`);

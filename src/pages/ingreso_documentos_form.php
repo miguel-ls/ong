@@ -144,9 +144,12 @@ try {
                         <option value="DOLARES">Dólares (USD)</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="tipo_cambio">Tipo de Cambio (Venta)</label>
-                    <input type="number" id="tipo_cambio" name="tipo_cambio" step="0.0001" value="<?= htmlspecialchars($documento['tipo_cambio'] ?? '1.0000') ?>" required>
+                <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label for="tipo_cambio">Tipo de Cambio (Venta)</label>
+                        <input type="number" id="tipo_cambio" name="tipo_cambio" step="0.0001" value="<?= htmlspecialchars($documento['tipo_cambio'] ?? '1.0000') ?>" required>
+                    </div>
+                    <button type="button" id="btn-refresh-tc" class="btn-refresh" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
                 </div>
             </div>
              <div class="form-grid" style="margin-top: 20px;">
@@ -442,11 +445,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // --- Lógica para Tipo de Cambio ---
+    const fechaEmisionInput = document.getElementById('fecha_emision');
+    const tipoCambioInput = document.getElementById('tipo_cambio');
+    const btnRefreshTC = document.getElementById('btn-refresh-tc');
+
+    async function fetchAndSetTipoCambio() {
+        const fecha = fechaEmisionInput.value;
+        if (!fecha) {
+            console.log('No se ha seleccionado una fecha de emisión.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://api.apis.net.pe/v1/tipo-cambio-sunat?fecha=${fecha}`);
+            if (!response.ok) {
+                throw new Error(`Error de red o API: ${response.statusText}`);
+            }
+            const data = await response.json();
+            if (data && data.venta) {
+                tipoCambioInput.value = data.venta.toFixed(4);
+                // Disparar el evento input para que se recalculen los totales
+                tipoCambioInput.dispatchEvent(new Event('input', { bubbles: true }));
+            } else {
+                console.log('La respuesta de la API no contiene el valor de venta esperado.');
+            }
+        } catch (error) {
+            console.error('Error al obtener el tipo de cambio:', error);
+            // Opcional: notificar al usuario en la UI
+        }
+    }
+
     // --- Lógica de Inicialización ---
     monedaSelect.addEventListener('change', toggleCurrencyColumns);
     proyectoSelect.addEventListener('change', loadAndSelectSubProyecto);
+    btnRefreshTC.addEventListener('click', fetchAndSetTipoCambio);
 
     if (documentoData) {
+        // MODO EDICIÓN: Cargar datos existentes y configurar UI
         // 1. Poblar cabecera
         Object.keys(documentoData.header).forEach(key => {
             const input = document.querySelector(`[name="${key}"]`);
@@ -495,8 +531,11 @@ document.addEventListener('DOMContentLoaded', function() {
         calculateAll();
         toggleCurrencyColumns();
     } else {
-        // Para nuevos documentos, solo configurar el estado inicial
+        // MODO NUEVO: Configurar estado inicial y listeners adicionales
         toggleCurrencyColumns();
+        fechaEmisionInput.addEventListener('change', fetchAndSetTipoCambio);
+        // Cargar el tipo de cambio para la fecha actual al crear un nuevo documento
+        fetchAndSetTipoCambio();
     }
 
     // --- Lógica para Botones de Refrescar ---

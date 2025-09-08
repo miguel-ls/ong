@@ -11,30 +11,30 @@ $centros_costos = [];
 
 try {
     $pdo = getDbConnection();
-
-    // Fetch data for dropdowns
     $stmt_tipos_doc = $pdo->prepare("CALL sp_read_tipos_documento_for_dropdown()");
     $stmt_tipos_doc->execute();
     $tipos_documento = $stmt_tipos_doc->fetchAll();
     $stmt_tipos_doc->closeCursor();
 
+    $pdo = null; $pdo = getDbConnection();
     $stmt_auxiliares = $pdo->prepare("CALL sp_read_auxiliares_for_dropdown()");
     $stmt_auxiliares->execute();
     $auxiliares = $stmt_auxiliares->fetchAll();
     $stmt_auxiliares->closeCursor();
 
+    $pdo = null; $pdo = getDbConnection();
     $stmt_conceptos = $pdo->prepare("CALL sp_read_conceptos_for_dropdown()");
     $stmt_conceptos->execute();
     $conceptos = $stmt_conceptos->fetchAll();
     $stmt_conceptos->closeCursor();
 
-    // NOTE: Need SPs for proyectos and centros_costos as well.
-    // For now, using the existing ones for simplicity in this phase.
+    $pdo = null; $pdo = getDbConnection();
     $stmt_proyectos = $pdo->prepare("CALL sp_read_proyectos_for_dropdown()");
     $stmt_proyectos->execute();
     $proyectos = $stmt_proyectos->fetchAll();
     $stmt_proyectos->closeCursor();
 
+    $pdo = null; $pdo = getDbConnection();
     $stmt_centros_costos = $pdo->prepare("CALL sp_read_all_centros_costos(null, null)");
     $stmt_centros_costos->execute();
     $centros_costos = $stmt_centros_costos->fetchAll();
@@ -42,9 +42,9 @@ try {
 
 
     if ($is_edit_mode) {
-        // Fetch existing document data
-        // NOTE: Logic for fetching and populating will be fully implemented in a later phase.
+        $pdo = null; $pdo = getDbConnection();
         $id_documento = $_GET['id'];
+        // NOTE: Logic for fetching and populating will be fully implemented in a later phase.
         // $stmt = $pdo->prepare("CALL sp_read_documento_by_id(?)");
         // $stmt->execute([$id_documento]);
         // $documento = $stmt->fetch();

@@ -50,6 +50,7 @@ try {
     .form-group label { display: block; margin-bottom: 5px; }
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     .btn-submit { background-color: #005cb3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    .error-message { padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px; }
 </style>
 
 <header>
@@ -57,10 +58,11 @@ try {
 </header>
 <section class="form-container">
     <?php if (isset($_GET['error']) && $_GET['error'] === 'invalid_doc_type'): ?>
-        <div style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px;">
+        <div class="error-message">
             <strong>Error:</strong> Por favor, seleccione un Tipo de Documento de Identidad válido.
         </div>
     <?php endif; ?>
+
     <form action="../src/actions/auxiliares_process.php" method="POST">
         <input type="hidden" name="action" value="<?= $is_edit ? 'update' : 'create' ?>">
         <?php if ($is_edit): ?>
@@ -150,7 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function updateDocumentLength() {
         const selectedId = tipoDocSelect.value;
-        // No limpiar el maxlength aquí, solo quitarlo si no hay tipo
         if (!selectedId) {
             numDocInput.removeAttribute('maxlength');
             return;
@@ -183,7 +184,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Carga Inicial ---
-    // Llamar a las funciones para establecer el estado inicial de la página
     updateSunatButtonVisibility();
     updateDocumentLength();
 
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             validationRegex = /^\d{8}$/;
             validationMessage = 'Por favor, ingrese un número de DNI válido de 8 dígitos.';
         } else {
-            return; // No hacer nada si el tipo de documento no es RUC o DNI
+            return;
         }
 
         if (!validationRegex.test(docNumber)) {

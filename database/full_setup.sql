@@ -642,17 +642,16 @@ DROP PROCEDURE IF EXISTS sp_create_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_auxiliar`(
     IN p_id_tipo_auxiliar INT,
-    IN p_id_tipo_documento_identidad INT,
+    IN p_tipo_doc_identidad ENUM('RUC', 'DNI', 'CE', 'PASAPORTE', 'OTRO'),
     IN p_num_doc_identidad VARCHAR(20),
     IN p_razon_social_nombres VARCHAR(255),
     IN p_direccion VARCHAR(255),
     IN p_telefono VARCHAR(50),
-    IN p_email VARCHAR(100),
-    IN p_ubigeo VARCHAR(6)
+    IN p_email VARCHAR(100)
 )
 BEGIN
-    INSERT INTO auxiliares (id_tipo_auxiliar, id_tipo_documento_identidad, num_doc_identidad, razon_social_nombres, direccion, telefono, email, ubigeo)
-    VALUES (p_id_tipo_auxiliar, p_id_tipo_documento_identidad, p_num_doc_identidad, p_razon_social_nombres, p_direccion, p_telefono, p_email, p_ubigeo);
+    INSERT INTO auxiliares (id_tipo_auxiliar, tipo_doc_identidad, num_doc_identidad, razon_social_nombres, direccion, telefono, email)
+    VALUES (p_id_tipo_auxiliar, p_tipo_doc_identidad, p_num_doc_identidad, p_razon_social_nombres, p_direccion, p_telefono, p_email);
 END$$
 DELIMITER ;
 
@@ -664,19 +663,9 @@ CREATE PROCEDURE `sp_read_all_auxiliares`(
     IN p_tipo_aux INT
 )
 BEGIN
-    SELECT
-        a.id,
-        a.razon_social_nombres,
-        a.num_doc_identidad,
-        a.direccion,
-        a.telefono,
-        a.email,
-        a.estado,
-        ta.nombre as nombre_tipo_auxiliar,
-        tdi.nombre as tipo_doc_identidad
+    SELECT a.*, ta.nombre as nombre_tipo_auxiliar
     FROM auxiliares a
     JOIN tipos_auxiliar ta ON a.id_tipo_auxiliar = ta.id
-    LEFT JOIN tipos_documento_identidad tdi ON a.id_tipo_documento_identidad = tdi.id
     WHERE
         (p_nombre IS NULL OR p_nombre = '' OR a.razon_social_nombres LIKE CONCAT('%', p_nombre, '%'))
         AND (p_num_doc IS NULL OR p_num_doc = '' OR a.num_doc_identidad LIKE CONCAT('%', p_num_doc, '%'))
@@ -697,26 +686,24 @@ DELIMITER $$
 CREATE PROCEDURE `sp_update_auxiliar`(
     IN p_id INT,
     IN p_id_tipo_auxiliar INT,
-    IN p_id_tipo_documento_identidad INT,
+    IN p_tipo_doc_identidad ENUM('RUC', 'DNI', 'CE', 'PASAPORTE', 'OTRO'),
     IN p_num_doc_identidad VARCHAR(20),
     IN p_razon_social_nombres VARCHAR(255),
     IN p_direccion VARCHAR(255),
     IN p_telefono VARCHAR(50),
     IN p_email VARCHAR(100),
-    IN p_ubigeo VARCHAR(6),
     IN p_estado BOOLEAN
 )
 BEGIN
     UPDATE auxiliares
     SET
         id_tipo_auxiliar = p_id_tipo_auxiliar,
-        id_tipo_documento_identidad = p_id_tipo_documento_identidad,
+        tipo_doc_identidad = p_tipo_doc_identidad,
         num_doc_identidad = p_num_doc_identidad,
         razon_social_nombres = p_razon_social_nombres,
         direccion = p_direccion,
         telefono = p_telefono,
         email = p_email,
-        ubigeo = p_ubigeo,
         estado = p_estado
     WHERE id = p_id;
 END$$

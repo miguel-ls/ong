@@ -13,20 +13,22 @@ $pdo = getDbConnection();
 try {
     switch ($action) {
         case 'create':
-            $stmt = $pdo->prepare("CALL sp_create_tipo_documento(?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_create_tipo_documento(?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['codigo'],
                 $_POST['nombre'],
-                $_POST['descripcion']
+                $_POST['descripcion'],
+                $_POST['longitud']
             ]);
             break;
 
         case 'update':
-            $stmt = $pdo->prepare("CALL sp_update_tipo_documento(?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_update_tipo_documento(?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id'],
                 $_POST['nombre'],
                 $_POST['descripcion'],
+                $_POST['longitud'],
                 $_POST['estado']
             ]);
             break;

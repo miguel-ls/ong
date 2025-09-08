@@ -54,6 +54,10 @@ if (isset($_GET['id'])) {
             <label for="descripcion">Descripción</label>
             <textarea id="descripcion" name="descripcion" rows="3"><?= htmlspecialchars($item['descripcion'] ?? '') ?></textarea>
         </div>
+        <div class="form-group">
+            <label for="longitud">Longitud</label>
+            <input type="number" id="longitud" name="longitud" value="<?= htmlspecialchars($item['longitud'] ?? '') ?>">
+        </div>
         <?php if ($is_edit): ?>
         <div class="form-group">
             <label for="estado">Estado</label>

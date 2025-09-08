@@ -11,6 +11,18 @@ $action = $_REQUEST['action'] ?? null;
 $pdo = getDbConnection();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Validación de Tipo de Cambio
+    $tipo_cambio_val = isset($_POST['tipo_cambio']) ? (float)$_POST['tipo_cambio'] : 0;
+    if ($tipo_cambio_val <= 0) {
+        $id_documento = $_POST['id_documento'] ?? null;
+        $redirect_url = '../../public/index.php?page=ingreso_documentos_form&error=tipo_cambio_zero';
+        if (!empty($id_documento)) {
+            $redirect_url .= '&id=' . $id_documento;
+        }
+        header('Location: ' . $redirect_url);
+        exit();
+    }
+
     // Lógica para CREATE y UPDATE
     // --- Obtener datos del formulario ---
     $id_tipo_documento = $_POST['id_tipo_documento'];

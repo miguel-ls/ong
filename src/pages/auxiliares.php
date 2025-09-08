@@ -99,7 +99,13 @@ try {
             <tr>
                 <td><?= htmlspecialchars($item['id']) ?></td>
                 <td><?= htmlspecialchars($item['nombre_tipo_auxiliar']) ?></td>
-                <td><?= htmlspecialchars($item['tipo_doc_identidad'] . ' ' . $item['num_doc_identidad']) ?></td>
+                <td>
+                    <?php
+                        $doc_type = $item['tipo_doc_identidad'] ?? '';
+                        $doc_num = $item['num_doc_identidad'] ?? '';
+                        echo htmlspecialchars(trim($doc_type . ' ' . $doc_num));
+                    ?>
+                </td>
                 <td><?= htmlspecialchars($item['razon_social_nombres']) ?></td>
                 <td><?= htmlspecialchars($item['email']) ?></td>
                 <td><?= htmlspecialchars($item['telefono']) ?></td>

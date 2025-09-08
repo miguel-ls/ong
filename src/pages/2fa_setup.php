@@ -53,6 +53,11 @@ $qrCodeImage = (new \chillerlan\QRCode\QRCode)->render($qrCodeUrl);
 </header>
 
 <section class="setup-container">
+    <?php if (isset($_GET['error']) && $_GET['error'] === 'invalid_code'): ?>
+        <div style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px;">
+            <strong>Error:</strong> El código de verificación es incorrecto. Por favor, inténtalo de nuevo.
+        </div>
+    <?php endif; ?>
     <p>Siga estos pasos para activar la 2FA:</p>
     <ol style="text-align: left;">
         <li>Instale una aplicación de autenticación en su teléfono (ej. Google Authenticator, Authy, etc.).</li>

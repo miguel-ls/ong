@@ -15,7 +15,8 @@ $secret = $_SESSION['2fa_temp_secret'];
 $one_time_password = $_POST['one_time_password'];
 
 $google2fa = new Google2FA();
-$isValid = $google2fa->verifyKey($secret, $one_time_password);
+// Añadir una ventana de tolerancia (2 * 30s = 60s) para compensar la desincronización horaria
+$isValid = $google2fa->verifyKey($secret, $one_time_password, 2);
 
 if ($isValid) {
     try {

@@ -30,5 +30,15 @@
         });
     });
     </script>
+
+    <!-- Reusable Modal -->
+    <div id="reusableModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <p id="modalMessage"></p>
+            <button id="modalOkButton" class="btn">Aceptar</button>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
 </body>
 </html>

@@ -601,5 +601,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // --- Lógica de Envío con AJAX ---
+    const mainForm = document.querySelector('form[action="../src/actions/documentos_process.php"]');
+    mainForm.addEventListener('submit', async function(event) {
+        event.preventDefault(); // Detener el envío tradicional
+
+        const saveButton = this.querySelector('.btn-save');
+        saveButton.disabled = true;
+        saveButton.textContent = 'Guardando...';
+
+        const formData = new FormData(this);
+
+        // Añadir totales calculados al FormData
+        formData.append('subtotal_display', document.getElementById('subtotal').textContent);
+        formData.append('igv_display', document.getElementById('igv').textContent);
+        formData.append('total_display', document.getElementById('total').textContent);
+
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error de red: ${response.statusText}`);
+            }
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                // Usar showAlertModal para el éxito también
+                showAlertModal(result.message);
+                // Redirigir después de que el usuario cierre el modal
+                document.getElementById('modalOkButton').onclick = function() {
+                    window.location.href = 'index.php?page=ingreso_documentos';
+                };
+            } else {
+                // Usar el modal para el error
+                showAlertModal(result.message || 'Ocurrió un error desconocido.');
+            }
+
+        } catch (error) {
+            console.error('Error en el envío del formulario:', error);
+            showAlertModal(`Error en el envío del formulario: ${error.message}`);
+        } finally {
+            saveButton.disabled = false;
+            saveButton.textContent = 'Guardar Documento';
+        }
+    });
 });
 </script>

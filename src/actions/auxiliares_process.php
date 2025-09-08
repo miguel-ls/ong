@@ -64,10 +64,13 @@ try {
     header('Location: ../../public/index.php?page=auxiliares&success=Operación realizada con éxito');
 
 } catch (PDOException $e) {
-    if ($e->getCode() == 23000) {
-        header('Location: ../../public/index.php?page=auxiliares&error=Error: El número de documento ya existe.');
-    } else {
-        header('Location: ../../public/index.php?page=auxiliares&error=Error en la base de datos: ' . $e->getMessage());
-    }
+    // --- DEBUGGING ---
+    // Modificado para mostrar siempre el error real de la base de datos.
+    $error_message = "Error Detallado de la Base de Datos: " . $e->getMessage() .
+                     " (Código: " . $e->getCode() . ")" .
+                     " | En Archivo: " . $e->getFile() . " Línea: " . $e->getLine();
+
+    // Para asegurar que el mensaje se vea, lo mostramos directamente.
+    die('<pre>' . htmlspecialchars($error_message) . '</pre>');
 }
 ?>

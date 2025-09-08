@@ -125,6 +125,18 @@ try {
                     <label for="numero_documento">Número</label>
                     <input type="text" id="numero_documento" name="numero_documento" value="<?= htmlspecialchars($documento['numero_documento'] ?? '') ?>" required>
                 </div>
+                <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label for="id_auxiliar">Auxiliar (Proveedor/Cliente)</label>
+                        <select id="id_auxiliar" name="id_auxiliar" required>
+                            <option value="">Seleccione...</option>
+                            <?php foreach($auxiliares as $aux): ?>
+                                <option value="<?= $aux['id'] ?>"><?= htmlspecialchars($aux['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-refresh" data-target="id_auxiliar" data-source="../src/ajax/get_auxiliares.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
+                </div>
                  <div class="form-group">
                     <label for="moneda">Moneda</label>
                     <select id="moneda" name="moneda" required>
@@ -140,32 +152,18 @@ try {
                     <button type="button" id="btn-refresh-tc" class="btn-refresh" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
                 </div>
             </div>
-
-            <div class="form-group" style="margin-top: 20px;">
-                <label for="id_auxiliar">Auxiliar (Proveedor/Cliente)</label>
-                <div style="display: flex; align-items: center;">
-                    <select id="id_auxiliar" name="id_auxiliar" required style="flex-grow: 1;">
-                        <option value="">Seleccione...</option>
-                        <?php foreach($auxiliares as $aux): ?>
-                            <option value="<?= $aux['id'] ?>"><?= htmlspecialchars($aux['nombre']) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <button type="button" class="btn-refresh" data-target="id_auxiliar" data-source="../src/ajax/get_auxiliares.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
-                </div>
-            </div>
-
              <div class="form-grid" style="margin-top: 20px;">
-                <div class="form-group">
-                    <label for="id_proyecto">Proyecto</label>
-                    <div style="display: flex; align-items: center;">
-                        <select id="id_proyecto" name="id_proyecto" required style="flex-grow: 1;">
+                 <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
+                    <div style="flex-grow: 1;">
+                        <label for="id_proyecto">Proyecto</label>
+                        <select id="id_proyecto" name="id_proyecto" required>
                             <option value="">Seleccione...</option>
                             <?php foreach($proyectos as $proy): ?>
                                 <option value="<?= $proy['id'] ?>"><?= htmlspecialchars($proy['nombre']) ?></option>
                             <?php endforeach; ?>
                         </select>
-                        <button type="button" class="btn-refresh" data-target="id_proyecto" data-source="../src/ajax/get_proyectos.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
                     </div>
+                    <button type="button" class="btn-refresh" data-target="id_proyecto" data-source="../src/ajax/get_proyectos.php" style="margin-left: 5px; height: 38px;">&#x21bb;</button>
                 </div>
                 <div class="form-group" style="display: flex; flex-direction: row; align-items: flex-end;">
                     <div style="flex-grow: 1;">

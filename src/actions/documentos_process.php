@@ -2,15 +2,18 @@
 session_start();
 require_once __DIR__ . '/../database.php';
 
-if (!isset($_SESSION['user_id']) || $_SERVER['REQUEST_METHOD'] !== 'POST') {
+if (!isset($_SESSION['user_id'])) {
     header('Location: ../../public/login.php');
     exit();
 }
 
+$action = $_REQUEST['action'] ?? null;
 $pdo = getDbConnection();
 
-// --- Obtener datos del formulario ---
-$id_tipo_documento = $_POST['id_tipo_documento'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Lógica para CREATE y UPDATE
+    // --- Obtener datos del formulario ---
+    $id_tipo_documento = $_POST['id_tipo_documento'];
 $fecha_emision = $_POST['fecha_emision'];
 $serie_documento = $_POST['serie_documento'];
 $numero_documento = $_POST['numero_documento'];
@@ -54,64 +57,70 @@ $igv_principal = $subtotal_principal * 0.18;
 $total_principal = $subtotal_principal + $igv_principal;
 
 // --- Lógica de guardado con Transacción ---
+$is_update = isset($_POST['id_documento']) && !empty($_POST['id_documento']);
+
 try {
     $pdo->beginTransaction();
 
-    // 1. Guardar la cabecera
-    $stmt_header = $pdo->prepare("
-        CALL sp_create_documento_header(
-            :id_tipo_documento, :id_proyecto, :id_sub_proyecto, :id_centro_costo,
-            :id_auxiliar, :id_usuario_registro, :serie_documento, :numero_documento,
-            :fecha_emision, :moneda, :tipo_cambio, :subtotal, :igv, :total,
-            :total_soles, :total_dolares, :glosa, @new_id
-        )
-    ");
-    $stmt_header->execute([
-        ':id_tipo_documento' => $id_tipo_documento,
-        ':id_proyecto' => $id_proyecto,
-        ':id_sub_proyecto' => $id_sub_proyecto,
-        ':id_centro_costo' => $id_centro_costo,
-        ':id_auxiliar' => $id_auxiliar,
-        ':id_usuario_registro' => $id_usuario_registro,
-        ':serie_documento' => $serie_documento,
-        ':numero_documento' => $numero_documento,
-        ':fecha_emision' => $fecha_emision,
-        ':moneda' => $moneda_principal,
-        ':tipo_cambio' => $tipo_cambio,
-        ':subtotal' => $subtotal_principal,
-        ':igv' => $igv_principal,
-        ':total' => $total_principal,
-        ':total_soles' => $total_soles_acumulado + ($total_soles_acumulado * 0.18),
-        ':total_dolares' => $total_dolares_acumulado + ($total_dolares_acumulado * 0.18),
-        ':glosa' => $glosa
-    ]);
-    $stmt_header->closeCursor();
+    if ($is_update) {
+        // --- LÓGICA DE ACTUALIZACIÓN ---
+        $id_documento = $_POST['id_documento'];
 
-    $result = $pdo->query("SELECT @new_id AS new_id")->fetch(PDO::FETCH_ASSOC);
-    $id_documento = $result['new_id'];
-
-    if (!$id_documento) {
-        throw new Exception("No se pudo obtener el ID del nuevo documento.");
-    }
-
-    // 2. Guardar las líneas de detalle
-    $stmt_detalle = $pdo->prepare("CALL sp_create_documento_detalle(?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    foreach ($detalle_items as $index => $item) {
-        $stmt_detalle->execute([
-            $id_documento,
-            $index + 1,
-            $item['cantidad'],
-            $item['descripcion'],
-            $item['id_concepto'],
-            $item['precio_unitario'],
-            $item['precio_total'],
-            $item['total_soles'],
-            $item['total_dolares']
+        // 1. Actualizar la cabecera
+        $stmt_header = $pdo->prepare("CALL sp_update_documento_header(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt_header->execute([
+            $id_documento, $id_tipo_documento, $id_proyecto, $id_sub_proyecto, $id_centro_costo, $id_auxiliar,
+            $serie_documento, $numero_documento, $fecha_emision, $moneda_principal, $tipo_cambio,
+            $subtotal_principal, $igv_principal, $total_principal,
+            $total_soles_acumulado + ($total_soles_acumulado * 0.18),
+            $total_dolares_acumulado + ($total_dolares_acumulado * 0.18),
+            $glosa
         ]);
+
+        // 2. Borrar detalle antiguo
+        $stmt_delete_detalle = $pdo->prepare("CALL sp_delete_documento_detalle_by_id_documento(?)");
+        $stmt_delete_detalle->execute([$id_documento]);
+
+        // 3. Insertar nuevo detalle
+        $stmt_detalle = $pdo->prepare("CALL sp_create_documento_detalle(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        foreach ($detalle_items as $index => $item) {
+            $stmt_detalle->execute([
+                $id_documento, $index + 1, $item['cantidad'], $item['descripcion'], $item['id_concepto'],
+                $item['precio_unitario'], $item['precio_total'], $item['total_soles'], $item['total_dolares']
+            ]);
+        }
+
+    } else {
+        // --- LÓGICA DE CREACIÓN (EXISTENTE) ---
+        $stmt_header = $pdo->prepare("CALL sp_create_documento_header(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @new_id)");
+        $stmt_header->execute([
+            $id_tipo_documento, $id_proyecto, $id_sub_proyecto, $id_centro_costo, $id_auxiliar, $id_usuario_registro,
+            $serie_documento, $numero_documento, $fecha_emision, $moneda_principal, $tipo_cambio,
+            $subtotal_principal, $igv_principal, $total_principal,
+            $total_soles_acumulado + ($total_soles_acumulado * 0.18),
+            $total_dolares_acumulado + ($total_dolares_acumulado * 0.18),
+            $glosa
+        ]);
+        $stmt_header->closeCursor();
+        $result = $pdo->query("SELECT @new_id AS new_id")->fetch(PDO::FETCH_ASSOC);
+        $id_documento = $result['new_id'];
+
+        if (!$id_documento) {
+            throw new Exception("No se pudo obtener el ID del nuevo documento.");
+        }
+
+        $stmt_detalle = $pdo->prepare("CALL sp_create_documento_detalle(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        foreach ($detalle_items as $index => $item) {
+            $stmt_detalle->execute([
+                $id_documento, $index + 1, $item['cantidad'], $item['descripcion'], $item['id_concepto'],
+                $item['precio_unitario'], $item['precio_total'], $item['total_soles'], $item['total_dolares']
+            ]);
+        }
     }
 
     $pdo->commit();
-    header('Location: ../../public/index.php?page=ingreso_documentos&success=1');
+    $success_code = $is_update ? 2 : 1;
+    header('Location: ../../public/index.php?page=ingreso_documentos&success=' . $success_code);
     exit();
 
 } catch (Exception $e) {
@@ -120,6 +129,22 @@ try {
     }
     $error_message = urlencode("Error al guardar: " . $e->getMessage());
     header('Location: ../../public/index.php?page=ingreso_documentos_form&error=' . $error_message);
+    exit();
+}
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'delete') {
+    // Lógica para DELETE
+    $id_documento = $_GET['id'] ?? null;
+    if ($id_documento) {
+        try {
+            $stmt = $pdo->prepare("CALL sp_delete_documento(?)");
+            $stmt->execute([$id_documento]);
+            header('Location: ../../public/index.php?page=ingreso_documentos&success=3'); // 3 = deleted
+        } catch (Exception $e) {
+            header('Location: ../../public/index.php?page=ingreso_documentos&error=' . urlencode($e->getMessage()));
+        }
+    } else {
+        header('Location: ../../public/index.php?page=ingreso_documentos&error=ID no proporcionado');
+    }
     exit();
 }
 ?>

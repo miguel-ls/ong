@@ -41,17 +41,15 @@ try {
                 <th>Tipo Documento</th>
                 <th>Serie y Número</th>
                 <th>Auxiliar</th>
-                <th>Moneda Doc.</th>
-                <th>Total Doc.</th>
-                <th>Total Soles</th>
-                <th>Total Dolares</th>
+                <th>Moneda</th>
+                <th>Total</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($documentos)): ?>
                 <tr>
-                    <td colspan="9" style="text-align: center;">No hay documentos registrados.</td>
+                    <td colspan="7" style="text-align: center;">No hay documentos registrados.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($documentos as $doc): ?>
@@ -63,8 +61,6 @@ try {
                     <td><?= htmlspecialchars($doc['auxiliar']) ?></td>
                     <td><?= htmlspecialchars($doc['moneda']) ?></td>
                     <td style="text-align: right;"><?= htmlspecialchars(number_format($doc['total'], 2)) ?></td>
-                    <td style="text-align: right;"><?= htmlspecialchars(number_format($doc['total_soles'], 2)) ?></td>
-                    <td style="text-align: right;"><?= htmlspecialchars(number_format($doc['total_dolares'], 2)) ?></td>
                     <td>
                         <a href="index.php?page=ingreso_documentos_form&id=<?= $doc['id'] ?>" class="btn btn-edit">Editar</a>
                         <a href="../src/actions/documentos_process.php?action=delete&id=<?= $doc['id'] ?>" class="btn btn-delete" onclick="return confirm('¿Está seguro de que quiere eliminar este documento?');">Eliminar</a>

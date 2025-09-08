@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     btnSunat.addEventListener('click', async function() {
         const fecha = fechaInput.value;
         if (!fecha) {
-            alert('Por favor, seleccione una fecha.');
+            showAlertModal('Por favor, seleccione una fecha.');
             return;
         }
 
@@ -80,7 +80,6 @@ document.addEventListener('DOMContentLoaded', function() {
         this.textContent = '...';
 
         try {
-            // Este endpoint ahora consulta la API externa de SUNAT.
             const response = await fetch(`../src/ajax/get_sunat_tipo_cambio.php?fecha=${fecha}`);
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({ error: 'Error de red o respuesta no válida.' }));
@@ -92,20 +91,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 throw new Error(data.error);
             }
 
-            if (data.compra !== undefined && data.venta !== undefined) {
-                 // Si el origen es NO_ENCONTRADO, alerta al usuario pero igual rellena con 0.00
-                if (data.origen === 'NO_ENCONTRADO') {
-                    alert('No se encontró un tipo de cambio para la fecha seleccionada en la base de datos local. Se usarán los valores 0.00.');
-                }
+            if (data.compra && data.venta) {
                 compraInput.value = parseFloat(data.compra).toFixed(4);
                 ventaInput.value = parseFloat(data.venta).toFixed(4);
             } else {
-                alert('La respuesta de la API no contiene los datos de compra y venta esperados.');
+                showAlertModal('La respuesta de la API no contiene los datos de compra y venta esperados.');
             }
 
         } catch (error) {
             console.error('Error al consultar tipo de cambio:', error);
-            alert(`Error al consultar tipo de cambio: ${error.message}`);
+            showAlertModal(`Error al consultar tipo de cambio: ${error.message}`);
         } finally {
             this.disabled = false;
             this.textContent = 'SUNAT';

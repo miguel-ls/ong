@@ -8,29 +8,19 @@ if ($_SESSION['user_role'] !== 'administrador') {
 
 $item = null;
 $is_edit = false;
-$proyectos = [];
 
-try {
-    $pdo = getDbConnection();
-    $stmt_proyectos = $pdo->prepare("CALL sp_read_all_proyectos(?, ?)");
-    $stmt_proyectos->execute([null, null]);
-    $proyectos = $stmt_proyectos->fetchAll();
-    $stmt_proyectos->closeCursor();
+if (isset($_GET['id'])) {
+    $is_edit = true;
+    $item_id = $_GET['id'];
 
-    if (isset($_GET['id'])) {
-        $is_edit = true;
-        $item_id = $_GET['id'];
-
-        $pdo = null;
+    try {
         $pdo = getDbConnection();
-
-        $stmt_item = $pdo->prepare("CALL sp_read_sub_proyecto_by_id(?)");
-        $stmt_item->execute([$item_id]);
-        $item = $stmt_item->fetch();
-        $stmt_item->closeCursor();
+        $stmt = $pdo->prepare("CALL sp_read_tipo_documento_identidad_by_id(?)");
+        $stmt->execute([$item_id]);
+        $item = $stmt->fetch();
+    } catch (PDOException $e) {
+        die("Error al obtener datos: " . $e->getMessage());
     }
-} catch (PDOException $e) {
-    die("Error al obtener datos: " . $e->getMessage());
 }
 ?>
 
@@ -43,26 +33,15 @@ try {
 </style>
 
 <header>
-    <h1><?= $is_edit ? 'Editar' : 'Añadir' ?> Sub Proyecto</h1>
+    <h1><?= $is_edit ? 'Editar' : 'Añadir' ?> Tipo de Documento de Identidad</h1>
 </header>
 <section class="form-container">
-    <form action="../src/actions/sub_proyectos_process.php" method="POST">
+    <form action="../src/actions/tipos_documento_identidad_process.php" method="POST">
         <input type="hidden" name="action" value="<?= $is_edit ? 'update' : 'create' ?>">
         <?php if ($is_edit): ?>
             <input type="hidden" name="id" value="<?= htmlspecialchars($item['id']) ?>">
         <?php endif; ?>
 
-        <div class="form-group">
-            <label for="id_proyecto">Proyecto Padre</label>
-            <select id="id_proyecto" name="id_proyecto" required>
-                <option value="">Seleccione un proyecto</option>
-                <?php foreach ($proyectos as $proyecto): ?>
-                    <option value="<?= $proyecto['id'] ?>" <?= (isset($item['id_proyecto']) && $item['id_proyecto'] == $proyecto['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($proyecto['nombre']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
         <div class="form-group">
             <label for="codigo">Código</label>
             <input type="text" id="codigo" name="codigo" value="<?= htmlspecialchars($item['codigo'] ?? '') ?>" required <?= $is_edit ? 'readonly' : '' ?>>
@@ -76,8 +55,8 @@ try {
             <textarea id="descripcion" name="descripcion" rows="3"><?= htmlspecialchars($item['descripcion'] ?? '') ?></textarea>
         </div>
         <div class="form-group">
-            <label for="presupuesto">Presupuesto</label>
-            <input type="number" step="0.01" id="presupuesto" name="presupuesto" value="<?= htmlspecialchars($item['presupuesto'] ?? '') ?>">
+            <label for="longitud">Longitud</label>
+            <input type="number" id="longitud" name="longitud" value="<?= htmlspecialchars($item['longitud'] ?? '') ?>">
         </div>
         <?php if ($is_edit): ?>
         <div class="form-group">
@@ -89,6 +68,6 @@ try {
         </div>
         <?php endif; ?>
 
-        <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Sub Proyecto</button>
+        <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Tipo</button>
     </form>
 </section>

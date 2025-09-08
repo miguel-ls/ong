@@ -6,26 +6,20 @@ if ($_SESSION['user_role'] !== 'administrador') {
     exit();
 }
 
-// Obtener filtros
 $filter_nombre = $_GET['nombre'] ?? null;
 $filter_num_doc = $_GET['num_doc'] ?? null;
 $filter_tipo_aux = $_GET['tipo_aux'] ?? null;
 
 try {
     $pdo = getDbConnection();
-
-    // Obtener tipos de auxiliar para el dropdown
     $stmt_tipos = $pdo->prepare("CALL sp_read_tipos_auxiliar_for_dropdown()");
     $stmt_tipos->execute();
     $tipos_auxiliar = $stmt_tipos->fetchAll();
     $stmt_tipos->closeCursor();
 
-    // Forzar la reconexión. A pesar de las optimizaciones, la conexión sigue fallando
-    // en este punto específico. Esta es la solución más directa para asegurar una conexión viva.
     $pdo = null;
     $pdo = getDbConnection();
 
-    // Obtener auxiliares filtrados
     $stmt_items = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
     $stmt_items->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);
     $items = $stmt_items->fetchAll();
@@ -55,6 +49,14 @@ try {
     <h1>Mantenimiento de Auxiliares</h1>
 </header>
 <section>
+    <?php if (isset($_GET['error']) && $_GET['error'] === 'delete_failed_has_docs'): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                showAlertModal('No se puede eliminar el auxiliar porque tiene documentos asociados.');
+            });
+        </script>
+    <?php endif; ?>
+
     <a href="index.php?page=auxiliares_form" class="btn btn-add">Añadir Nuevo Auxiliar</a>
 
     <form action="index.php" method="GET" class="filter-form">
@@ -99,14 +101,20 @@ try {
             <tr>
                 <td><?= htmlspecialchars($item['id']) ?></td>
                 <td><?= htmlspecialchars($item['nombre_tipo_auxiliar']) ?></td>
-                <td><?= htmlspecialchars($item['tipo_doc_identidad'] . ' ' . $item['num_doc_identidad']) ?></td>
+                <td>
+                    <?php
+                        $doc_type = $item['tipo_doc_identidad'] ?? '';
+                        $doc_num = $item['num_doc_identidad'] ?? '';
+                        echo htmlspecialchars(trim($doc_type . ' ' . $doc_num));
+                    ?>
+                </td>
                 <td><?= htmlspecialchars($item['razon_social_nombres']) ?></td>
                 <td><?= htmlspecialchars($item['email']) ?></td>
                 <td><?= htmlspecialchars($item['telefono']) ?></td>
                 <td><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></td>
                 <td>
                     <a href="index.php?page=auxiliares_form&id=<?= $item['id'] ?>" class="btn btn-edit">Editar</a>
-                    <a href="../src/actions/auxiliares_process.php?action=delete&id=<?= $item['id'] ?>" class="btn btn-delete" onclick="return confirm('¿Está seguro?');">Eliminar</a>
+                    <a href="../src/actions/auxiliares_process.php?action=delete&id=<?= $item['id'] ?>" class="btn btn-delete" onclick="return confirm('¿Está seguro de que desea eliminar este auxiliar? Esta acción es permanente si no tiene documentos asociados.');">Eliminar</a>
                 </td>
             </tr>
             <?php endforeach; ?>

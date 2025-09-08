@@ -12,14 +12,15 @@
 
                 // Cerrar todos los menús
                 document.querySelectorAll('.sidebar .collapse').forEach(function(otherSubmenu) {
-                    otherSubmenu.style.display = 'none';
-                });
-                document.querySelectorAll('.sidebar .dropdown-toggle').forEach(function(otherDropdown) {
-                    otherDropdown.setAttribute('aria-expanded', 'false');
+                    if (otherSubmenu !== submenu) {
+                       // Opcional: si quieres que solo uno esté abierto a la vez
+                       // otherSubmenu.style.display = 'none';
+                       // otherSubmenu.previousElementSibling.setAttribute('aria-expanded', 'false');
+                    }
                 });
 
                 // Abrir o cerrar el menú actual
-                if (isExpanded) {
+                if (submenu.style.display === 'block') {
                     submenu.style.display = 'none';
                     this.setAttribute('aria-expanded', 'false');
                 } else {

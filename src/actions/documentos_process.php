@@ -2,7 +2,6 @@
 session_start();
 require_once __DIR__ . '/../database.php';
 
-// --- Helper para enviar respuesta JSON y salir ---
 function send_json_response($data) {
     header('Content-Type: application/json');
     echo json_encode($data);
@@ -13,23 +12,33 @@ if (!isset($_SESSION['user_id'])) {
     send_json_response(['status' => 'error', 'message' => 'Acceso no autorizado. Sesión no iniciada.']);
 }
 
-$is_ajax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
 $action = $_REQUEST['action'] ?? null;
 $pdo = getDbConnection();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // --- Validación de datos ---
-    $tipo_cambio_val = isset($_POST['tipo_cambio']) ? (float)$_POST['tipo_cambio'] : 0;
-    if ($tipo_cambio_val <= 0) {
-        send_json_response(['status' => 'error', 'message' => 'El tipo de cambio debe ser mayor a cero para poder guardar el documento.']);
+    $id_documento = $_POST['id_documento'] ?? null;
+    $is_update = !empty($id_documento);
+
+    // En modo de actualización, los campos clave no se envían porque están deshabilitados.
+    // Necesitamos obtenerlos de la base de datos para la validación y el nuevo cálculo.
+    if ($is_update) {
+        $stmt = $pdo->prepare("CALL sp_read_documento_header_by_id(?)");
+        $stmt->execute([$id_documento]);
+        $existing_doc = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stmt->closeCursor();
+
+        $id_tipo_documento = $existing_doc['id_tipo_documento'];
+        $serie_documento = $existing_doc['serie_documento'];
+        $numero_documento = $existing_doc['numero_documento'];
+        $id_auxiliar = $existing_doc['id_auxiliar'];
+    } else {
+        $id_tipo_documento = $_POST['id_tipo_documento'];
+        $serie_documento = $_POST['serie_documento'];
+        $numero_documento = $_POST['numero_documento'];
+        $id_auxiliar = $_POST['id_auxiliar'];
     }
 
-    // --- Obtener datos del formulario ---
-    $id_tipo_documento = $_POST['id_tipo_documento'];
     $fecha_emision = $_POST['fecha_emision'];
-    $serie_documento = $_POST['serie_documento'];
-    $numero_documento = $_POST['numero_documento'];
-    $id_auxiliar = $_POST['id_auxiliar'];
     $moneda_principal = $_POST['moneda'];
     $tipo_cambio = (float)($_POST['tipo_cambio'] ?? 1.0);
     $id_proyecto = $_POST['id_proyecto'];
@@ -39,32 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_usuario_registro = $_SESSION['user_id'];
     $detalle_items = $_POST['detalle'] ?? [];
 
-    // --- Recalcular todo en el backend para seguridad ---
-    $subtotal_principal = 0;
-    foreach ($detalle_items as &$item) {
-        $cantidad = (float)($item['cantidad'] ?? 0);
-        $precio_unitario = (float)($item['precio_unitario'] ?? 0);
-        $item['precio_total'] = $cantidad * $precio_unitario;
-        if ($moneda_principal === 'SOLES') {
-            $item['total_soles'] = $item['precio_total'];
-            $item['total_dolares'] = $tipo_cambio > 0 ? $item['precio_total'] / $tipo_cambio : 0;
-        } else {
-            $item['total_dolares'] = $item['precio_total'];
-            $item['total_soles'] = $item['precio_total'] * $tipo_cambio;
-        }
-        $subtotal_principal += $item['precio_total'];
+    if ($tipo_cambio <= 0) {
+        send_json_response(['status' => 'error', 'message' => 'El tipo de cambio debe ser mayor a cero para poder guardar el documento.']);
     }
-    unset($item);
-    $igv_principal = $subtotal_principal * 0.18;
-    $total_principal = $subtotal_principal + $igv_principal;
-    $total_soles_acumulado = array_sum(array_column($detalle_items, 'total_soles'));
-    $total_dolares_acumulado = array_sum(array_column($detalle_items, 'total_dolares'));
-
-    // --- Lógica de guardado con Transacción ---
-    $is_update = isset($_POST['id_documento']) && !empty($_POST['id_documento']);
+    if (empty($detalle_items)) {
+        send_json_response(['status' => 'error', 'message' => 'El documento debe tener al menos un item en el detalle.']);
+    }
 
     try {
-        // --- Validación de Duplicados (solo para creación) ---
         if (!$is_update) {
             $stmt_check = $pdo->prepare("CALL sp_check_documento_duplicado(?, ?, ?, ?)");
             $stmt_check->execute([$id_tipo_documento, $serie_documento, $numero_documento, $id_auxiliar]);
@@ -75,9 +66,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
+        $subtotal_principal = 0;
+        foreach ($detalle_items as &$item) {
+            $cantidad = (float)($item['cantidad'] ?? 0);
+            $precio_unitario = (float)($item['precio_unitario'] ?? 0);
+            $item['precio_total'] = $cantidad * $precio_unitario;
+            if ($moneda_principal === 'SOLES') {
+                $item['total_soles'] = $item['precio_total'];
+                $item['total_dolares'] = $tipo_cambio > 0 ? $item['precio_total'] / $tipo_cambio : 0;
+            } else {
+                $item['total_dolares'] = $item['precio_total'];
+                $item['total_soles'] = $item['precio_total'] * $tipo_cambio;
+            }
+            $subtotal_principal += $item['precio_total'];
+        }
+        unset($item);
+        $igv_principal = $subtotal_principal * 0.18;
+        $total_principal = $subtotal_principal + $igv_principal;
+        $total_soles_acumulado = array_sum(array_column($detalle_items, 'total_soles'));
+        $total_dolares_acumulado = array_sum(array_column($detalle_items, 'total_dolares'));
+
         $pdo->beginTransaction();
         if ($is_update) {
-            $id_documento = $_POST['id_documento'];
             $stmt_header = $pdo->prepare("CALL sp_update_documento_header(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt_header->execute([
                 $id_documento, $id_tipo_documento, $id_proyecto, $id_sub_proyecto, $id_centro_costo, $id_auxiliar,
@@ -112,17 +122,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $item['precio_unitario'], $item['precio_total'], $item['total_soles'], $item['total_dolares']
             ]);
         }
-
         $pdo->commit();
         send_json_response(['status' => 'success', 'message' => 'Documento guardado con éxito.']);
-
     } catch (Exception $e) {
         if ($pdo->inTransaction()) $pdo->rollBack();
         send_json_response(['status' => 'error', 'message' => "Error al guardar: " . $e->getMessage()]);
     }
-
 } elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'delete') {
-    // La lógica de DELETE sigue siendo por redirección por simplicidad.
     $id_documento = $_GET['id'] ?? null;
     if ($id_documento) {
         try {

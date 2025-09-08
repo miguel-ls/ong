@@ -60,6 +60,10 @@ body {
     align-items: center;
 }
 
+.sidebar nav ul li .collapse {
+    display: none; /* Oculto por defecto */
+}
+
 .sidebar nav ul li .collapse a {
     padding-left: 45px; /* Indentación para sub-menús */
 }

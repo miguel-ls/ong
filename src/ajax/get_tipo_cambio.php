@@ -18,14 +18,12 @@ try {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($result) {
-        // Encontrado en la base de datos local
         echo json_encode([
             'compra' => (float)$result['compra'],
             'venta' => (float)$result['venta'],
             'origen' => 'LOCAL'
         ]);
     } else {
-        // No encontrado, devolver 0.00
         echo json_encode([
             'compra' => 0.00,
             'venta' => 0.00,

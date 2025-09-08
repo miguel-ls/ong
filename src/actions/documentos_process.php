@@ -64,6 +64,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_update = isset($_POST['id_documento']) && !empty($_POST['id_documento']);
 
     try {
+        // --- Validación de Duplicados (solo para creación) ---
+        if (!$is_update) {
+            $stmt_check = $pdo->prepare("CALL sp_check_documento_duplicado(?, ?, ?, ?)");
+            $stmt_check->execute([$id_tipo_documento, $serie_documento, $numero_documento, $id_auxiliar]);
+            $result = $stmt_check->fetch(PDO::FETCH_ASSOC);
+            $stmt_check->closeCursor();
+            if ($result && $result['duplicate_count'] > 0) {
+                send_json_response(['status' => 'error', 'message' => 'El documento con el mismo tipo, serie, número y auxiliar ya ha sido registrado.']);
+            }
+        }
+
         $pdo->beginTransaction();
         if ($is_update) {
             $id_documento = $_POST['id_documento'];

@@ -22,9 +22,13 @@ try {
         $is_edit = true;
         $item_id = $_GET['id'];
 
+        // Re-establish connection to prevent "MySQL server has gone away" errors on long-running pages
+        $pdo = getDbConnection();
+
         $stmt_item = $pdo->prepare("CALL sp_read_auxiliar_by_id(?)");
         $stmt_item->execute([$item_id]);
         $item = $stmt_item->fetch();
+        $stmt_item->closeCursor();
     }
 } catch (PDOException $e) {
     die("Error al obtener datos: " . $e->getMessage());

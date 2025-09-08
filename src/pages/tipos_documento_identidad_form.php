@@ -15,7 +15,7 @@ if (isset($_GET['id'])) {
 
     try {
         $pdo = getDbConnection();
-        $stmt = $pdo->prepare("CALL sp_read_tipo_documento_by_id(?)");
+        $stmt = $pdo->prepare("CALL sp_read_tipo_documento_identidad_by_id(?)");
         $stmt->execute([$item_id]);
         $item = $stmt->fetch();
     } catch (PDOException $e) {
@@ -33,10 +33,10 @@ if (isset($_GET['id'])) {
 </style>
 
 <header>
-    <h1><?= $is_edit ? 'Editar' : 'Añadir' ?> Tipo de Documento</h1>
+    <h1><?= $is_edit ? 'Editar' : 'Añadir' ?> Tipo de Documento de Identidad</h1>
 </header>
 <section class="form-container">
-    <form action="../src/actions/tipos_documento_process.php" method="POST">
+    <form action="../src/actions/tipos_documento_identidad_process.php" method="POST">
         <input type="hidden" name="action" value="<?= $is_edit ? 'update' : 'create' ?>">
         <?php if ($is_edit): ?>
             <input type="hidden" name="id" value="<?= htmlspecialchars($item['id']) ?>">
@@ -54,6 +54,10 @@ if (isset($_GET['id'])) {
             <label for="descripcion">Descripción</label>
             <textarea id="descripcion" name="descripcion" rows="3"><?= htmlspecialchars($item['descripcion'] ?? '') ?></textarea>
         </div>
+        <div class="form-group">
+            <label for="longitud">Longitud</label>
+            <input type="number" id="longitud" name="longitud" value="<?= htmlspecialchars($item['longitud'] ?? '') ?>">
+        </div>
         <?php if ($is_edit): ?>
         <div class="form-group">
             <label for="estado">Estado</label>
@@ -64,6 +68,6 @@ if (isset($_GET['id'])) {
         </div>
         <?php endif; ?>
 
-        <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Tipo de Documento</button>
+        <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Tipo</button>
     </form>
 </section>

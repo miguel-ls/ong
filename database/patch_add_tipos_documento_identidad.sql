@@ -109,8 +109,8 @@ END$$
 DELIMITER ;
 
 -- Es recomendable ejecutar este procedimiento manualmente después de poblar la tabla `tipos_documento_identidad`.
--- CALL patch_modify_auxiliares_for_identity_docs();
--- DROP PROCEDURE patch_modify_auxiliares_for_identity_docs;
+CALL patch_modify_auxiliares_for_identity_docs();
+DROP PROCEDURE patch_modify_auxiliares_for_identity_docs;
 
 
 -- 4. SP para leer los tipos de documento de identidad en un dropdown

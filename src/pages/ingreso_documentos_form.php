@@ -68,6 +68,7 @@ try {
 ?>
 
 <style>
+    .hidden-col { display: none !important; }
     .form-container { max-width: 1000px; margin: auto; }
     .form-section { background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
     .form-section h2 { margin-top: 0; color: #004a99; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
@@ -383,9 +384,70 @@ document.addEventListener('DOMContentLoaded', function() {
         return p.innerHTML;
     }
 
-    // --- Lógica para poblar el formulario en modo de edición ---
+    const monedaSelect = document.getElementById('moneda');
+    const proyectoSelect = document.getElementById('id_proyecto');
+    const subproyectoSelect = document.getElementById('id_sub_proyecto');
+
+    // --- Lógica para Ocultar/Mostrar Columnas de Moneda ---
+    function toggleCurrencyColumns() {
+        const selectedMoneda = monedaSelect.value;
+        const solesCols = document.querySelectorAll('.col-soles');
+        const dolaresCols = document.querySelectorAll('.col-dolares');
+
+        if (selectedMoneda === 'SOLES') {
+            solesCols.forEach(el => el.classList.remove('hidden-col'));
+            dolaresCols.forEach(el => el.classList.add('hidden-col'));
+        } else { // Asume DOLARES
+            solesCols.forEach(el => el.classList.add('hidden-col'));
+            dolaresCols.forEach(el => el.classList.remove('hidden-col'));
+        }
+    }
+
+    // --- Lógica para Dropdowns en Cascada (Proyecto -> Subproyecto) ---
+    async function loadAndSelectSubProyecto() {
+        const proyectoId = proyectoSelect.value;
+        subproyectoSelect.innerHTML = '<option value="">Cargando...</option>';
+        subproyectoSelect.disabled = true;
+
+        if (!proyectoId) {
+            subproyectoSelect.innerHTML = '<option value="">Seleccione un proyecto</option>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`../src/ajax/get_subproyectos.php?id_proyecto=${proyectoId}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+
+            subproyectoSelect.innerHTML = '<option value="">Seleccione un sub proyecto...</option>';
+            if (data.length > 0) {
+                data.forEach(subproyecto => {
+                    const option = document.createElement('option');
+                    option.value = subproyecto.id;
+                    option.textContent = subproyecto.nombre;
+                    subproyectoSelect.appendChild(option);
+                });
+            } else {
+                subproyectoSelect.innerHTML = '<option value="">No hay sub proyectos</option>';
+            }
+        } catch (error) {
+            console.error('Error al cargar subproyectos:', error);
+            subproyectoSelect.innerHTML = '<option value="">Error al cargar</option>';
+        } finally {
+            subproyectoSelect.disabled = false;
+            // Si estamos en modo edición, seleccionamos el valor guardado
+            if (documentoData && documentoData.header.id_sub_proyecto) {
+                subproyectoSelect.value = documentoData.header.id_sub_proyecto;
+            }
+        }
+    }
+
+    // --- Lógica de Inicialización ---
+    monedaSelect.addEventListener('change', toggleCurrencyColumns);
+    proyectoSelect.addEventListener('change', loadAndSelectSubProyecto);
+
     if (documentoData) {
-        // Poblar cabecera
+        // 1. Poblar cabecera
         Object.keys(documentoData.header).forEach(key => {
             const input = document.querySelector(`[name="${key}"]`);
             if (input) {
@@ -393,13 +455,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Poblar detalle
+        // 2. Poblar detalle
         detailsTbody.innerHTML = ''; // Limpiar la fila de plantilla
-
         documentoData.detail.forEach((item, index) => {
             const newRow = detailsTbody.insertRow();
-
-            // Crear el <select> de conceptos dinámicamente
             const conceptoSelect = document.createElement('select');
             conceptoSelect.name = `detalle[${index}][id_concepto]`;
             let optionsHtml = '<option value="">Seleccione...</option>';
@@ -423,83 +482,22 @@ document.addEventListener('DOMContentLoaded', function() {
             newRow.querySelector('.concepto-cell').appendChild(conceptoSelect);
         });
 
-        // Disparar el evento change en proyecto para cargar subproyectos y seleccionar el valor correcto
-        proyectoSelect.dispatchEvent(new Event('change'));
+        // 3. Cargar subproyectos (ahora que el proyecto está seleccionado)
+        loadAndSelectSubProyecto();
 
-        // Poblar totales iniciales desde la cabecera guardada
+        // 4. Poblar totales y actualizar UI
         document.getElementById('subtotal').textContent = parseFloat(documentoData.header.subtotal).toFixed(2);
         document.getElementById('igv').textContent = parseFloat(documentoData.header.igv).toFixed(2);
         document.getElementById('total').textContent = parseFloat(documentoData.header.total).toFixed(2);
         document.getElementById('total_soles').textContent = parseFloat(documentoData.header.total_soles).toFixed(2);
         document.getElementById('total_dolares').textContent = parseFloat(documentoData.header.total_dolares).toFixed(2);
-        // El cálculo completo se ejecutará después para consistencia, pero esto muestra los datos guardados inmediatamente.
 
-        // Disparar el cálculo completo para asegurar consistencia
         calculateAll();
+        toggleCurrencyColumns();
+    } else {
+        // Para nuevos documentos, solo configurar el estado inicial
+        toggleCurrencyColumns();
     }
-
-    // --- Lógica para Ocultar/Mostrar Columnas de Moneda ---
-    const monedaSelect = document.getElementById('moneda');
-
-    function toggleCurrencyColumns() {
-        const selectedMoneda = monedaSelect.value;
-        const hideSoles = selectedMoneda === 'DOLARES';
-        const hideDolares = selectedMoneda === 'SOLES';
-
-        document.querySelectorAll('.col-soles').forEach(el => {
-            el.style.display = hideSoles ? 'none' : '';
-        });
-        document.querySelectorAll('.col-dolares').forEach(el => {
-            el.style.display = hideDolares ? 'none' : '';
-        });
-    }
-
-    monedaSelect.addEventListener('change', toggleCurrencyColumns);
-
-    // Llamada inicial para establecer el estado correcto al cargar
-    toggleCurrencyColumns();
-
-
-    // --- Lógica para Dropdowns en Cascada (Proyecto -> Subproyecto) ---
-    const proyectoSelect = document.getElementById('id_proyecto');
-    const subproyectoSelect = document.getElementById('id_sub_proyecto');
-
-    proyectoSelect.addEventListener('change', function() {
-        const proyectoId = this.value;
-        subproyectoSelect.innerHTML = '<option value="">Cargando...</option>';
-        subproyectoSelect.disabled = true;
-
-        if (!proyectoId) {
-            subproyectoSelect.innerHTML = '<option value="">Seleccione un proyecto primero</option>';
-            return;
-        }
-
-        fetch(`../src/ajax/get_subproyectos.php?id_proyecto=${proyectoId}`)
-            .then(response => response.json())
-            .then(data => {
-                subproyectoSelect.innerHTML = '<option value="">Seleccione un sub proyecto...</option>';
-                if (data.length > 0) {
-                    data.forEach(subproyecto => {
-                        const option = document.createElement('option');
-                        option.value = subproyecto.id;
-                        option.textContent = subproyecto.nombre;
-                        subproyectoSelect.appendChild(option);
-                    });
-                } else {
-                     subproyectoSelect.innerHTML = '<option value="">No hay sub proyectos</option>';
-                }
-                subproyectoSelect.disabled = false;
-
-                // Si estamos en modo de edición, intentamos seleccionar el subproyecto guardado.
-                if (documentoData && documentoData.header.id_sub_proyecto) {
-                    subproyectoSelect.value = documentoData.header.id_sub_proyecto;
-                }
-            })
-            .catch(error => {
-                console.error('Error al cargar subproyectos:', error);
-                subproyectoSelect.innerHTML = '<option value="">Error al cargar</option>';
-            });
-    });
 
     // --- Lógica para Botones de Refrescar ---
     function refreshDropdown(selectElement, url, dependencyId = null) {

@@ -116,7 +116,8 @@ try {
     }
     // Redirigir con mensaje de error
     // En una app real, sería bueno registrar el error $e->getMessage()
-    header('Location: ../../public/index.php?page=ingreso_documentos_form&error=1');
+    $error_message = urlencode($e->getMessage());
+    header('Location: ../../public/index.php?page=ingreso_documentos_form&error=' . $error_message);
     exit();
 }
 ?>

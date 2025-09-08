@@ -79,6 +79,12 @@ try {
 </header>
 
 <section class="form-container">
+    <?php if (isset($_GET['error'])): ?>
+        <div style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px;">
+            <strong>Error al guardar el documento:</strong><br>
+            <?= htmlspecialchars(urldecode($_GET['error'])) ?>
+        </div>
+    <?php endif; ?>
     <form action="../src/actions/documentos_process.php" method="POST">
         <input type="hidden" name="id_documento" value="<?= htmlspecialchars($documento['id'] ?? '') ?>">
 

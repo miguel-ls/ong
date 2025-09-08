@@ -56,6 +56,11 @@ try {
     <h1><?= $is_edit ? 'Editar' : 'Añadir' ?> Auxiliar</h1>
 </header>
 <section class="form-container">
+    <?php if (isset($_GET['error']) && $_GET['error'] === 'invalid_doc_type'): ?>
+        <div style="padding: 15px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; margin-bottom: 20px;">
+            <strong>Error:</strong> Por favor, seleccione un Tipo de Documento de Identidad válido.
+        </div>
+    <?php endif; ?>
     <form action="../src/actions/auxiliares_process.php" method="POST">
         <input type="hidden" name="action" value="<?= $is_edit ? 'update' : 'create' ?>">
         <?php if ($is_edit): ?>

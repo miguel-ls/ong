@@ -11,6 +11,15 @@ $action = $_REQUEST['action'] ?? null;
 $pdo = getDbConnection();
 
 try {
+    // Validación del Tipo de Documento de Identidad para crear y actualizar
+    if ($action === 'create' || $action === 'update') {
+        if (empty($_POST['id_tipo_documento_identidad']) || !is_numeric($_POST['id_tipo_documento_identidad'])) {
+            $form_page = $action === 'create' ? 'auxiliares_form' : 'auxiliares_form&id=' . $_POST['id'];
+            header('Location: ../../public/index.php?page=' . $form_page . '&error=invalid_doc_type');
+            exit();
+        }
+    }
+
     switch ($action) {
         case 'create':
             $stmt = $pdo->prepare("CALL sp_create_auxiliar(?, ?, ?, ?, ?, ?, ?, ?)");

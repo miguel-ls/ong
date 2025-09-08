@@ -487,6 +487,8 @@ document.addEventListener('DOMContentLoaded', function() {
     monedaSelect.addEventListener('change', toggleCurrencyColumns);
     proyectoSelect.addEventListener('change', loadAndSelectSubProyecto);
     btnRefreshTC.addEventListener('click', fetchAndSetTipoCambio);
+    // El cambio de fecha SIEMPRE debe buscar el tipo de cambio, tanto en modo nuevo como en edición.
+    fechaEmisionInput.addEventListener('change', fetchAndSetTipoCambio);
 
     if (documentoData) {
         // MODO EDICIÓN: Cargar datos existentes y configurar UI
@@ -540,7 +542,6 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         // MODO NUEVO: Configurar estado inicial y listeners adicionales
         toggleCurrencyColumns();
-        fechaEmisionInput.addEventListener('change', fetchAndSetTipoCambio);
         // Cargar el tipo de cambio para la fecha actual al crear un nuevo documento
         fetchAndSetTipoCambio();
     }

@@ -22,13 +22,7 @@ try {
     $stmt = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
     $stmt->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // THE CRITICAL FIX:
-    // Some drivers/environments require explicitly clearing all potential subsequent rowsets
-    // from a stored procedure call before another query can be made on the same connection.
-    // The do-while loop with nextRowset() is the most robust way to do this.
     while ($stmt->nextRowset());
-
     $stmt->closeCursor();
 
     // Second query: get the types for the filter dropdown
@@ -38,96 +32,101 @@ try {
     $stmt_tipos->closeCursor();
 
 } catch (PDOException $e) {
-    // Provide a user-friendly error message
     die("Error al obtener datos para la página de auxiliares: " . $e->getMessage());
 }
 ?>
 
-<div class="container mt-4">
-    <div class="card">
-        <div class="card-header">
-            <h4 class="mb-0">Gestión de Auxiliares</h4>
+<style>
+    .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .table th { background-color: #004a99; color: white; }
+    .table tr:nth-child(even) { background-color: #f2f2f2; }
+    .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; color: white !important; display: inline-block; border: none; cursor: pointer; }
+    .btn-edit { background-color: #ffc107; }
+    .btn-delete { background-color: #dc3545; }
+    .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+    .filter-form .form-group { display: flex; flex-direction: column; }
+    .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
+    .filter-form .form-group input, .filter-form .form-group select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px; }
+    .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; }
+    .badge { padding: 5px 8px; border-radius: 4px; color: white; font-weight: bold; }
+    .bg-success { background-color: #28a745; }
+    .bg-danger { background-color: #dc3545; }
+    .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+    .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+    .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+</style>
+
+<header>
+    <h1>Gestión de Auxiliares</h1>
+</header>
+<section>
+
+    <?php if (isset($_GET['success'])): ?>
+        <div class="alert alert-success"><?= htmlspecialchars($_GET['success']) ?></div>
+    <?php elseif (isset($_GET['error'])): ?>
+         <div class="alert alert-danger"><?= htmlspecialchars($_GET['error']) ?></div>
+    <?php endif; ?>
+
+    <a href="index.php?page=auxiliares_form" class="btn btn-add">Nuevo Auxiliar</a>
+
+    <form action="index.php" method="GET" class="filter-form">
+        <input type="hidden" name="page" value="auxiliares">
+        <div class="form-group">
+            <label for="nombre">Nombre / Razón Social</label>
+            <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($filter_nombre ?? '') ?>">
         </div>
-        <div class="card-body">
-            <?php if (isset($_GET['success'])): ?>
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <?= htmlspecialchars($_GET['success']) ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php elseif (isset($_GET['error'])): ?>
-                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?= htmlspecialchars($_GET['error']) ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+        <div class="form-group">
+            <label for="num_doc">Nro. Documento</label>
+            <input type="text" id="num_doc" name="num_doc" value="<?= htmlspecialchars($filter_num_doc ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="tipo_aux">Tipo Auxiliar</label>
+            <select id="tipo_aux" name="tipo_aux">
+                <option value="">Todos</option>
+                <?php foreach ($tipos_auxiliar as $tipo): ?>
+                    <option value="<?= $tipo['id'] ?>" <?= ($filter_tipo_aux == $tipo['id']) ? 'selected' : '' ?>><?= htmlspecialchars($tipo['nombre']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-filter">Filtrar</button>
+        </div>
+    </form>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Razón Social / Nombre</th>
+                <th>Tipo Doc.</th>
+                <th>Nro. Documento</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($items)): ?>
+                <tr><td colspan="6" style="text-align: center;">No se encontraron auxiliares.</td></tr>
+            <?php else: ?>
+                <?php foreach ($items as $item): ?>
+                <tr>
+                    <td><?= htmlspecialchars($item['razon_social_nombres']) ?></td>
+                    <td><?= htmlspecialchars($item['tipo_doc_identidad']) ?></td>
+                    <td><?= htmlspecialchars($item['num_doc_identidad']) ?></td>
+                    <td><?= htmlspecialchars($item['telefono']) ?></td>
+                    <td><span class="badge <?= $item['estado'] ? 'bg-success' : 'bg-danger' ?>"><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></span></td>
+                    <td>
+                        <a href="index.php?page=auxiliares_form&id=<?= $item['id'] ?>" class="btn btn-edit" title="Editar">Editar</a>
+                        <button class="btn btn-delete" data-id="<?= $item['id'] ?>" title="Eliminar">Eliminar</button>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
             <?php endif; ?>
-
-            <div class="d-flex justify-content-end mb-3">
-                <a href="index.php?page=auxiliares_form" class="btn btn-primary">Nuevo Auxiliar</a>
-            </div>
-
-            <!-- Filter Form -->
-            <form action="index.php" method="GET" class="filter-form mb-4">
-                <input type="hidden" name="page" value="auxiliares">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
-                        <label for="nombre" class="form-label">Nombre / Razón Social</label>
-                        <input type="text" class="form-control" id="nombre" name="nombre" value="<?= htmlspecialchars($filter_nombre ?? '') ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="num_doc" class="form-label">Nro. Documento</label>
-                        <input type="text" class="form-control" id="num_doc" name="num_doc" value="<?= htmlspecialchars($filter_num_doc ?? '') ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <label for="tipo_aux" class="form-label">Tipo Auxiliar</label>
-                        <select class="form-select" id="tipo_aux" name="tipo_aux">
-                            <option value="">Todos</option>
-                            <?php foreach ($tipos_auxiliar as $tipo): ?>
-                                <option value="<?= $tipo['id'] ?>" <?= ($filter_tipo_aux == $tipo['id']) ? 'selected' : '' ?>><?= htmlspecialchars($tipo['nombre']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-info w-100">Filtrar</button>
-                    </div>
-                </div>
-            </form>
-
-            <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Razón Social / Nombre</th>
-                            <th>Tipo Doc.</th>
-                            <th>Nro. Documento</th>
-                            <th>Teléfono</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($items)): ?>
-                            <tr><td colspan="6" class="text-center">No se encontraron auxiliares.</td></tr>
-                        <?php else: ?>
-                            <?php foreach ($items as $item): ?>
-                            <tr>
-                                <td><?= htmlspecialchars($item['razon_social_nombres']) ?></td>
-                                <td><?= htmlspecialchars($item['tipo_doc_identidad']) ?></td>
-                                <td><?= htmlspecialchars($item['num_doc_identidad']) ?></td>
-                                <td><?= htmlspecialchars($item['telefono']) ?></td>
-                                <td><span class="badge <?= $item['estado'] ? 'bg-success' : 'bg-danger' ?>"><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></span></td>
-                                <td>
-                                    <a href="index.php?page=auxiliares_form&id=<?= $item['id'] ?>" class="btn btn-sm btn-warning me-2" title="Editar"><i class="bi bi-pencil-fill"></i></a>
-                                    <button class="btn btn-sm btn-danger delete-btn" data-id="<?= $item['id'] ?>" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
-                                </td>
-                            </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+        </tbody>
+    </table>
+</section>
 
 <!-- Modal de Confirmación de Eliminación -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
@@ -150,11 +149,12 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const deleteButtons = document.querySelectorAll('.delete-btn');
+    const deleteButtons = document.querySelectorAll('.btn-delete');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
+    // The modal logic relies on Bootstrap's JS being loaded globally.
     const deleteModalElement = document.getElementById('deleteConfirmModal');
-    if (deleteModalElement) {
+    if (deleteModalElement && typeof bootstrap !== 'undefined') {
         const deleteModal = new bootstrap.Modal(deleteModalElement);
 
         deleteButtons.forEach(button => {

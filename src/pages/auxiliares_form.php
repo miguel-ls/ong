@@ -26,7 +26,6 @@ try {
     $tipos_auxiliar = $stmt_tipos->fetchAll(PDO::FETCH_ASSOC);
     $stmt_tipos->closeCursor();
 
-    // Modified query to fetch 'codigo' for the SUNAT button logic
     $stmt_docs = $pdo->prepare("SELECT id, nombre, codigo FROM tipos_documento_identidad WHERE estado = 1 ORDER BY nombre");
     $stmt_docs->execute();
     $tipos_doc_identidad = $stmt_docs->fetchAll(PDO::FETCH_ASSOC);
@@ -66,12 +65,7 @@ try {
     <?php endif; ?>
 
     <form id="auxiliarForm" action="../src/actions/auxiliares_process.php" method="post">
-        <input type="hidden" name="action" value="<?= $is_edit ? 'update' : 'create' ?>">
-        <?php if ($is_edit): ?>
-            <input type="hidden" name="id" value="<?= htmlspecialchars($item['id']) ?>">
-        <?php endif; ?>
-
-        <!-- Fields moved as per request -->
+        <!-- Form fields... -->
         <div class="form-row">
             <div class="form-group">
                 <label for="id_tipo_auxiliar">Tipo de Auxiliar</label>
@@ -92,7 +86,6 @@ try {
                 </select>
             </div>
         </div>
-
         <div class="form-row">
             <div class="form-group" style="flex-grow: 2;">
                 <label for="num_doc_identidad">Nro. Documento</label>
@@ -106,18 +99,14 @@ try {
                 <input type="text" id="ubigeo" name="ubigeo" value="<?= htmlspecialchars($item['ubigeo'] ?? '') ?>">
             </div>
         </div>
-
-        <!-- Razón Social moved as per request -->
         <div class="form-group">
             <label for="razon_social_nombres">Razón Social o Nombres Completos</label>
             <input type="text" id="razon_social_nombres" name="razon_social_nombres" value="<?= htmlspecialchars($item['razon_social_nombres'] ?? '') ?>" required>
         </div>
-
         <div class="form-group">
             <label for="direccion">Dirección</label>
             <input type="text" id="direccion" name="direccion" value="<?= htmlspecialchars($item['direccion'] ?? '') ?>">
         </div>
-
         <div class="form-row">
             <div class="form-group">
                 <label for="telefono">Teléfono</label>
@@ -128,7 +117,6 @@ try {
                 <input type="email" id="email" name="email" value="<?= htmlspecialchars($item['email'] ?? '') ?>">
             </div>
         </div>
-
         <?php if ($is_edit): ?>
         <div class="form-group">
             <label for="estado">Estado</label>
@@ -138,7 +126,6 @@ try {
             </select>
         </div>
         <?php endif; ?>
-
         <div class="form-actions">
              <a href="index.php?page=auxiliares" class="btn-cancel">Cancelar</a>
             <button type="submit" class="btn-submit">Guardar</button>
@@ -146,8 +133,45 @@ try {
     </form>
 </section>
 
+<!-- Reusable Alert Modal HTML -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="alertModalLabel">Aviso</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="alertModalBody">
+        <!-- Message will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- MODAL HELPER ---
+    let alertModalInstance;
+    function showAlertModal(message) {
+        const modalElement = document.getElementById('alertModal');
+        if (!modalElement) return; // Or show a fallback alert
+
+        if (!alertModalInstance) {
+             if (typeof bootstrap === 'undefined') {
+                alert(message); // Fallback if Bootstrap JS is not loaded
+                return;
+            }
+            alertModalInstance = new bootstrap.Modal(modalElement);
+        }
+        document.getElementById('alertModalBody').textContent = message;
+        alertModalInstance.show();
+    }
+
+    // --- FORM ELEMENTS ---
     const tipoDocSelect = document.getElementById('id_tipo_documento_identidad');
     const nroDocInput = document.getElementById('num_doc_identidad');
     const sunatBtn = document.getElementById('sunatBtn');
@@ -155,6 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const direccionInput = document.getElementById('direccion');
     const ubigeoInput = document.getElementById('ubigeo');
 
+    // --- LOGIC ---
     function fetchLongitudAndSetMaxLength() {
         const tipoDocId = tipoDocSelect.value;
         if (!tipoDocId) {
@@ -191,7 +216,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const numero = nroDocInput.value.trim();
 
         if ((tipo !== 'DNI' && tipo !== 'RUC') || !numero) {
-            alert('Por favor, seleccione un tipo de documento (DNI/RUC) y ingrese un número.');
+            showAlertModal('Por favor, seleccione un tipo de documento (DNI/RUC) y ingrese un número.');
             return;
         }
 
@@ -219,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             })
             .catch(error => {
-                alert(`Error al consultar los datos: ${error.message}`);
+                showAlertModal(`Error al consultar los datos: ${error.message}`);
             })
             .finally(() => {
                 sunatBtn.textContent = 'SUNAT';

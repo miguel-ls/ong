@@ -1,22 +1,30 @@
 <?php
 header('Content-Type: application/json');
 
-$tipo = $_GET['tipo'] ?? '';
+$tipo_id = $_GET['tipo'] ?? '';
 $numero = $_GET['numero'] ?? '';
 
-if (empty($tipo) || empty($numero)) {
+if (empty($tipo_id) || empty($numero)) {
     http_response_code(400);
     echo json_encode(['error' => 'Tipo y número de documento son requeridos.']);
     exit;
 }
 
-if (!in_array($tipo, ['dni', 'ruc'])) {
+// Map the ID to the API endpoint string, as per user's fix
+$tipo_doc_str = '';
+if ($tipo_id == '1') {
+    $tipo_doc_str = 'dni';
+} elseif ($tipo_id == '6') {
+    $tipo_doc_str = 'ruc';
+}
+
+if (empty($tipo_doc_str)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Tipo de documento no válido. Use "dni" o "ruc".']);
+    echo json_encode(['error' => 'Tipo de documento no válido. Use ID "1" para DNI o "6" para RUC.']);
     exit;
 }
 
-$api_url = "https://api.apis.net.pe/v1/{$tipo}?numero=" . urlencode($numero);
+$api_url = "https://api.apis.net.pe/v1/{$tipo_doc_str}?numero=" . urlencode($numero);
 
 // The user's curl examples don't show an Authorization token.
 // If this API required one, it would be added to the headers like this:

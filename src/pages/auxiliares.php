@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/../database.php';
-session_start();
 
+// session_start() is removed as it's likely called in a global header or index file.
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../../public/login.php?error=Acceso no autorizado');
     exit();
@@ -14,18 +14,25 @@ $filter_nombre = $_GET['nombre'] ?? null;
 $filter_num_doc = $_GET['num_doc'] ?? null;
 $filter_tipo_aux = $_GET['tipo_aux'] ?? null;
 
+$items = [];
+$tipos_auxiliar = [];
+
 try {
+    // First query: get the main list of items
     $stmt = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
     $stmt->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt->closeCursor();
+    $stmt->closeCursor(); // This is critical to allow the next query to run.
 
-    // Fetch tipos_auxiliar for the filter dropdown
-    $stmt_tipos = $pdo->query("SELECT id, nombre FROM tipos_auxiliar WHERE estado = 1 ORDER BY nombre");
+    // Second query: get the types for the filter dropdown
+    $stmt_tipos = $pdo->prepare("SELECT id, nombre FROM tipos_auxiliar WHERE estado = 1 ORDER BY nombre");
+    $stmt_tipos->execute();
     $tipos_auxiliar = $stmt_tipos->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_tipos->closeCursor(); // Good practice to close all cursors.
 
 } catch (PDOException $e) {
-    die("Error al obtener los auxiliares: " . $e->getMessage());
+    // Provide a user-friendly error message
+    die("Error al obtener datos para la página de auxiliares: " . $e->getMessage());
 }
 ?>
 
@@ -138,7 +145,7 @@ try {
 document.addEventListener('DOMContentLoaded', function() {
     const deleteButtons = document.querySelectorAll('.delete-btn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-    // Ensure modal is properly initialized
+
     const deleteModalElement = document.getElementById('deleteConfirmModal');
     if (deleteModalElement) {
         const deleteModal = new bootstrap.Modal(deleteModalElement);

@@ -11,19 +11,34 @@ $pdo = getDbConnection();
 $item = null;
 $is_edit = false;
 
-if (isset($_GET['id'])) {
-    $is_edit = true;
-    $item_id = $_GET['id'];
-    $stmt = $pdo->prepare("CALL sp_read_auxiliar_by_id(?)");
-    $stmt->execute([$item_id]);
-    $item = $stmt->fetch(PDO::FETCH_ASSOC);
-    $stmt->closeCursor();
+try {
+    if (isset($_GET['id'])) {
+        $is_edit = true;
+        $item_id = $_GET['id'];
+        $stmt = $pdo->prepare("CALL sp_read_auxiliar_by_id(?)");
+        $stmt->execute([$item_id]);
+        $item = $stmt->fetch(PDO::FETCH_ASSOC);
+        // Robust fix for "MySQL server has gone away"
+        while ($stmt->nextRowset());
+        $stmt->closeCursor();
+    }
+
+    // Pre-fetch data for dropdowns
+    $stmt_tipos = $pdo->prepare("SELECT id, nombre FROM tipos_auxiliar WHERE estado = 1 ORDER BY nombre");
+    $stmt_tipos->execute();
+    $tipos_auxiliar = $stmt_tipos->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_tipos->closeCursor();
+
+    $stmt_docs = $pdo->prepare("CALL sp_read_tipos_documento_identidad_for_dropdown()");
+    $stmt_docs->execute();
+    $tipos_doc_identidad = $stmt_docs->fetchAll(PDO::FETCH_ASSOC);
+    // Robust fix for "MySQL server has gone away"
+    while ($stmt_docs->nextRowset());
+    $stmt_docs->closeCursor();
+
+} catch (PDOException $e) {
+    die("Error fatal al cargar datos del formulario: " . $e->getMessage());
 }
-
-// Pre-fetch data for dropdowns
-$tipos_auxiliar = $pdo->query("SELECT id, nombre FROM tipos_auxiliar WHERE estado = 1 ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
-$tipos_doc_identidad = $pdo->query("CALL sp_read_tipos_documento_identidad_for_dropdown()")->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 
 <style>
@@ -68,7 +83,7 @@ $tipos_doc_identidad = $pdo->query("CALL sp_read_tipos_documento_identidad_for_d
                 <select id="id_tipo_auxiliar" name="id_tipo_auxiliar" required>
                     <option value="">Seleccione un tipo</option>
                     <?php foreach ($tipos_auxiliar as $tipo): ?>
-                        <option value="<?= $tipo['id'] ?>" <?= (isset($item['id_tipo_auxiliar']) && $row['id'] == $item['id_tipo_auxiliar']) ? 'selected' : '' ?>><?= htmlspecialchars($tipo['nombre']) ?></option>
+                        <option value="<?= $tipo['id'] ?>" <?= (isset($item['id_tipo_auxiliar']) && $tipo['id'] == $item['id_tipo_auxiliar']) ? 'selected' : '' ?>><?= htmlspecialchars($tipo['nombre']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

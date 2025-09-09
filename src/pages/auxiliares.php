@@ -1,123 +1,156 @@
 <?php
 require_once __DIR__ . '/../database.php';
+session_start();
 
-if ($_SESSION['user_role'] !== 'administrador') {
-    echo "<p>Acceso denegado.</p>";
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../../public/login.php?error=Acceso no autorizado');
     exit();
 }
 
+$pdo = getDbConnection();
+
+// Filtering parameters
 $filter_nombre = $_GET['nombre'] ?? null;
 $filter_num_doc = $_GET['num_doc'] ?? null;
 $filter_tipo_aux = $_GET['tipo_aux'] ?? null;
 
 try {
-    $pdo = getDbConnection();
-    $stmt_tipos = $pdo->prepare("CALL sp_read_tipos_auxiliar_for_dropdown()");
-    $stmt_tipos->execute();
-    $tipos_auxiliar = $stmt_tipos->fetchAll();
-    $stmt_tipos->closeCursor();
+    $stmt = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
+    $stmt->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);
+    $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $stmt->closeCursor();
 
-    $pdo = null;
-    $pdo = getDbConnection();
-
-    $stmt_items = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
-    $stmt_items->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);
-    $items = $stmt_items->fetchAll();
+    // Fetch tipos_auxiliar for the filter dropdown
+    $stmt_tipos = $pdo->query("SELECT id, nombre FROM tipos_auxiliar WHERE estado = 1 ORDER BY nombre");
+    $tipos_auxiliar = $stmt_tipos->fetchAll(PDO::FETCH_ASSOC);
 
 } catch (PDOException $e) {
     die("Error al obtener los auxiliares: " . $e->getMessage());
 }
 ?>
 
-<style>
-    .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { border: 1px solid #ddd; padding: 8px; }
-    .table th { background-color: #004a99; color: white; }
-    .table tr:nth-child(even) { background-color: #f2f2f2; }
-    .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; color: white; }
-    .btn-edit { background-color: #ffc107; }
-    .btn-delete { background-color: #dc3545; }
-    .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
-    .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
-    .filter-form .form-group { display: flex; flex-direction: column; }
-    .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
-    .filter-form .form-group input, .filter-form .form-group select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-    .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
-</style>
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Gestión de Auxiliares</h4>
+        </div>
+        <div class="card-body">
+            <?php if (isset($_GET['success'])): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($_GET['success']) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php elseif (isset($_GET['error'])): ?>
+                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?= htmlspecialchars($_GET['error']) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
 
-<header>
-    <h1>Mantenimiento de Auxiliares</h1>
-</header>
-<section>
-    <?php if (isset($_GET['error']) && $_GET['error'] === 'delete_failed_has_docs'): ?>
-        <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                showAlertModal('No se puede eliminar el auxiliar porque tiene documentos asociados.');
+            <div class="d-flex justify-content-end mb-3">
+                <a href="index.php?page=auxiliares_form" class="btn btn-primary">Nuevo Auxiliar</a>
+            </div>
+
+            <!-- Filter Form -->
+            <form action="index.php" method="GET" class="filter-form mb-4">
+                <input type="hidden" name="page" value="auxiliares">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="nombre" class="form-label">Nombre / Razón Social</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" value="<?= htmlspecialchars($filter_nombre ?? '') ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="num_doc" class="form-label">Nro. Documento</label>
+                        <input type="text" class="form-control" id="num_doc" name="num_doc" value="<?= htmlspecialchars($filter_num_doc ?? '') ?>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="tipo_aux" class="form-label">Tipo Auxiliar</label>
+                        <select class="form-select" id="tipo_aux" name="tipo_aux">
+                            <option value="">Todos</option>
+                            <?php foreach ($tipos_auxiliar as $tipo): ?>
+                                <option value="<?= $tipo['id'] ?>" <?= ($filter_tipo_aux == $tipo['id']) ? 'selected' : '' ?>><?= htmlspecialchars($tipo['nombre']) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-info w-100">Filtrar</button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Razón Social / Nombre</th>
+                            <th>Tipo Doc.</th>
+                            <th>Nro. Documento</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (empty($items)): ?>
+                            <tr><td colspan="6" class="text-center">No se encontraron auxiliares.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($items as $item): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($item['razon_social_nombres']) ?></td>
+                                <td><?= htmlspecialchars($item['tipo_doc_identidad']) ?></td>
+                                <td><?= htmlspecialchars($item['num_doc_identidad']) ?></td>
+                                <td><?= htmlspecialchars($item['telefono']) ?></td>
+                                <td><span class="badge <?= $item['estado'] ? 'bg-success' : 'bg-danger' ?>"><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></span></td>
+                                <td>
+                                    <a href="index.php?page=auxiliares_form&id=<?= $item['id'] ?>" class="btn btn-sm btn-warning me-2" title="Editar"><i class="bi bi-pencil-fill"></i></a>
+                                    <button class="btn btn-sm btn-danger delete-btn" data-id="<?= $item['id'] ?>" title="Eliminar"><i class="bi bi-trash-fill"></i></button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro de que desea eliminar este auxiliar? Si no tiene documentos asociados, la eliminación será permanente.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <a id="confirmDeleteBtn" href="#" class="btn btn-danger">Eliminar</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.delete-btn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    // Ensure modal is properly initialized
+    const deleteModalElement = document.getElementById('deleteConfirmModal');
+    if (deleteModalElement) {
+        const deleteModal = new bootstrap.Modal(deleteModalElement);
+
+        deleteButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const auxiliarId = this.getAttribute('data-id');
+                const deleteUrl = `../src/actions/auxiliares_process.php?action=delete&id=${auxiliarId}`;
+                confirmDeleteBtn.setAttribute('href', deleteUrl);
+                deleteModal.show();
             });
-        </script>
-    <?php endif; ?>
-
-    <a href="index.php?page=auxiliares_form" class="btn btn-add">Añadir Nuevo Auxiliar</a>
-
-    <form action="index.php" method="GET" class="filter-form">
-        <input type="hidden" name="page" value="auxiliares">
-        <div class="form-group">
-            <label for="nombre">Razón Social / Nombre</label>
-            <input type="text" id="nombre" name="nombre" value="<?= htmlspecialchars($filter_nombre ?? '') ?>">
-        </div>
-        <div class="form-group">
-            <label for="num_doc">Nro. Documento</label>
-            <input type="text" id="num_doc" name="num_doc" value="<?= htmlspecialchars($filter_num_doc ?? '') ?>">
-        </div>
-        <div class="form-group">
-            <label for="tipo_aux">Tipo de Auxiliar</label>
-            <select id="tipo_aux" name="tipo_aux">
-                <option value="">Todos</option>
-                <?php foreach($tipos_auxiliar as $tipo): ?>
-                    <option value="<?= $tipo['id'] ?>" <?= ($filter_tipo_aux == $tipo['id']) ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($tipo['nombre']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <button type="submit" class="btn-filter">Filtrar</button>
-    </form>
-
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tipo</th>
-                <th>Documento</th>
-                <th>Razón Social / Nombres</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($items as $item): ?>
-            <tr>
-                <td><?= htmlspecialchars($item['id']) ?></td>
-                <td><?= htmlspecialchars($item['nombre_tipo_auxiliar']) ?></td>
-                <td>
-                    <?php
-                        $doc_type = $item['tipo_doc_identidad'] ?? '';
-                        $doc_num = $item['num_doc_identidad'] ?? '';
-                        echo htmlspecialchars(trim($doc_type . ' ' . $doc_num));
-                    ?>
-                </td>
-                <td><?= htmlspecialchars($item['razon_social_nombres']) ?></td>
-                <td><?= htmlspecialchars($item['email']) ?></td>
-                <td><?= htmlspecialchars($item['telefono']) ?></td>
-                <td><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></td>
-                <td>
-                    <a href="index.php?page=auxiliares_form&id=<?= $item['id'] ?>" class="btn btn-edit">Editar</a>
-                    <a href="../src/actions/auxiliares_process.php?action=delete&id=<?= $item['id'] ?>" class="btn btn-delete" onclick="return confirm('¿Está seguro de que desea eliminar este auxiliar? Esta acción es permanente si no tiene documentos asociados.');">Eliminar</a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
-</section>
+        });
+    }
+});
+</script>

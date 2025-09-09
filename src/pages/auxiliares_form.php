@@ -51,6 +51,19 @@ try {
     .form-actions { text-align: right; margin-top: 20px; }
     .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
     .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+
+    /* --- START MODAL FIX --- */
+    .modal {
+        position: fixed; top: 0; left: 0; z-index: 1050; display: none;
+        width: 100%; height: 100%; overflow: auto; outline: 0; background-color: rgba(0,0,0,0.5);
+    }
+    .modal.show { display: block; }
+    .modal-dialog { position: relative; margin: 1.75rem auto; max-width: 500px; }
+    .modal-content { background-color: #fff; border: 1px solid rgba(0,0,0,.2); border-radius: .3rem; padding: 1rem; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #dee2e6; padding-bottom: .5rem; margin-bottom: 1rem; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: .5rem; border-top: 1px solid #dee2e6; padding-top: .5rem; margin-top: 1rem; }
+    .btn-close { cursor: pointer; background: transparent; border: 0; font-size: 1.5rem; }
+    /* --- END MODAL FIX --- */
 </style>
 
 <header>
@@ -134,7 +147,7 @@ try {
 </section>
 
 <!-- Reusable Alert Modal HTML -->
-<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+<div class="modal" id="alertModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -158,13 +171,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let alertModalInstance;
     function showAlertModal(message) {
         const modalElement = document.getElementById('alertModal');
-        if (!modalElement) return; // Or show a fallback alert
+        if (!modalElement) {
+            alert(message); // Fallback if modal HTML is missing
+            return;
+        }
 
+        // Assuming Bootstrap JS is loaded, as other modals on the site work.
+        // Removing the typeof bootstrap check to force usage.
         if (!alertModalInstance) {
-             if (typeof bootstrap === 'undefined') {
-                alert(message); // Fallback if Bootstrap JS is not loaded
-                return;
-            }
             alertModalInstance = new bootstrap.Modal(modalElement);
         }
         document.getElementById('alertModalBody').textContent = message;
@@ -226,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`../src/ajax/get_sunat_data.php?tipo=${tipo.toLowerCase()}&numero=${numero}`)
             .then(response => {
                 if (!response.ok) {
-                    throw new Error(`Error HTTP ${response.status}`);
+                    return response.json().then(err => { throw new Error(err.error || `Error HTTP ${response.status}`) });
                 }
                 return response.json();
             })

@@ -56,6 +56,62 @@ try {
     .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
     .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
     .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+
+    /* --- START MODAL FIX --- */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1050;
+        display: none; /* Hide by default */
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        outline: 0;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal.show {
+        display: block; /* Show when JS adds this class */
+    }
+    .modal-dialog {
+        position: relative;
+        margin: 1.75rem auto;
+        max-width: 500px;
+    }
+    .modal-content {
+        background-color: #fff;
+        border: 1px solid rgba(0,0,0,.2);
+        border-radius: .3rem;
+        padding: 1rem;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: .5rem;
+        margin-bottom: 1rem;
+    }
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: .5rem;
+        border-top: 1px solid #dee2e6;
+        padding-top: .5rem;
+        margin-top: 1rem;
+    }
+    .btn-close {
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      color: #000;
+      text-shadow: 0 1px 0 #fff;
+      opacity: .5;
+    }
+    /* --- END MODAL FIX --- */
 </style>
 
 <header>

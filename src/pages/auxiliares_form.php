@@ -229,11 +229,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     sunatBtn.addEventListener('click', function() {
-        const selectedOption = tipoDocSelect.options[tipoDocSelect.selectedIndex];
-        const tipo = (selectedOption.getAttribute('data-codigo') || '').trim();
+        const tipo = tipoDocSelect.value; // Use the dropdown's value (the ID)
         const numero = nroDocInput.value.trim();
 
-        if ((tipo !== 'DNI' && tipo !== 'RUC') || !numero) {
+        // Use the IDs for validation, as per user's fix
+        if ((tipo !== '1' && tipo !== '6') || !numero) {
             showAlertModal('Por favor, seleccione un tipo de documento (DNI/RUC) y ingrese un número.');
             return;
         }
@@ -241,7 +241,8 @@ document.addEventListener('DOMContentLoaded', function() {
         sunatBtn.textContent = '...';
         sunatBtn.disabled = true;
 
-        fetch(`../src/ajax/get_sunat_data.php?tipo=${tipo.toLowerCase()}&numero=${numero}`)
+        // Send the ID to the backend proxy
+        fetch(`../src/ajax/get_sunat_data.php?tipo=${tipo}&numero=${numero}`)
             .then(response => {
                 if (!response.ok) {
                     return response.json().then(err => { throw new Error(err.error || `Error HTTP ${response.status}`) });
@@ -253,9 +254,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(data.error);
                 }
 
-                if (tipo === 'DNI') {
+                // Check the ID to determine how to parse the response
+                if (tipo === '1') { // DNI
                     razonSocialInput.value = `${data.nombres} ${data.apellidoPaterno} ${data.apellidoMaterno}`.trim();
-                } else { // RUC
+                } else { // RUC (ID '6')
                     razonSocialInput.value = data.nombre || '';
                     direccionInput.value = `${data.direccion || ''} - ${data.departamento || ''} - ${data.provincia || ''} - ${data.distrito || ''}`;
                     ubigeoInput.value = data.ubigeo || '';

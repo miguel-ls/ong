@@ -18,12 +18,10 @@ try {
         $stmt = $pdo->prepare("CALL sp_read_auxiliar_by_id(?)");
         $stmt->execute([$item_id]);
         $item = $stmt->fetch(PDO::FETCH_ASSOC);
-        // Robust fix for "MySQL server has gone away"
         while ($stmt->nextRowset());
         $stmt->closeCursor();
     }
 
-    // Pre-fetch data for dropdowns
     $stmt_tipos = $pdo->prepare("SELECT id, nombre FROM tipos_auxiliar WHERE estado = 1 ORDER BY nombre");
     $stmt_tipos->execute();
     $tipos_auxiliar = $stmt_tipos->fetchAll(PDO::FETCH_ASSOC);
@@ -32,7 +30,6 @@ try {
     $stmt_docs = $pdo->prepare("CALL sp_read_tipos_documento_identidad_for_dropdown()");
     $stmt_docs->execute();
     $tipos_doc_identidad = $stmt_docs->fetchAll(PDO::FETCH_ASSOC);
-    // Robust fix for "MySQL server has gone away"
     while ($stmt_docs->nextRowset());
     $stmt_docs->closeCursor();
 
@@ -46,9 +43,12 @@ try {
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
-    .form-row { display: flex; gap: 20px; }
+    .form-row { display: flex; gap: 20px; align-items: flex-end; }
     .form-row .form-group { flex: 1; }
-    .btn-submit { background-color: #005cb3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    .input-with-button { display: flex; gap: 5px; }
+    .btn { padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; }
+    .btn-sunat { background-color: #ffc107; color: black; }
+    .btn-submit { background-color: #005cb3; color: white; padding: 10px 15px; }
     .btn-cancel { background-color: #6c757d; color: white; padding: 10px 15px; text-decoration: none; border-radius: 4px; }
     .form-actions { text-align: right; margin-top: 20px; }
     .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
@@ -72,11 +72,6 @@ try {
             <input type="hidden" name="id" value="<?= htmlspecialchars($item['id']) ?>">
         <?php endif; ?>
 
-        <div class="form-group">
-            <label for="razon_social_nombres">Razón Social o Nombres Completos</label>
-            <input type="text" id="razon_social_nombres" name="razon_social_nombres" value="<?= htmlspecialchars($item['razon_social_nombres'] ?? '') ?>" required>
-        </div>
-
         <div class="form-row">
             <div class="form-group">
                 <label for="id_tipo_auxiliar">Tipo de Auxiliar</label>
@@ -98,12 +93,20 @@ try {
             </div>
         </div>
 
+        <div class="form-group">
+            <label for="razon_social_nombres">Razón Social o Nombres Completos</label>
+            <input type="text" id="razon_social_nombres" name="razon_social_nombres" value="<?= htmlspecialchars($item['razon_social_nombres'] ?? '') ?>" required>
+        </div>
+
         <div class="form-row">
-            <div class="form-group">
+            <div class="form-group" style="flex-grow: 2;">
                 <label for="num_doc_identidad">Nro. Documento</label>
-                <input type="text" id="num_doc_identidad" name="num_doc_identidad" value="<?= htmlspecialchars($item['num_doc_identidad'] ?? '') ?>" required>
+                <div class="input-with-button">
+                    <input type="text" id="num_doc_identidad" name="num_doc_identidad" value="<?= htmlspecialchars($item['num_doc_identidad'] ?? '') ?>" required>
+                    <button type="button" id="sunatBtn" class="btn btn-sunat">SUNAT</button>
+                </div>
             </div>
-            <div class="form-group">
+            <div class="form-group" style="flex-grow: 1;">
                  <label for="ubigeo">Ubigeo</label>
                 <input type="text" id="ubigeo" name="ubigeo" value="<?= htmlspecialchars($item['ubigeo'] ?? '') ?>">
             </div>
@@ -137,7 +140,7 @@ try {
 
         <div class="form-actions">
              <a href="index.php?page=auxiliares" class="btn-cancel">Cancelar</a>
-            <button type="submit" class="btn-submit">Guardar</button>
+            <button type="submit" class="btn btn-submit">Guardar</button>
         </div>
     </form>
 </section>

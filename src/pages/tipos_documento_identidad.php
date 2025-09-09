@@ -6,7 +6,6 @@ if ($_SESSION['user_role'] !== 'administrador') {
     exit();
 }
 
-// Obtener los valores del filtro
 $filter_codigo = $_GET['codigo'] ?? null;
 $filter_nombre = $_GET['nombre'] ?? null;
 

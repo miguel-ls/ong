@@ -28,7 +28,6 @@ INSERT IGNORE INTO `tipos_documento_identidad` (`codigo`, `nombre`, `longitud`, 
 
 -- == PARTE 2: TABLA `auxiliares` ===================================
 
--- Añadir columna `ubigeo` si no existe
 DELIMITER $$
 CREATE PROCEDURE `patch_add_ubigeo_if_not_exists`()
 BEGIN
@@ -40,7 +39,6 @@ DELIMITER ;
 CALL `patch_add_ubigeo_if_not_exists`();
 DROP PROCEDURE `patch_add_ubigeo_if_not_exists`;
 
--- Alterar `auxiliares` para usar la FK, migrando datos si es posible.
 DROP PROCEDURE IF EXISTS `patch_refactor_auxiliares_doc_type`;
 DELIMITER $$
 CREATE PROCEDURE `patch_refactor_auxiliares_doc_type`()
@@ -54,13 +52,10 @@ BEGIN
         LEFT JOIN `tipos_documento_identidad` tdi ON a.tipo_doc_identidad = tdi.codigo
         SET a.id_tipo_documento_identidad = tdi.id
         WHERE a.id_tipo_documento_identidad IS NULL;
-
         ALTER TABLE `auxiliares` DROP COLUMN `tipo_doc_identidad`;
     END IF;
 
     IF NOT EXISTS(SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'auxiliares' AND CONSTRAINT_NAME = 'fk_auxiliares_tipos_documento_identidad') THEN
-        -- Se necesita asegurar que la columna no sea nula para añadir la FK si se desea.
-        -- Por ahora la dejamos nulleable para evitar errores en datos existentes.
         ALTER TABLE `auxiliares` ADD CONSTRAINT `fk_auxiliares_tipos_documento_identidad`
         FOREIGN KEY (`id_tipo_documento_identidad`) REFERENCES `tipos_documento_identidad`(`id`);
     END IF;
@@ -160,6 +155,13 @@ DROP PROCEDURE IF EXISTS sp_check_documento_duplicado;
 DELIMITER $$
 CREATE PROCEDURE `sp_check_documento_duplicado`(IN p_id_tipo_documento INT, IN p_serie_documento VARCHAR(10), IN p_numero_documento VARCHAR(20), IN p_id_auxiliar INT)
 BEGIN SELECT COUNT(*) as duplicate_count FROM documentos WHERE id_tipo_documento = p_id_tipo_documento AND serie_documento = p_serie_documento AND numero_documento = p_numero_documento AND id_auxiliar = p_id_auxiliar; END$$
+DELIMITER ;
+
+-- SP para `sub_proyectos`
+DROP PROCEDURE IF EXISTS sp_read_sub_proyectos_by_proyecto_id;
+DELIMITER $$
+CREATE PROCEDURE `sp_read_sub_proyectos_by_proyecto_id`(IN p_id_proyecto INT)
+BEGIN SELECT id, nombre FROM sub_proyectos WHERE estado = TRUE AND id_proyecto = p_id_proyecto ORDER BY nombre ASC; END$$
 DELIMITER ;
 
 -- SPs para `tipos_cambio`

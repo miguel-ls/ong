@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../database.php';
 
-// session_start() is removed.
 if (!isset($_SESSION['user_id'])) {
     header('Location: ../../public/login.php?error=Acceso no autorizado');
     exit();
@@ -27,10 +26,10 @@ try {
     $tipos_auxiliar = $stmt_tipos->fetchAll(PDO::FETCH_ASSOC);
     $stmt_tipos->closeCursor();
 
-    $stmt_docs = $pdo->prepare("CALL sp_read_tipos_documento_identidad_for_dropdown()");
+    // Modified query to fetch 'codigo' for the SUNAT button logic
+    $stmt_docs = $pdo->prepare("SELECT id, nombre, codigo FROM tipos_documento_identidad WHERE estado = 1 ORDER BY nombre");
     $stmt_docs->execute();
     $tipos_doc_identidad = $stmt_docs->fetchAll(PDO::FETCH_ASSOC);
-    while ($stmt_docs->nextRowset());
     $stmt_docs->closeCursor();
 
 } catch (PDOException $e) {
@@ -72,6 +71,7 @@ try {
             <input type="hidden" name="id" value="<?= htmlspecialchars($item['id']) ?>">
         <?php endif; ?>
 
+        <!-- Fields moved as per request -->
         <div class="form-row">
             <div class="form-group">
                 <label for="id_tipo_auxiliar">Tipo de Auxiliar</label>
@@ -85,17 +85,12 @@ try {
             <div class="form-group">
                 <label for="id_tipo_documento_identidad">Tipo Documento Identidad</label>
                 <select id="id_tipo_documento_identidad" name="id_tipo_documento_identidad" required>
-                    <option value="">Seleccione un tipo</option>
+                    <option value="" data-codigo="">Seleccione un tipo</option>
                      <?php foreach ($tipos_doc_identidad as $doc): ?>
-                        <option value="<?= $doc['id'] ?>" <?= (isset($item['id_tipo_documento_identidad']) && $doc['id'] == $item['id_tipo_documento_identidad']) ? 'selected' : '' ?>><?= htmlspecialchars($doc['nombre']) ?></option>
+                        <option value="<?= $doc['id'] ?>" data-codigo="<?= htmlspecialchars($doc['codigo']) ?>" <?= (isset($item['id_tipo_documento_identidad']) && $doc['id'] == $item['id_tipo_documento_identidad']) ? 'selected' : '' ?>><?= htmlspecialchars($doc['nombre']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
-        </div>
-
-        <div class="form-group">
-            <label for="razon_social_nombres">Razón Social o Nombres Completos</label>
-            <input type="text" id="razon_social_nombres" name="razon_social_nombres" value="<?= htmlspecialchars($item['razon_social_nombres'] ?? '') ?>" required>
         </div>
 
         <div class="form-row">
@@ -110,6 +105,12 @@ try {
                  <label for="ubigeo">Ubigeo</label>
                 <input type="text" id="ubigeo" name="ubigeo" value="<?= htmlspecialchars($item['ubigeo'] ?? '') ?>">
             </div>
+        </div>
+
+        <!-- Razón Social moved as per request -->
+        <div class="form-group">
+            <label for="razon_social_nombres">Razón Social o Nombres Completos</label>
+            <input type="text" id="razon_social_nombres" name="razon_social_nombres" value="<?= htmlspecialchars($item['razon_social_nombres'] ?? '') ?>" required>
         </div>
 
         <div class="form-group">
@@ -140,7 +141,7 @@ try {
 
         <div class="form-actions">
              <a href="index.php?page=auxiliares" class="btn-cancel">Cancelar</a>
-            <button type="submit" class="btn btn-submit">Guardar</button>
+            <button type="submit" class="btn-submit">Guardar</button>
         </div>
     </form>
 </section>
@@ -149,6 +150,10 @@ try {
 document.addEventListener('DOMContentLoaded', function() {
     const tipoDocSelect = document.getElementById('id_tipo_documento_identidad');
     const nroDocInput = document.getElementById('num_doc_identidad');
+    const sunatBtn = document.getElementById('sunatBtn');
+    const razonSocialInput = document.getElementById('razon_social_nombres');
+    const direccionInput = document.getElementById('direccion');
+    const ubigeoInput = document.getElementById('ubigeo');
 
     function fetchLongitudAndSetMaxLength() {
         const tipoDocId = tipoDocSelect.value;
@@ -178,6 +183,48 @@ document.addEventListener('DOMContentLoaded', function() {
     tipoDocSelect.addEventListener('change', function() {
         nroDocInput.value = '';
         fetchLongitudAndSetMaxLength();
+    });
+
+    sunatBtn.addEventListener('click', function() {
+        const selectedOption = tipoDocSelect.options[tipoDocSelect.selectedIndex];
+        const tipo = selectedOption.getAttribute('data-codigo');
+        const numero = nroDocInput.value.trim();
+
+        if ((tipo !== 'DNI' && tipo !== 'RUC') || !numero) {
+            alert('Por favor, seleccione un tipo de documento (DNI/RUC) y ingrese un número.');
+            return;
+        }
+
+        sunatBtn.textContent = '...';
+        sunatBtn.disabled = true;
+
+        fetch(`../src/ajax/get_sunat_data.php?tipo=${tipo.toLowerCase()}&numero=${numero}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+
+                if (tipo === 'DNI') {
+                    razonSocialInput.value = `${data.nombres} ${data.apellidoPaterno} ${data.apellidoMaterno}`.trim();
+                } else { // RUC
+                    razonSocialInput.value = data.nombre || '';
+                    direccionInput.value = `${data.direccion || ''} - ${data.departamento || ''} - ${data.provincia || ''} - ${data.distrito || ''}`;
+                    ubigeoInput.value = data.ubigeo || '';
+                }
+            })
+            .catch(error => {
+                alert(`Error al consultar los datos: ${error.message}`);
+            })
+            .finally(() => {
+                sunatBtn.textContent = 'SUNAT';
+                sunatBtn.disabled = false;
+            });
     });
 
     // Initial state on page load

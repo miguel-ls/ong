@@ -187,7 +187,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     sunatBtn.addEventListener('click', function() {
         const selectedOption = tipoDocSelect.options[tipoDocSelect.selectedIndex];
-        const tipo = selectedOption.getAttribute('data-codigo');
+        const tipo = (selectedOption.getAttribute('data-codigo') || '').trim();
         const numero = nroDocInput.value.trim();
 
         if ((tipo !== 'DNI' && tipo !== 'RUC') || !numero) {

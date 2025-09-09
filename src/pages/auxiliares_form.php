@@ -179,6 +179,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Assuming Bootstrap JS is loaded, as other modals on the site work.
         // Removing the typeof bootstrap check to force usage.
         if (!alertModalInstance) {
+         if (typeof bootstrap === 'undefined') {
+            alert(message); // Fallback if Bootstrap JS is not loaded
+            return;
+        }
             alertModalInstance = new bootstrap.Modal(modalElement);
         }
         document.getElementById('alertModalBody').textContent = message;

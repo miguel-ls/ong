@@ -22,13 +22,20 @@ try {
     $stmt = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
     $stmt->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    $stmt->closeCursor(); // This is critical to allow the next query to run.
+
+    // THE CRITICAL FIX:
+    // Some drivers/environments require explicitly clearing all potential subsequent rowsets
+    // from a stored procedure call before another query can be made on the same connection.
+    // The do-while loop with nextRowset() is the most robust way to do this.
+    while ($stmt->nextRowset());
+
+    $stmt->closeCursor();
 
     // Second query: get the types for the filter dropdown
     $stmt_tipos = $pdo->prepare("SELECT id, nombre FROM tipos_auxiliar WHERE estado = 1 ORDER BY nombre");
     $stmt_tipos->execute();
     $tipos_auxiliar = $stmt_tipos->fetchAll(PDO::FETCH_ASSOC);
-    $stmt_tipos->closeCursor(); // Good practice to close all cursors.
+    $stmt_tipos->closeCursor();
 
 } catch (PDOException $e) {
     // Provide a user-friendly error message

@@ -1,13 +1,3 @@
--- =================================================================
--- Script to update the sp_read_documento_detalle_by_id stored procedure
---
--- Purpose: To include the 'descripcion' column in the result set.
--- This is required for the document edit form to correctly display
--- and retain the description for each detail item.
---
--- Date: 2025-09-09
--- =================================================================
-
 DELIMITER //
 
 -- Using CREATE OR REPLACE for modern MySQL/MariaDB versions.
@@ -29,11 +19,11 @@ BEGIN
         dd.id_concepto,
         dd.descripcion,
         dd.precio_unitario,
-        dd.total,
+        dd.precio_total,
         dd.total_soles,
         dd.total_dolares
     FROM
-        `documento_detalle` dd
+        `documentos_detalle` dd
     WHERE
         dd.id_documento = `p_id_documento`
     ORDER BY

@@ -217,3 +217,20 @@ BEGIN
     DELETE FROM documentos WHERE id = p_id;
 END$$
 DELIMITER ;
+
+-- SPs para Auxiliares
+DROP PROCEDURE IF EXISTS sp_check_auxiliar_duplicado;
+DELIMITER $$
+CREATE PROCEDURE `sp_check_auxiliar_duplicado`(
+    IN p_id_tipo_auxiliar INT,
+    IN p_num_doc_identidad VARCHAR(20),
+    IN p_id INT
+)
+BEGIN
+    SELECT id
+    FROM auxiliares
+    WHERE id_tipo_auxiliar = p_id_tipo_auxiliar
+      AND num_doc_identidad = p_num_doc_identidad
+      AND (p_id IS NULL OR id != p_id);
+END$$
+DELIMITER ;

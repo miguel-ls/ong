@@ -167,6 +167,13 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- MODAL TRIGGER FROM URL ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const errorModalMessage = urlParams.get('error_modal');
+    if (errorModalMessage) {
+        showAlertModal(errorModalMessage);
+    }
+
     // --- MODAL HELPER ---
     let alertModalInstance;
     function showAlertModal(message) {

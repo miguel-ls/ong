@@ -22,6 +22,17 @@ $redirect_page = '../../public/index.php?page=auxiliares';
 try {
     switch ($action) {
         case 'create':
+            // Check for duplicates
+            $stmt_check = $pdo->prepare("CALL sp_check_auxiliar_duplicado(?, ?, NULL)");
+            $stmt_check->execute([$_POST['id_tipo_auxiliar'], $_POST['num_doc_identidad']]);
+            if ($stmt_check->fetch()) {
+                $stmt_check->closeCursor();
+                $error_message = "Ya existe un auxiliar con el mismo tipo y número de documento.";
+                header('Location: ../../public/index.php?page=auxiliares_form&error_modal=' . urlencode($error_message));
+                exit();
+            }
+            $stmt_check->closeCursor();
+
             $stmt = $pdo->prepare("CALL sp_create_auxiliar(?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id_tipo_auxiliar'],
@@ -38,6 +49,18 @@ try {
 
         case 'update':
             if (!isset($_POST['id'])) throw new Exception("ID de auxiliar no proporcionado para actualizar.");
+
+            // Check for duplicates
+            $stmt_check = $pdo->prepare("CALL sp_check_auxiliar_duplicado(?, ?, ?)");
+            $stmt_check->execute([$_POST['id_tipo_auxiliar'], $_POST['num_doc_identidad'], $_POST['id']]);
+            if ($stmt_check->fetch()) {
+                $stmt_check->closeCursor();
+                $error_message = "Ya existe otro auxiliar con el mismo tipo y número de documento.";
+                header('Location: ../../public/index.php?page=auxiliares_form&id=' . $_POST['id'] . '&error_modal=' . urlencode($error_message));
+                exit();
+            }
+            $stmt_check->closeCursor();
+
             $stmt = $pdo->prepare("CALL sp_update_auxiliar(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id'],

@@ -92,7 +92,7 @@ try {
         <div class="form-row">
             <div class="form-group">
                 <label for="id_tipo_auxiliar">Tipo de Auxiliar</label>
-                <select id="id_tipo_auxiliar" name="id_tipo_auxiliar" required>
+                <select id="id_tipo_auxiliar" name="id_tipo_auxiliar">
                     <option value="">Seleccione un tipo</option>
                     <?php
                         $selected_tipo_auxiliar = $form_data['id_tipo_auxiliar'] ?? $item['id_tipo_auxiliar'] ?? null;
@@ -104,7 +104,7 @@ try {
             </div>
             <div class="form-group">
                 <label for="id_tipo_documento_identidad">Tipo Documento Identidad</label>
-                <select id="id_tipo_documento_identidad" name="id_tipo_documento_identidad" required>
+                <select id="id_tipo_documento_identidad" name="id_tipo_documento_identidad">
                     <option value="" data-codigo="">Seleccione un tipo</option>
                      <?php
                         $selected_tipo_doc = $form_data['id_tipo_documento_identidad'] ?? $item['id_tipo_documento_identidad'] ?? null;
@@ -119,7 +119,7 @@ try {
             <div class="form-group" style="flex-grow: 2;">
                 <label for="num_doc_identidad">Nro. Documento</label>
                 <div class="input-with-button">
-                    <input type="text" id="num_doc_identidad" name="num_doc_identidad" value="<?= htmlspecialchars($form_data['num_doc_identidad'] ?? $item['num_doc_identidad'] ?? '') ?>" required>
+                    <input type="text" id="num_doc_identidad" name="num_doc_identidad" value="<?= htmlspecialchars($form_data['num_doc_identidad'] ?? $item['num_doc_identidad'] ?? '') ?>">
                     <button type="button" id="sunatBtn" class="btn btn-sunat">SUNAT</button>
                 </div>
             </div>
@@ -130,7 +130,7 @@ try {
         </div>
         <div class="form-group">
             <label for="razon_social_nombres">Razón Social o Nombres Completos</label>
-            <input type="text" id="razon_social_nombres" name="razon_social_nombres" value="<?= htmlspecialchars($form_data['razon_social_nombres'] ?? $item['razon_social_nombres'] ?? '') ?>" required>
+            <input type="text" id="razon_social_nombres" name="razon_social_nombres" value="<?= htmlspecialchars($form_data['razon_social_nombres'] ?? $item['razon_social_nombres'] ?? '') ?>">
         </div>
         <div class="form-group">
             <label for="direccion">Dirección</label>
@@ -149,7 +149,7 @@ try {
         <?php if ($is_edit): ?>
         <div class="form-group">
             <label for="estado">Estado</label>
-            <select id="estado" name="estado" required>
+            <select id="estado" name="estado">
                 <?php $selected_estado = $form_data['estado'] ?? $item['estado'] ?? '1'; ?>
                 <option value="1" <?= ($selected_estado == 1) ? 'selected' : '' ?>>Activo</option>
                 <option value="0" <?= ($selected_estado == 0) ? 'selected' : '' ?>>Inactivo</option>
@@ -259,5 +259,24 @@ window.addEventListener('load', function() {
     if (!errorModalMessage) {
         fetchLongitudAndSetMaxLength();
     }
+
+    // --- FORM SUBMISSION VALIDATION ---
+    const auxiliarForm = document.getElementById('auxiliarForm');
+    auxiliarForm.addEventListener('submit', function(event) {
+        event.preventDefault(); // Stop submission initially
+
+        const tipoAuxiliar = document.getElementById('id_tipo_auxiliar').value;
+        const tipoDoc = document.getElementById('id_tipo_documento_identidad').value;
+        const numDoc = document.getElementById('num_doc_identidad').value.trim();
+        const razonSocial = document.getElementById('razon_social_nombres').value.trim();
+
+        if (!tipoAuxiliar || !tipoDoc || !numDoc || !razonSocial) {
+            window.showAlertModal('Por favor, complete todos los campos obligatorios.');
+            return;
+        }
+
+        // If validation passes, submit the form
+        auxiliarForm.submit();
+    });
 });
 </script>

@@ -17,38 +17,38 @@
             </div>
             <nav>
                 <ul>
-                    <li><a href="index.php?page=inicio"><i class="fas fa-home"></i> Inicio</a></li>
+                    <li><a href="index.php?page=inicio"><i class="fas fa-home"></i><span class="sidebar-item-text"> Inicio</span></a></li>
                     <li>
                         <a href="#mantenimientoSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                            <span><i class="fas fa-cogs"></i> Mantenimiento</span>
+                            <div><i class="fas fa-cogs"></i><span class="sidebar-item-text"> Mantenimiento</span></div>
                             <i class="fas fa-chevron-down float-indicator"></i>
                         </a>
                         <ul class="collapse list-unstyled" id="mantenimientoSubmenu">
-                            <li><a href="index.php?page=proyectos">Proyectos</a></li>
-                            <li><a href="index.php?page=sub_proyectos">Sub Proyectos</a></li>
-                            <li><a href="index.php?page=centros_costos">Centros de Costos</a></li>
-                            <li><a href="index.php?page=conceptos">Conceptos</a></li>
-                            <li><a href="index.php?page=tipos_documento">Tipos de Documento</a></li>
-                            <li><a href="index.php?page=tipos_documento_identidad">Tipos de Doc. Identidad</a></li>
-                            <li><a href="index.php?page=tipos_auxiliar">Tipos de Auxiliar</a></li>
-                            <li><a href="index.php?page=auxiliares">Auxiliares</a></li>
-                            <li><a href="index.php?page=usuarios">Usuarios</a></li>
-                            <li><a href="index.php?page=tipos_cambio">Tipo de Cambio</a></li>
+                            <li><a href="index.php?page=proyectos"><span class="sidebar-item-text">Proyectos</span></a></li>
+                            <li><a href="index.php?page=sub_proyectos"><span class="sidebar-item-text">Sub Proyectos</span></a></li>
+                            <li><a href="index.php?page=centros_costos"><span class="sidebar-item-text">Centros de Costos</span></a></li>
+                            <li><a href="index.php?page=conceptos"><span class="sidebar-item-text">Conceptos</span></a></li>
+                            <li><a href="index.php?page=tipos_documento"><span class="sidebar-item-text">Tipos de Documento</span></a></li>
+                            <li><a href="index.php?page=tipos_documento_identidad"><span class="sidebar-item-text">Tipos de Doc. Identidad</span></a></li>
+                            <li><a href="index.php?page=tipos_auxiliar"><span class="sidebar-item-text">Tipos de Auxiliar</span></a></li>
+                            <li><a href="index.php?page=auxiliares"><span class="sidebar-item-text">Auxiliares</span></a></li>
+                            <li><a href="index.php?page=usuarios"><span class="sidebar-item-text">Usuarios</span></a></li>
+                            <li><a href="index.php?page=tipos_cambio"><span class="sidebar-item-text">Tipo de Cambio</span></a></li>
                         </ul>
                     </li>
                     <li>
                         <a href="#operacionesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
-                            <span><i class="fas fa-file-invoice-dollar"></i> Operaciones</span>
+                            <div><i class="fas fa-file-invoice-dollar"></i><span class="sidebar-item-text"> Operaciones</span></div>
                             <i class="fas fa-chevron-down float-indicator"></i>
                         </a>
                         <ul class="collapse list-unstyled" id="operacionesSubmenu">
-                            <li><a href="index.php?page=ingreso_documentos">Ingreso de documentos</a></li>
+                            <li><a href="index.php?page=ingreso_documentos"><span class="sidebar-item-text">Ingreso de documentos</span></a></li>
                         </ul>
                     </li>
-                    <li><a href="index.php?page=reportes"><i class="fas fa-chart-bar"></i> Reportes</a></li>
+                    <li><a href="index.php?page=reportes"><i class="fas fa-chart-bar"></i><span class="sidebar-item-text"> Reportes</span></a></li>
                     <hr>
-                    <li><a href="index.php?page=perfil"><i class="fas fa-user-circle"></i> Mi Perfil</a></li>
-                    <li><a href="../src/actions/logout_process.php"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                    <li><a href="index.php?page=perfil"><i class="fas fa-user-circle"></i><span class="sidebar-item-text"> Mi Perfil</span></a></li>
+                    <li><a href="../src/actions/logout_process.php"><i class="fas fa-sign-out-alt"></i><span class="sidebar-item-text"> Cerrar Sesión</span></a></li>
                 </ul>
             </nav>
         </aside>

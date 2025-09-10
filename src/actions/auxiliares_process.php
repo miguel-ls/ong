@@ -27,6 +27,7 @@ try {
             $stmt_check->execute([$_POST['id_tipo_auxiliar'], $_POST['num_doc_identidad']]);
             if ($stmt_check->fetch()) {
                 $stmt_check->closeCursor();
+                $_SESSION['form_data'] = $_POST;
                 $error_message = "Ya existe un auxiliar con el mismo tipo y número de documento.";
                 header('Location: ../../public/index.php?page=auxiliares_form&error_modal=' . urlencode($error_message));
                 exit();
@@ -55,6 +56,7 @@ try {
             $stmt_check->execute([$_POST['id_tipo_auxiliar'], $_POST['num_doc_identidad'], $_POST['id']]);
             if ($stmt_check->fetch()) {
                 $stmt_check->closeCursor();
+                $_SESSION['form_data'] = $_POST;
                 $error_message = "Ya existe otro auxiliar con el mismo tipo y número de documento.";
                 header('Location: ../../public/index.php?page=auxiliares_form&id=' . $_POST['id'] . '&error_modal=' . urlencode($error_message));
                 exit();

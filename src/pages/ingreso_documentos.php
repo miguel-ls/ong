@@ -41,6 +41,7 @@ try {
                 <th>Tipo Documento</th>
                 <th>Serie y Número</th>
                 <th>Auxiliar</th>
+                <th>Centro de Costo</th>
                 <th>Moneda</th>
                 <th>Total</th>
                 <th>Acciones</th>
@@ -59,6 +60,7 @@ try {
                     <td><?= htmlspecialchars($doc['tipo_documento']) ?></td>
                     <td><?= htmlspecialchars($doc['serie_documento'] . '-' . $doc['numero_documento']) ?></td>
                     <td><?= htmlspecialchars($doc['auxiliar']) ?></td>
+                    <td><?= htmlspecialchars($doc['centro_costo']) ?></td>
                     <td><?= htmlspecialchars($doc['moneda']) ?></td>
                     <td style="text-align: right;"><?= htmlspecialchars(number_format($doc['total'], 2)) ?></td>
                     <td>

@@ -217,7 +217,7 @@ window.addEventListener('load', function() {
 
         // Use the correct IDs ('3' and '4'), as per user's final correction
         if ((tipo !== '3' && tipo !== '4') || !numero) {
-            showAlertModal('Por favor, seleccione un tipo de documento (DNI/RUC) y ingrese un número.');
+            window.showAlertModal('Por favor, seleccione un tipo de documento (DNI/RUC) y ingrese un número.');
             return;
         }
 
@@ -256,6 +256,8 @@ window.addEventListener('load', function() {
     });
 
     // Initial state on page load
-    fetchLongitudAndSetMaxLength();
+    if (!errorModalMessage) {
+        fetchLongitudAndSetMaxLength();
+    }
 });
 </script>

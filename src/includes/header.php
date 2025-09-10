@@ -10,7 +10,8 @@
 </head>
 <body>
     <div class="container">
-        <aside class="sidebar">
+        <div class="main-wrapper">
+            <aside class="sidebar">
             <div class="logo">
                 <button id="sidebarToggleBtn" class="btn btn-link text-white"><i class="fas fa-bars"></i></button>
                 <span class="logo-text">ONG System</span>

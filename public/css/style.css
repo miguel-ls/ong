@@ -8,7 +8,13 @@ body {
 
 .container {
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
+}
+
+.main-wrapper {
+    display: flex;
+    flex: 1;
 }
 
 /* Menú Lateral */
@@ -163,4 +169,14 @@ body.sidebar-collapsed .sidebar nav ul li a i {
 .modal-content button {
     background-color: #005cb3;
     min-width: 100px;
+}
+
+/* Footer Styles */
+.footer {
+    background-color: #ffffff;
+    border-top: 1px solid #dee2e6;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #6c757d;
 }

@@ -265,13 +265,54 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function exportToXlsx(data) {
-        // Create a new workbook
-        const wb = XLSX.utils.book_new();
+        const headerStyle = {
+            fill: { fgColor: { rgb: "FF2C3E50" } }, // Dark Blue
+            font: { color: { rgb: "FFFFFFFF" }, bold: true },
+            alignment: { horizontal: "center", vertical: "center" }
+        };
+        const evenRowStyle = {
+            fill: { fgColor: { rgb: "FFECF0F1" } } // Light Gray
+        };
 
         // Convert the array of objects to a worksheet
         const ws = XLSX.utils.json_to_sheet(data);
 
-        // Add the worksheet to the workbook
+        // Get the range of the worksheet
+        const range = XLSX.utils.decode_range(ws['!ref']);
+        const colWidths = [];
+
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            // Set header styles
+            const address = XLSX.utils.encode_cell({c:C, r:range.s.r});
+            if(ws[address]) {
+                ws[address].s = headerStyle;
+            }
+
+            // Calculate column widths
+            let maxWidth = 0;
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                const cell_address = XLSX.utils.encode_cell({c:C, r:R});
+                const cell = ws[cell_address];
+                const cell_text_length = cell && cell.v ? String(cell.v).length : 0;
+                if(cell_text_length > maxWidth) {
+                    maxWidth = cell_text_length;
+                }
+
+                // Set alternating row styles
+                if (R > 0 && R % 2 !== 0) { // R > 0 to skip header, R % 2 for odd rows (which are even in 0-index)
+                    if(cell) {
+                       cell.s = { ...cell.s, ...evenRowStyle };
+                    } else {
+                       ws[cell_address] = { s: evenRowStyle };
+                    }
+                }
+            }
+            colWidths.push({ wch: maxWidth + 2 }); // +2 for padding
+        }
+        ws['!cols'] = colWidths;
+
+        // Create a new workbook and add the worksheet
+        const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
 
         // Generate the .xlsx file and trigger a download

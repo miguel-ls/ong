@@ -75,7 +75,9 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                             <label for="fecha_emision" class="form-label">Fecha Emisión</label>
                             <input type="date" class="form-control" id="fecha_emision" name="fecha_emision" value="<?= htmlspecialchars($header['fecha_emision'] ?? date('Y-m-d')) ?>" required>
                         </div>
-                         <div class="col-md-3 mb-3">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
                             <label for="id_auxiliar" class="form-label">Auxiliar</label>
                             <select class="form-select" id="id_auxiliar" name="id_auxiliar" required>
                                  <option value="">Seleccione</option>

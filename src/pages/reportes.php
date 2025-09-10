@@ -6,20 +6,43 @@
     <!-- Fila para Selectores y Filtros -->
     <div class="row">
         <!-- Selector de Columnas -->
-        <div class="col-lg-4 mb-4">
+        <div class="col-lg-5 mb-4">
             <div class="card h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0">1. Seleccione las Columnas</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">Elija los campos que desea incluir en el reporte.</p>
-                    <select id="columnSelector" class="form-control" multiple style="height: 200px;"></select>
+                    <style>
+                        .dual-list-box { display: flex; justify-content: space-between; }
+                        .dual-list-box .list-box { width: 42%; border: 1px solid #ccc; padding: 5px; height: 250px; overflow-y: auto; }
+                        .dual-list-box .list-box .list-item { padding: 5px; border-bottom: 1px solid #eee; cursor: grab; user-select: none; }
+                        .dual-list-box .list-box .list-item:last-child { border-bottom: none; }
+                        .dual-list-box .list-box .list-item.selected { background-color: #dcedff; }
+                        .dual-list-box .actions { width: 10%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+                        .dual-list-box .actions button { margin-bottom: 10px; }
+                    </style>
+                    <div class="dual-list-box">
+                        <div class="available-cols">
+                            <strong>Disponibles</strong>
+                            <div id="available-columns" class="list-box"></div>
+                        </div>
+                        <div class="actions">
+                            <button id="add-col" class="btn btn-sm btn-outline-secondary">&gt;</button>
+                            <button id="add-all-cols" class="btn btn-sm btn-outline-secondary">&gt;&gt;</button>
+                            <button id="remove-col" class="btn btn-sm btn-outline-secondary">&lt;</button>
+                            <button id="remove-all-cols" class="btn btn-sm btn-outline-secondary">&lt;&lt;</button>
+                        </div>
+                        <div class="selected-cols">
+                            <strong>Seleccionadas (arrastre para ordenar)</strong>
+                            <div id="selected-columns" class="list-box"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Constructor de Filtros -->
-        <div class="col-lg-8 mb-4">
+        <div class="col-lg-7 mb-4">
             <div class="card h-100">
                 <div class="card-header">
                     <h5 class="card-title mb-0">2. Construya los Filtros</h5>
@@ -42,8 +65,8 @@
         <button id="generateReportBtn" class="btn btn-primary btn-lg">
             <i class="fas fa-cogs"></i> Generar Reporte
         </button>
-        <button id="exportCsvBtn" class="btn btn-success btn-lg" style="display: none;">
-            <i class="fas fa-file-csv"></i> Exportar a CSV
+        <button id="exportXlsxBtn" class="btn btn-success btn-lg" style="display: none;">
+            <i class="fas fa-file-excel"></i> Exportar a Excel
         </button>
     </div>
 

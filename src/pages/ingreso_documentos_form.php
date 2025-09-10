@@ -53,7 +53,6 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
 
                 <!-- Encabezado del Documento -->
                 <fieldset class="border p-3 mb-4">
-                    <legend class="w-auto px-2 h6">Encabezado</legend>
                     <div class="row">
                         <div class="col-md-2 mb-3">
                             <label for="id_tipo_documento" class="form-label">Tipo Documento</label>
@@ -134,7 +133,6 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
 
                 <!-- Detalle del Documento -->
                 <fieldset class="border p-3 mb-4">
-                    <legend class="w-auto px-2 h6">Detalle</legend>
                     <table class="table table-sm table-bordered">
                         <thead class="table-light">
                             <tr>

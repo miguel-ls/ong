@@ -36,6 +36,26 @@ try {
                 throw new Exception('Datos del formulario inválidos o incompletos.');
             }
 
+            // -- Validación de Duplicados --
+            $doc_id_to_check = !empty($header['id_documento']) ? $header['id_documento'] : null;
+            $stmt_check = $pdo->prepare("CALL sp_check_documento_duplicado(?, ?, ?, ?, ?)");
+            $stmt_check->execute([
+                $header['id_tipo_documento'],
+                $header['serie_documento'],
+                $header['numero_documento'],
+                $header['id_auxiliar'],
+                $doc_id_to_check
+            ]);
+            $duplicate = $stmt_check->fetch(PDO::FETCH_ASSOC);
+            $stmt_check->closeCursor();
+
+            if ($duplicate) {
+                $message = "El documento " . htmlspecialchars($duplicate['serie_documento']) . "-" . htmlspecialchars($duplicate['numero_documento']) . " ya existe para este auxiliar.";
+                throw new Exception($message);
+            }
+            // -- Fin Validación --
+
+
             // Server-side Calculation and Validation
             $subtotal = 0;
             foreach ($details as $item) {

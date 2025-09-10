@@ -1,5 +1,4 @@
 <?php
-header('Content-Type: application/json');
 session_start();
 require_once __DIR__ . '/../database.php';
 
@@ -84,6 +83,7 @@ try {
             $doc_id = $_GET['id'];
             $stmt_delete = $pdo->prepare("CALL sp_delete_documento(?)");
             $stmt_delete->execute([$doc_id]);
+            $pdo->commit(); // Commit the transaction before redirecting
             // Since this is called via a link, we redirect instead of returning JSON
             header('Location: ../../public/index.php?page=ingreso_documentos&success=' . urlencode('Documento eliminado con éxito.'));
             exit();
@@ -103,5 +103,6 @@ try {
     http_response_code(500);
 }
 
+header('Content-Type: application/json');
 echo json_encode($response);
 ?>

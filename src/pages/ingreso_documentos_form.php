@@ -427,7 +427,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 window.location.href = `index.php?page=ingreso_documentos&success=${encodeURIComponent(data.message)}`;
             } else {
-                alert(`Error: ${data.message}`); // Replace with a proper modal later
+                showAlertModal(data.message); // Use the custom modal for errors
                 document.getElementById('submitBtn').disabled = false;
                 document.getElementById('submitBtn').textContent = 'Guardar Documento';
             }

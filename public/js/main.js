@@ -43,12 +43,15 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebarToggleBtn.addEventListener('click', () => {
             body.classList.toggle('sidebar-collapsed');
             const icon = sidebarToggleBtn.querySelector('i');
+            // Check the state *after* toggling
             if (body.classList.contains('sidebar-collapsed')) {
-                icon.classList.remove('fa-bars');
-                icon.classList.add('fa-times');
-            } else {
+                // Now it's collapsed, so show the 'bars' icon
                 icon.classList.remove('fa-times');
                 icon.classList.add('fa-bars');
+            } else {
+                // Now it's expanded, so show the 'times' icon
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
             }
         });
     }

@@ -5,10 +5,23 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var dropdowns = document.querySelectorAll('.dropdown-toggle');
+        var dropdowns = document.querySelectorAll('.sidebar .dropdown-toggle');
         dropdowns.forEach(function(dropdown) {
             dropdown.addEventListener('click', function(event) {
                 event.preventDefault();
+
+                // If sidebar is collapsed, expand it first
+                if (document.body.classList.contains('sidebar-collapsed')) {
+                    document.body.classList.remove('sidebar-collapsed');
+                    // Update the main toggle button icon
+                    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+                    if (sidebarToggleBtn) {
+                        const icon = sidebarToggleBtn.querySelector('i');
+                        icon.classList.remove('fa-bars');
+                        icon.classList.add('fa-times');
+                    }
+                }
+
                 var submenu = this.nextElementSibling;
                 var isExpanded = this.getAttribute('aria-expanded') === 'true';
 

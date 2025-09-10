@@ -1,4 +1,5 @@
 <?php
+header('Content-Type: application/json');
 session_start();
 require_once __DIR__ . '/../database.php';
 
@@ -35,26 +36,6 @@ try {
             if (!$data || !isset($data['header']) || !isset($data['details'])) {
                 throw new Exception('Datos del formulario inválidos o incompletos.');
             }
-
-            // -- Validación de Duplicados --
-            $doc_id_to_check = !empty($header['id_documento']) ? $header['id_documento'] : null;
-            $stmt_check = $pdo->prepare("CALL sp_check_documento_duplicado(?, ?, ?, ?, ?)");
-            $stmt_check->execute([
-                $header['id_tipo_documento'],
-                $header['serie_documento'],
-                $header['numero_documento'],
-                $header['id_auxiliar'],
-                $doc_id_to_check
-            ]);
-            $duplicate = $stmt_check->fetch(PDO::FETCH_ASSOC);
-            $stmt_check->closeCursor();
-
-            if ($duplicate) {
-                $message = "El documento " . htmlspecialchars($duplicate['serie_documento']) . "-" . htmlspecialchars($duplicate['numero_documento']) . " ya existe para este auxiliar.";
-                throw new Exception($message);
-            }
-            // -- Fin Validación --
-
 
             // Server-side Calculation and Validation
             $subtotal = 0;
@@ -103,7 +84,6 @@ try {
             $doc_id = $_GET['id'];
             $stmt_delete = $pdo->prepare("CALL sp_delete_documento(?)");
             $stmt_delete->execute([$doc_id]);
-            $pdo->commit(); // Commit the transaction before redirecting
             // Since this is called via a link, we redirect instead of returning JSON
             header('Location: ../../public/index.php?page=ingreso_documentos&success=' . urlencode('Documento eliminado con éxito.'));
             exit();
@@ -123,6 +103,5 @@ try {
     http_response_code(500);
 }
 
-header('Content-Type: application/json');
 echo json_encode($response);
 ?>

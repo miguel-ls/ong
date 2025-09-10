@@ -3,7 +3,14 @@
 // No incluir header.php aquí para evitar duplicar el HTML.
 require_once __DIR__ . '/../database.php';
 
-// El router principal (index.php) ya se encarga de la seguridad.
+// Aunque el router principal (index.php) ya se encarga de la seguridad,
+// añadimos una capa extra de protección para evitar el acceso directo.
+if (!isset($_SESSION['user_id'])) {
+    // Redirigir al login si no hay sesión.
+    // Usar una ruta absoluta o una lógica más robusta para la redirección.
+    header('Location: /ong/public/login.php?error=Acceso no autorizado');
+    exit();
+}
 
 $pdo = getDbConnection();
 $is_edit = isset($_GET['id']);
@@ -313,13 +320,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateTotalsVisibility() {
-        const isSoles = monedaSelect.value === 'SOLES';
-        if (isSoles) {
-            totalSolesRow.style.display = '';
-            totalDolaresRow.style.display = 'none';
-        } else {
-            totalSolesRow.style.display = 'none';
-            totalDolaresRow.style.display = '';
+        const selectedMoneda = monedaSelect.value;
+        // User request: if currency is 'SOLES', hide 'Total Dólares'.
+        // If currency is 'DOLARES', hide 'Total Soles'.
+        if (selectedMoneda === 'SOLES') {
+            totalSolesRow.style.display = ''; // Show
+            totalDolaresRow.style.display = 'none'; // Hide
+        } else if (selectedMoneda === 'DOLARES') {
+            totalSolesRow.style.display = 'none'; // Hide
+            totalDolaresRow.style.display = ''; // Show
         }
     }
 

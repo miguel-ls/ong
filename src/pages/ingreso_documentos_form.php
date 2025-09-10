@@ -131,11 +131,12 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                             <tr>
                                 <th style="width: 5%;">#</th>
                                 <th style="width: 10%;">Cant.</th>
-                                <th style="width: 30%;">Concepto</th>
-                                <th style="width: 15%;">P. Unitario</th>
-                                <th style="width: 15%;">Total</th>
-                                <th style="width: 15%;">Total Soles</th>
-                                <th style="width: 10%;">Acción</th>
+                                <th style="width: 25%;">Concepto</th>
+                                <th style="width: 25%;">Descripción</th>
+                                <th style="width: 10%;">P. Unit.</th>
+                                <th style="width: 10%;">Total</th>
+                                <th style="width: 10%;">Total Soles</th>
+                                <th style="width: 5%;">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="detalleBody">
@@ -162,11 +163,11 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                                     <th class="text-end">Total:</th>
                                     <td class="text-end" id="totalDisplay">0.00</td>
                                 </tr>
-                                 <tr>
+                                 <tr id="totalSolesRow">
                                     <th class="text-end">Total Soles:</th>
                                     <td class="text-end" id="totalSolesDisplay">0.00</td>
                                 </tr>
-                                <tr>
+                                <tr id="totalDolaresRow">
                                     <th class="text-end">Total Dólares:</th>
                                     <td class="text-end" id="totalDolaresDisplay">0.00</td>
                                 </tr>
@@ -197,6 +198,7 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                 <?php endforeach; ?>
             </select>
         </td>
+        <td><input type="text" class="form-control form-control-sm" name="descripcion"></td>
         <td><input type="number" class="form-control form-control-sm" name="precio_unitario" step="0.0001" required></td>
         <td><input type="text" class="form-control form-control-sm total-row" name="precio_total" readonly></td>
         <td><input type="text" class="form-control form-control-sm total-soles-row" name="total_soles_row" readonly></td>
@@ -225,6 +227,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalDisplay = document.getElementById('totalDisplay');
     const totalSolesDisplay = document.getElementById('totalSolesDisplay');
     const totalDolaresDisplay = document.getElementById('totalDolaresDisplay');
+    const totalSolesRow = document.getElementById('totalSolesRow');
+    const totalDolaresRow = document.getElementById('totalDolaresRow');
 
     const IGV_RATE = 0.18;
     const isEditMode = <?= $is_edit ? 'true' : 'false' ?>;
@@ -241,11 +245,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const qtyInput = tr.querySelector('[name="cantidad"]');
         const priceInput = tr.querySelector('[name="precio_unitario"]');
         const conceptSelect = tr.querySelector('[name="id_concepto"]');
+        const descInput = tr.querySelector('[name="descripcion"]');
 
         if (detail) {
             qtyInput.value = detail.cantidad;
             priceInput.value = detail.precio_unitario;
             conceptSelect.value = detail.id_concepto;
+            descInput.value = detail.descripcion || '';
         }
 
         tr.querySelector('.removeRowBtn').addEventListener('click', () => {
@@ -315,6 +321,19 @@ document.addEventListener('DOMContentLoaded', function() {
         totalDisplay.textContent = total.toFixed(2);
         totalSolesDisplay.textContent = totalSoles.toFixed(2);
         totalDolaresDisplay.textContent = totalDolares.toFixed(2);
+
+        updateTotalsVisibility();
+    }
+
+    function updateTotalsVisibility() {
+        const isSoles = monedaSelect.value === 'SOLES';
+        if (isSoles) {
+            totalSolesRow.style.display = '';
+            totalDolaresRow.style.display = 'none';
+        } else {
+            totalSolesRow.style.display = 'none';
+            totalDolaresRow.style.display = '';
+        }
     }
 
     function fetchSubProyectos(id_proyecto, selected_id = null) {
@@ -426,6 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     updateAllCalculations();
+    updateTotalsVisibility(); // Call this on initial load
 });
 </script>
 <?php

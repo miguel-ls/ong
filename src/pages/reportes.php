@@ -13,26 +13,24 @@
                 </div>
                 <div class="card-body">
                     <style>
-                        .dual-list-box { display: flex; justify-content: space-between; }
-                        .dual-list-box .list-box { width: 47%; border: 1px solid #ccc; padding: 5px; height: 250px; overflow-y: auto; }
-                        .dual-list-box .list-box .list-item { padding: 5px; border-bottom: 1px solid #eee; cursor: grab; user-select: none; }
-                        .dual-list-box .list-box .list-item:last-child { border-bottom: none; }
-                        .dual-list-box .list-box .list-item.selected { background-color: #dcedff; }
-                        .dual-list-box .actions { width: 10%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-                        .dual-list-box .actions button { margin-bottom: 10px; }
+                        .list-box { width: 100%; border: 1px solid #ccc; padding: 5px; height: 250px; overflow-y: auto; }
+                        .list-item { padding: 5px; border-bottom: 1px solid #eee; cursor: grab; user-select: none; }
+                        .list-item:last-child { border-bottom: none; }
+                        .list-item.selected { background-color: #dcedff; }
+                        .actions-col button { margin-bottom: 10px; width: 50px; }
                     </style>
-                    <div class="dual-list-box">
-                        <div class="available-cols">
+                    <div class="row">
+                        <div class="col-md-5">
                             <strong>Disponibles</strong>
                             <div id="available-columns" class="list-box"></div>
                         </div>
-                        <div class="actions">
-                            <button id="add-col" class="btn btn-sm btn-outline-secondary">&gt;</button>
-                            <button id="add-all-cols" class="btn btn-sm btn-outline-secondary">&gt;&gt;</button>
-                            <button id="remove-col" class="btn btn-sm btn-outline-secondary">&lt;</button>
-                            <button id="remove-all-cols" class="btn btn-sm btn-outline-secondary">&lt;&lt;</button>
+                        <div class="col-md-2 d-flex flex-column justify-content-center align-items-center actions-col">
+                            <button id="add-col" class="btn btn-sm btn-outline-secondary" title="Añadir">&gt;</button>
+                            <button id="add-all-cols" class="btn btn-sm btn-outline-secondary" title="Añadir Todos">&gt;&gt;</button>
+                            <button id="remove-col" class="btn btn-sm btn-outline-secondary" title="Quitar">&lt;</button>
+                            <button id="remove-all-cols" class="btn btn-sm btn-outline-secondary" title="Quitar Todos">&lt;&lt;</button>
                         </div>
-                        <div class="selected-cols">
+                        <div class="col-md-5">
                             <strong>Seleccionadas (arrastre para ordenar)</strong>
                             <div id="selected-columns" class="list-box"></div>
                         </div>

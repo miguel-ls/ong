@@ -169,10 +169,6 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                                     <th class="text-end">Total:</th>
                                     <td class="text-end" id="totalDisplay">0.00</td>
                                 </tr>
-                                 <tr id="totalSolesRow">
-                                    <th class="text-end">Total Soles:</th>
-                                    <td class="text-end" id="totalSolesDisplay">0.00</td>
-                                </tr>
                                 <tr id="totalDolaresRow">
                                     <th class="text-end">Total Dólares:</th>
                                     <td class="text-end" id="totalDolaresDisplay">0.00</td>
@@ -232,7 +228,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalDisplay = document.getElementById('totalDisplay');
     const totalSolesDisplay = document.getElementById('totalSolesDisplay');
     const totalDolaresDisplay = document.getElementById('totalDolaresDisplay');
-    const totalSolesRow = document.getElementById('totalSolesRow');
     const totalDolaresRow = document.getElementById('totalDolaresRow');
 
     const IGV_RATE = 0.18;
@@ -313,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
         subtotalDisplay.textContent = subtotal.toFixed(2);
         igvDisplay.textContent = igv.toFixed(2);
         totalDisplay.textContent = total.toFixed(2);
-        totalSolesDisplay.textContent = totalSoles.toFixed(2);
+        // totalSolesDisplay is no longer visible
         totalDolaresDisplay.textContent = totalDolares.toFixed(2);
 
         updateTotalsVisibility();
@@ -321,14 +316,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateTotalsVisibility() {
         const selectedMoneda = monedaSelect.value;
-        // User request: if currency is 'SOLES', hide 'Total Dólares'.
-        // If currency is 'DOLARES', hide 'Total Soles'.
+        // If currency is 'SOLES', hide 'Total Dólares'. Otherwise, show it.
         if (selectedMoneda === 'SOLES') {
-            totalSolesRow.style.display = ''; // Show
-            totalDolaresRow.style.display = 'none'; // Hide
-        } else if (selectedMoneda === 'DOLARES') {
-            totalSolesRow.style.display = 'none'; // Hide
-            totalDolaresRow.style.display = ''; // Show
+            totalDolaresRow.style.display = 'none';
+        } else {
+            totalDolaresRow.style.display = '';
         }
     }
 

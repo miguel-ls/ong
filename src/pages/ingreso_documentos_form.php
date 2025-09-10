@@ -131,11 +131,10 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                             <tr>
                                 <th style="width: 5%;">#</th>
                                 <th style="width: 10%;">Cant.</th>
-                                <th style="width: 25%;">Concepto</th>
-                                <th style="width: 25%;">Descripción</th>
+                                <th style="width: 30%;">Concepto</th>
+                                <th style="width: 30%;">Descripción</th>
                                 <th style="width: 10%;">P. Unit.</th>
                                 <th style="width: 10%;">Total</th>
-                                <th style="width: 10%;">Total Soles</th>
                                 <th style="width: 5%;">Acción</th>
                             </tr>
                         </thead>
@@ -201,7 +200,6 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
         <td><input type="text" class="form-control form-control-sm" name="descripcion"></td>
         <td><input type="number" class="form-control form-control-sm" name="precio_unitario" step="0.0001" required></td>
         <td><input type="text" class="form-control form-control-sm total-row" name="precio_total" readonly></td>
-        <td><input type="text" class="form-control form-control-sm total-soles-row" name="total_soles_row" readonly></td>
         <td><button type="button" class="btn btn-sm btn-danger removeRowBtn">X</button></td>
     </tr>
 </template>
@@ -304,17 +302,6 @@ document.addEventListener('DOMContentLoaded', function() {
             totalDolares = total;
             totalSoles = total * tc;
         }
-
-        rows.forEach(row => {
-             const rowTotal = parseFloat(row.querySelector('.total-row').value) || 0;
-             let rowTotalSoles = 0;
-             if (isSoles) {
-                rowTotalSoles = rowTotal;
-             } else {
-                rowTotalSoles = rowTotal * tc;
-             }
-             row.querySelector('.total-soles-row').value = rowTotalSoles.toFixed(2);
-        });
 
         subtotalDisplay.textContent = subtotal.toFixed(2);
         igvDisplay.textContent = igv.toFixed(2);

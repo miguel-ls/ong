@@ -1,7 +1,7 @@
 </main>
         </div>
         <footer class="footer">
-            <p>&copy; <?= date('Y') ?> ONG System. Todos los derechos reservados.</p>
+            <p>&copy; <?= date('Y') ?> ERP-Plus Docs. Todos los derechos reservados.</p>
         </footer>
     </div>
 

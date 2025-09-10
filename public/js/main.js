@@ -42,6 +42,14 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sidebarToggleBtn) {
         sidebarToggleBtn.addEventListener('click', () => {
             body.classList.toggle('sidebar-collapsed');
+            const icon = sidebarToggleBtn.querySelector('i');
+            if (body.classList.contains('sidebar-collapsed')) {
+                icon.classList.remove('fa-bars');
+                icon.classList.add('fa-times');
+            } else {
+                icon.classList.remove('fa-times');
+                icon.classList.add('fa-bars');
+            }
         });
     }
 });

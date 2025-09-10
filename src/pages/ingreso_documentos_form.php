@@ -53,9 +53,8 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
 
                 <!-- Encabezado del Documento -->
                 <fieldset class="border p-3 mb-4">
-                    <legend class="w-auto px-2 h6">Encabezado</legend>
                     <div class="row">
-                        <div class="col-md-3 mb-3">
+                        <div class="col-md-2 mb-3">
                             <label for="id_tipo_documento" class="form-label">Tipo Documento</label>
                             <select class="form-select" id="id_tipo_documento" name="id_tipo_documento" required>
                                 <?php foreach($tipos_documento as $tipo): ?>
@@ -72,10 +71,23 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                             <input type="text" class="form-control" id="numero_documento" name="numero_documento" value="<?= htmlspecialchars($header['numero_documento'] ?? '') ?>" required>
                         </div>
                         <div class="col-md-2 mb-3">
+                            <label for="moneda" class="form-label">Moneda</label>
+                            <select class="form-select" id="moneda" name="moneda" required>
+                                <option value="SOLES" <?= ($header && $header['moneda'] == 'SOLES') ? 'selected' : '' ?>>Soles (S/)</option>
+                                <option value="DOLARES" <?= ($header && $header['moneda'] == 'DOLARES') ? 'selected' : '' ?>>Dólares ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
                             <label for="fecha_emision" class="form-label">Fecha Emisión</label>
                             <input type="date" class="form-control" id="fecha_emision" name="fecha_emision" value="<?= htmlspecialchars($header['fecha_emision'] ?? date('Y-m-d')) ?>" required>
                         </div>
-                         <div class="col-md-3 mb-3">
+                        <div class="col-md-2 mb-3">
+                            <label for="tipo_cambio" class="form-label">Tipo Cambio</label>
+                            <input type="number" step="0.0001" class="form-control" id="tipo_cambio" name="tipo_cambio" value="<?= htmlspecialchars($header['tipo_cambio'] ?? '1.0000') ?>" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
                             <label for="id_auxiliar" class="form-label">Auxiliar</label>
                             <select class="form-select" id="id_auxiliar" name="id_auxiliar" required>
                                  <option value="">Seleccione</option>
@@ -112,18 +124,7 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                         </div>
                     </div>
                      <div class="row">
-                        <div class="col-md-2 mb-3">
-                            <label for="moneda" class="form-label">Moneda</label>
-                            <select class="form-select" id="moneda" name="moneda" required>
-                                <option value="SOLES" <?= ($header && $header['moneda'] == 'SOLES') ? 'selected' : '' ?>>Soles (S/)</option>
-                                <option value="DOLARES" <?= ($header && $header['moneda'] == 'DOLARES') ? 'selected' : '' ?>>Dólares ($)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="tipo_cambio" class="form-label">Tipo Cambio</label>
-                            <input type="number" step="0.0001" class="form-control" id="tipo_cambio" name="tipo_cambio" value="<?= htmlspecialchars($header['tipo_cambio'] ?? '1.0000') ?>" required>
-                        </div>
-                         <div class="col-md-8 mb-3">
+                         <div class="col-md-12 mb-3">
                             <label for="glosa" class="form-label">Glosa</label>
                             <input type="text" class="form-control" id="glosa" name="glosa" value="<?= htmlspecialchars($header['glosa'] ?? '') ?>" required>
                         </div>
@@ -132,7 +133,6 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
 
                 <!-- Detalle del Documento -->
                 <fieldset class="border p-3 mb-4">
-                    <legend class="w-auto px-2 h6">Detalle</legend>
                     <table class="table table-sm table-bordered">
                         <thead class="table-light">
                             <tr>
@@ -391,6 +391,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- EVENT LISTENERS ---
+    const numeroDocumentoInput = document.getElementById('numero_documento');
+    numeroDocumentoInput.addEventListener('blur', () => {
+        const num = numeroDocumentoInput.value;
+        // Pad only if it's a number and less than 8 digits
+        if (num && !isNaN(num) && num.length < 8) {
+            numeroDocumentoInput.value = num.padStart(8, '0');
+        }
+    });
+
     addRowBtn.addEventListener('click', () => addRow());
     monedaSelect.addEventListener('change', updateAllCalculations);
     tipoCambioInput.addEventListener('input', updateAllCalculations);

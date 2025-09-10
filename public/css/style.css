@@ -127,5 +127,6 @@ body {
 
 .modal-content button {
     background-color: #005cb3;
+    color: #ffffff;
     min-width: 100px;
 }

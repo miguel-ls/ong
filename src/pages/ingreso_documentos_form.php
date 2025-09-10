@@ -471,6 +471,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateAllCalculations();
     updateTotalsVisibility(); // Call this on initial load
+
+    new TomSelect("#id_auxiliar",{
+        create: true,
+        sortField: {
+            field: "text",
+            direction: "asc"
+        }
+    });
 });
 </script>
 <?php

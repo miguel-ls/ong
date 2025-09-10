@@ -10,36 +10,28 @@ if (empty($tipo_id) || empty($numero)) {
     exit;
 }
 
-// Map the ID to the API endpoint string, as per user's fix
+// Map the correct ID to the API endpoint string, as per user's final correction
 $tipo_doc_str = '';
-if ($tipo_id == '1') {
+if ($tipo_id == '3') { // DNI
     $tipo_doc_str = 'dni';
-} elseif ($tipo_id == '6') {
+} elseif ($tipo_id == '4') { // RUC
     $tipo_doc_str = 'ruc';
 }
 
 if (empty($tipo_doc_str)) {
     http_response_code(400);
-    echo json_encode(['error' => 'Tipo de documento no válido. Use ID "1" para DNI o "6" para RUC.']);
+    echo json_encode(['error' => 'Tipo de documento no válido. Use ID "3" para DNI o "4" para RUC.']);
     exit;
 }
 
 $api_url = "https://api.apis.net.pe/v1/{$tipo_doc_str}?numero=" . urlencode($numero);
 
-// The user's curl examples don't show an Authorization token.
-// If this API required one, it would be added to the headers like this:
-// "Authorization: Bearer YOUR_API_TOKEN"
-
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_URL, $api_url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HEADER, false);
-// Optional: set a timeout
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
 curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-// Optional: for HTTPS, you might need these in some environments
-// curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-// curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
 $response = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -54,7 +46,6 @@ if ($curl_error) {
 
 if ($http_code !== 200) {
     http_response_code($http_code);
-    // Try to decode the response to see if the API gave a specific error message
     $error_details = json_decode($response, true);
     if (json_last_error() === JSON_ERROR_NONE && isset($error_details['message'])) {
          echo json_encode(['error' => 'Error de la API externa: ' . $error_details['message']]);

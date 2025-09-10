@@ -232,8 +232,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const tipo = tipoDocSelect.value; // Use the dropdown's value (the ID)
         const numero = nroDocInput.value.trim();
 
-        // Use the IDs for validation, as per user's fix
-        if ((tipo !== '1' && tipo !== '6') || !numero) {
+        // Use the correct IDs ('3' and '4'), as per user's final correction
+        if ((tipo !== '3' && tipo !== '4') || !numero) {
             showAlertModal('Por favor, seleccione un tipo de documento (DNI/RUC) y ingrese un número.');
             return;
         }
@@ -254,10 +254,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     throw new Error(data.error);
                 }
 
-                // Check the ID to determine how to parse the response
-                if (tipo === '1') { // DNI
+                // Use correct IDs to parse the response
+                if (tipo === '3') { // DNI
                     razonSocialInput.value = `${data.nombres} ${data.apellidoPaterno} ${data.apellidoMaterno}`.trim();
-                } else { // RUC (ID '6')
+                } else { // RUC (ID '4')
                     razonSocialInput.value = data.nombre || '';
                     direccionInput.value = `${data.direccion || ''} - ${data.departamento || ''} - ${data.provincia || ''} - ${data.distrito || ''}`;
                     ubigeoInput.value = data.ubigeo || '';

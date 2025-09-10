@@ -73,7 +73,8 @@ try {
                 $item_total = (float)$item['cantidad'] * (float)$item['precio_unitario'];
                 $item_total_soles = $is_soles ? $item_total : $item_total * $tc;
                 $item_total_dolares = !$is_soles ? $item_total : $item_total / $tc;
-                $stmt_insert_detail->execute([$doc_id, $index + 1, $item['cantidad'], "Desc", $item['id_concepto'], $item['precio_unitario'], $item_total, $item_total_soles, $item_total_dolares]);
+                $descripcion = $item['descripcion'] ?? ''; // Get description from item
+                $stmt_insert_detail->execute([$doc_id, $index + 1, $item['cantidad'], $descripcion, $item['id_concepto'], $item['precio_unitario'], $item_total, $item_total_soles, $item_total_dolares]);
             }
             break;
 

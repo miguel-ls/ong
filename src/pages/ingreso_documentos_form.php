@@ -1,11 +1,9 @@
 <?php
+// Este archivo es cargado por public/index.php, que ya incluye el header.php.
+// No incluir header.php aquí para evitar duplicar el HTML.
 require_once __DIR__ . '/../database.php';
-session_start();
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../../public/login.php?error=Acceso no autorizado');
-    exit();
-}
+// El router principal (index.php) ya se encarga de la seguridad.
 
 $pdo = getDbConnection();
 $is_edit = isset($_GET['id']);
@@ -430,3 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateAllCalculations();
 });
 </script>
+<?php
+// Este archivo es cargado por public/index.php, que ya incluye el footer.php.
+// No incluir footer.php aquí para evitar duplicar el HTML.
+?>

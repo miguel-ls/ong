@@ -150,54 +150,13 @@ try {
     </form>
 </section>
 
-<!-- Reusable Alert Modal HTML -->
-<div class="modal" id="alertModal" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="alertModalLabel">Aviso</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="alertModalBody">
-        <!-- Message will be inserted here -->
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('load', function() {
     // --- MODAL TRIGGER FROM URL ---
     const urlParams = new URLSearchParams(window.location.search);
     const errorModalMessage = urlParams.get('error_modal');
-    if (errorModalMessage) {
-        showAlertModal(errorModalMessage);
-    }
-
-    // --- MODAL HELPER ---
-    let alertModalInstance;
-    function showAlertModal(message) {
-        const modalElement = document.getElementById('alertModal');
-        if (!modalElement) {
-            alert(message); // Fallback if modal HTML is missing
-            return;
-        }
-
-        // Assuming Bootstrap JS is loaded, as other modals on the site work.
-        // Removing the typeof bootstrap check to force usage.
-        if (!alertModalInstance) {
-         if (typeof bootstrap === 'undefined') {
-            alert(message); // Fallback if Bootstrap JS is not loaded
-            return;
-        }
-            alertModalInstance = new bootstrap.Modal(modalElement);
-        }
-        document.getElementById('alertModalBody').textContent = message;
-        alertModalInstance.show();
+    if (errorModalMessage && window.showAlertModal) {
+        window.showAlertModal(errorModalMessage);
     }
 
     // --- FORM ELEMENTS ---

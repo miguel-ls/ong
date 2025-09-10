@@ -1,7 +1,7 @@
 </main>
         </div>
         <footer class="footer">
-            <p>&copy; <?= date('Y') ?> ERP-Plus Docs. Todos los derechos reservados.</p>
+            <p>&copy; <?= date('Y') ?> CODESICORP SAC. Todos los derechos reservados.</p>
         </footer>
     </div>
 

@@ -265,45 +265,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function exportToXlsx(data) {
-        // 1. Create worksheet from data
         const ws = XLSX.utils.json_to_sheet(data);
 
-        // 2. Define styles
-        const headerStyle = { font: { bold: true, color: { rgb: "FFFFFFFF" } }, fill: { fgColor: { rgb: "FF2C3E50" } } };
-        const oddRowStyle = { fill: { fgColor: { rgb: "FFECF0F1" } } }; // Using for odd data rows
+        // Define a very simple style
+        const headerStyle = { font: { bold: true } };
 
-        // 3. Apply styles and calculate widths
+        // Get the range of the worksheet
         const range = XLSX.utils.decode_range(ws['!ref']);
-        let colWidths = [];
 
-        for(let C = range.s.c; C <= range.e.c; ++C) {
-            let max_width = 0;
-            for(let R = range.s.r; R <= range.e.r; ++R) {
-                const cell_ref = XLSX.utils.encode_cell({c:C, r:R});
-
-                // Ensure cell object exists
-                if(!ws[cell_ref]) continue;
-
-                // Apply style
-                if(R === 0) { // Header row
-                    ws[cell_ref].s = headerStyle;
-                } else if (R % 2 === 1) { // Odd data rows (e.g. row 2, 4, etc in Excel)
-                    ws[cell_ref].s = oddRowStyle;
-                }
-
-                // Calculate width
-                const cell_text = ws[cell_ref].v;
-                if(cell_text) {
-                    max_width = Math.max(max_width, String(cell_text).length);
-                }
+        // Loop ONLY through the header row (R=0) and apply the simple style
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cell_ref = XLSX.utils.encode_cell({ c: C, r: 0 });
+            if (ws[cell_ref]) {
+                ws[cell_ref].s = headerStyle;
             }
-            colWidths[C] = { wch: max_width + 2 }; // +2 for padding
         }
-        ws['!cols'] = colWidths;
 
-        // 4. Create workbook and export
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-        XLSX.writeFile(wb, "ReporteDinamico.xlsx", { bookSST: true });
+        XLSX.writeFile(wb, "ReporteDinamico.xlsx");
     }
 });

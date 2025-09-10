@@ -22,7 +22,7 @@
                     <li>
                         <a href="#mantenimientoSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div><i class="fas fa-cogs"></i><span class="sidebar-item-text"> Mantenimiento</span></div>
-                            <i class="fas fa-chevron-down float-indicator"></i>
+                            
                         </a>
                         <ul class="collapse list-unstyled" id="mantenimientoSubmenu">
                             <li><a href="index.php?page=proyectos"><span class="sidebar-item-text">Proyectos</span></a></li>
@@ -32,21 +32,42 @@
                             <li><a href="index.php?page=tipos_documento"><span class="sidebar-item-text">Tipos de Documento</span></a></li>
                             <li><a href="index.php?page=tipos_documento_identidad"><span class="sidebar-item-text">Tipos de Doc. Identidad</span></a></li>
                             <li><a href="index.php?page=tipos_auxiliar"><span class="sidebar-item-text">Tipos de Auxiliar</span></a></li>
-                            <li><a href="index.php?page=auxiliares"><span class="sidebar-item-text">Auxiliares</span></a></li>
-                            <li><a href="index.php?page=usuarios"><span class="sidebar-item-text">Usuarios</span></a></li>
-                            <li><a href="index.php?page=tipos_cambio"><span class="sidebar-item-text">Tipo de Cambio</span></a></li>
                         </ul>
                     </li>
                     <li>
                         <a href="#operacionesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div><i class="fas fa-file-invoice-dollar"></i><span class="sidebar-item-text"> Operaciones</span></div>
-                            <i class="fas fa-chevron-down float-indicator"></i>
+                            
                         </a>
                         <ul class="collapse list-unstyled" id="operacionesSubmenu">
+                            <li><a href="index.php?page=tipos_cambio"><span class="sidebar-item-text">Tipo de Cambio</span></a></li>                            
+                            <li><a href="index.php?page=auxiliares"><span class="sidebar-item-text">Auxiliares</span></a></li>                            
                             <li><a href="index.php?page=ingreso_documentos"><span class="sidebar-item-text">Ingreso de documentos</span></a></li>
                         </ul>
                     </li>
-                    <li><a href="index.php?page=reportes"><i class="fas fa-chart-bar"></i><span class="sidebar-item-text"> Reportes</span></a></li>
+                    
+
+                    <li>
+                        <a href="#reportesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                            <div><i class="fas fa-chart-bar"></i><span class="sidebar-item-text"> Reportes</span></div>
+                            
+                        </a>
+                        <ul class="collapse list-unstyled" id="reportesSubmenu">
+                            <li><a href="index.php?page=reportes"><span class="sidebar-item-text"> Reportes de Documentos</span></a></li>
+                        </ul>
+                    </li>
+                    
+                    
+                    <li>
+                        <a href="#seguridadSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                            <div><i class="fas fa-users"></i><span class="sidebar-item-text"> Seguridad</span></div>
+                            
+                        </a>
+                        <ul class="collapse list-unstyled" id="seguridadSubmenu">
+                            <li><a href="index.php?page=usuarios"><span class="sidebar-item-text">Usuarios</span></a></li>
+                        </ul>
+                    </li>
+
                     <hr>
                     <li><a href="index.php?page=perfil"><i class="fas fa-user-circle"></i><span class="sidebar-item-text"> Mi Perfil</span></a></li>
                     <li><a href="../src/actions/logout_process.php"><i class="fas fa-sign-out-alt"></i><span class="sidebar-item-text"> Cerrar Sesión</span></a></li>

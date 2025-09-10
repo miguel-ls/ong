@@ -265,57 +265,45 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function exportToXlsx(data) {
-        const headerStyle = {
-            fill: { fgColor: { rgb: "FF2C3E50" } }, // Dark Blue
-            font: { color: { rgb: "FFFFFFFF" }, bold: true },
-            alignment: { horizontal: "center", vertical: "center" }
-        };
-        const evenRowStyle = {
-            fill: { fgColor: { rgb: "FFECF0F1" } } // Light Gray
-        };
-
-        // Convert the array of objects to a worksheet
+        // 1. Create worksheet from data
         const ws = XLSX.utils.json_to_sheet(data);
 
-        // Get the range of the worksheet
+        // 2. Define styles
+        const headerStyle = { font: { bold: true, color: { rgb: "FFFFFFFF" } }, fill: { fgColor: { rgb: "FF2C3E50" } } };
+        const oddRowStyle = { fill: { fgColor: { rgb: "FFECF0F1" } } }; // Using for odd data rows
+
+        // 3. Apply styles and calculate widths
         const range = XLSX.utils.decode_range(ws['!ref']);
-        const colWidths = [];
+        let colWidths = [];
 
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            // Set header styles
-            const address = XLSX.utils.encode_cell({c:C, r:range.s.r});
-            if(ws[address]) {
-                ws[address].s = headerStyle;
-            }
+        for(let C = range.s.c; C <= range.e.c; ++C) {
+            let max_width = 0;
+            for(let R = range.s.r; R <= range.e.r; ++R) {
+                const cell_ref = XLSX.utils.encode_cell({c:C, r:R});
 
-            // Calculate column widths
-            let maxWidth = 0;
-            for (let R = range.s.r; R <= range.e.r; ++R) {
-                const cell_address = XLSX.utils.encode_cell({c:C, r:R});
-                const cell = ws[cell_address];
-                const cell_text_length = cell && cell.v ? String(cell.v).length : 0;
-                if(cell_text_length > maxWidth) {
-                    maxWidth = cell_text_length;
+                // Ensure cell object exists
+                if(!ws[cell_ref]) continue;
+
+                // Apply style
+                if(R === 0) { // Header row
+                    ws[cell_ref].s = headerStyle;
+                } else if (R % 2 === 1) { // Odd data rows (e.g. row 2, 4, etc in Excel)
+                    ws[cell_ref].s = oddRowStyle;
                 }
 
-                // Set alternating row styles
-                if (R > 0 && R % 2 !== 0) { // R > 0 to skip header, R % 2 for odd rows (which are even in 0-index)
-                    if(cell) {
-                       cell.s = { ...cell.s, ...evenRowStyle };
-                    } else {
-                       ws[cell_address] = { s: evenRowStyle };
-                    }
+                // Calculate width
+                const cell_text = ws[cell_ref].v;
+                if(cell_text) {
+                    max_width = Math.max(max_width, String(cell_text).length);
                 }
             }
-            colWidths.push({ wch: maxWidth + 2 }); // +2 for padding
+            colWidths[C] = { wch: max_width + 2 }; // +2 for padding
         }
         ws['!cols'] = colWidths;
 
-        // Create a new workbook and add the worksheet
+        // 4. Create workbook and export
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
-
-        // Generate the .xlsx file and trigger a download
-        XLSX.writeFile(wb, 'ReporteDinamico.xlsx');
+        XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+        XLSX.writeFile(wb, "ReporteDinamico.xlsx", { bookSST: true });
     }
 });

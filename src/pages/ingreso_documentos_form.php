@@ -471,6 +471,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateAllCalculations();
     updateTotalsVisibility(); // Call this on initial load
+
+    // Initialize Tom Select for the 'auxiliar' dropdown
+    new TomSelect('#id_auxiliar', {
+        create: true,
+        sortField: {
+            field: 'text',
+            direction: 'asc'
+        }
+    });
 });
 </script>
 <?php

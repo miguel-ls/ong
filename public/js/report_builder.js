@@ -1,10 +1,16 @@
 document.addEventListener('DOMContentLoaded', function () {
     // Element references
-    const columnSelector = document.getElementById('columnSelector');
+    const availableColumnsEl = document.getElementById('available-columns');
+    const selectedColumnsEl = document.getElementById('selected-columns');
+    const addColBtn = document.getElementById('add-col');
+    const addAllColsBtn = document.getElementById('add-all-cols');
+    const removeColBtn = document.getElementById('remove-col');
+    const removeAllColsBtn = document.getElementById('remove-all-cols');
+
     const filterContainer = document.getElementById('filterContainer');
     const addFilterBtn = document.getElementById('addFilterBtn');
     const generateReportBtn = document.getElementById('generateReportBtn');
-    const exportCsvBtn = document.getElementById('exportCsvBtn');
+    const exportXlsxBtn = document.getElementById('exportXlsxBtn');
     const resultsContainer = document.getElementById('resultsContainer');
     const resultsPlaceholder = document.getElementById('resultsPlaceholder');
     const resultsTable = document.getElementById('resultsTable');
@@ -18,13 +24,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Initialization ---
 
+    new Sortable(selectedColumnsEl, {
+        animation: 150,
+        ghostClass: 'selected'
+    });
+
     function populateSelectors(columns) {
-        // Populate main column selector
+        availableColumnsEl.innerHTML = '';
         columns.forEach(col => {
-            const option = document.createElement('option');
-            option.value = col.key;
-            option.textContent = col.friendly_name;
-            columnSelector.appendChild(option);
+            const item = document.createElement('div');
+            item.className = 'list-item';
+            item.dataset.key = col.key;
+            item.textContent = col.friendly_name;
+            availableColumnsEl.appendChild(item);
         });
         // Add first filter row automatically
         addFilterRow();
@@ -71,6 +83,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- Event Listeners ---
 
+    function moveItems(from, to, items) {
+        items.forEach(item => {
+            item.classList.remove('selected');
+            to.appendChild(item);
+        });
+    }
+
+    addColBtn.addEventListener('click', () => {
+        moveItems(availableColumnsEl, selectedColumnsEl, availableColumnsEl.querySelectorAll('.list-item.selected'));
+    });
+    addAllColsBtn.addEventListener('click', () => {
+        moveItems(availableColumnsEl, selectedColumnsEl, availableColumnsEl.querySelectorAll('.list-item'));
+    });
+    removeColBtn.addEventListener('click', () => {
+        moveItems(selectedColumnsEl, availableColumnsEl, selectedColumnsEl.querySelectorAll('.list-item.selected'));
+    });
+    removeAllColsBtn.addEventListener('click', () => {
+        moveItems(selectedColumnsEl, availableColumnsEl, selectedColumnsEl.querySelectorAll('.list-item'));
+    });
+
+    document.querySelector('.dual-list-box').addEventListener('click', function(e) {
+        if (e.target.classList.contains('list-item')) {
+            e.target.classList.toggle('selected');
+        }
+    });
+
     addFilterBtn.addEventListener('click', addFilterRow);
 
     filterContainer.addEventListener('click', function (e) {
@@ -81,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     generateReportBtn.addEventListener('click', function () {
         // 1. Collect selected columns
-        const selectedColumns = Array.from(columnSelector.selectedOptions).map(opt => opt.value);
+        const selectedColumns = Array.from(selectedColumnsEl.querySelectorAll('.list-item')).map(item => item.dataset.key);
         if (selectedColumns.length === 0) {
             alert('Por favor, seleccione al menos una columna.');
             return;
@@ -103,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
         generateReportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
         resultsPlaceholder.textContent = 'Cargando...';
         resultsTable.style.display = 'none';
-        exportCsvBtn.style.display = 'none';
+        exportXlsxBtn.style.display = 'none';
 
 
         fetch('../src/ajax/get_dynamic_report.php', {
@@ -129,10 +167,9 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    exportCsvBtn.addEventListener('click', function() {
+    exportXlsxBtn.addEventListener('click', function() {
         if (fullReportData.length > 0) {
-            const headers = Object.keys(fullReportData[0]);
-            exportToCsv(headers, fullReportData);
+            exportToXlsx(fullReportData);
         }
     });
 
@@ -170,13 +207,13 @@ document.addEventListener('DOMContentLoaded', function () {
             resultsPlaceholder.textContent = 'La consulta no devolvió resultados.';
             resultsPlaceholder.style.display = '';
             resultsTable.style.display = 'none';
-            exportCsvBtn.style.display = 'none';
+            exportXlsxBtn.style.display = 'none';
             return;
         }
 
         resultsPlaceholder.style.display = 'none';
         resultsTable.style.display = '';
-        exportCsvBtn.style.display = '';
+        exportXlsxBtn.style.display = '';
 
         // Create header
         const headers = Object.keys(data[0]);
@@ -227,23 +264,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    function exportToCsv(headers, data) {
-        const replacer = (key, value) => value === null ? '' : value;
-        const csv = [
-            headers.join(','),
-            ...data.map(row => headers.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','))
-        ].join('\r\n');
+    function exportToXlsx(data) {
+        // Create a new workbook
+        const wb = XLSX.utils.book_new();
 
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        if (link.download !== undefined) {
-            const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'reporte.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        // Convert the array of objects to a worksheet
+        const ws = XLSX.utils.json_to_sheet(data);
+
+        // Add the worksheet to the workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Reporte');
+
+        // Generate the .xlsx file and trigger a download
+        XLSX.writeFile(wb, 'ReporteDinamico.xlsx');
     }
 });

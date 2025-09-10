@@ -19,7 +19,7 @@
                         .list-item.selected { background-color: #dcedff; }
                         .actions-col button { margin-bottom: 10px; width: 50px; }
                     </style>
-                    <div class="row">
+                    <div class="row" id="dual-list-container">
                         <div class="col-md-5">
                             <strong>Disponibles</strong>
                             <div id="available-columns" class="list-box"></div>

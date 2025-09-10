@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function () {
         moveItems(selectedColumnsEl, availableColumnsEl, selectedColumnsEl.querySelectorAll('.list-item'));
     });
 
-    document.querySelector('.dual-list-box').addEventListener('click', function(e) {
+    document.getElementById('dual-list-container').addEventListener('click', function(e) {
         if (e.target.classList.contains('list-item')) {
             e.target.classList.toggle('selected');
         }

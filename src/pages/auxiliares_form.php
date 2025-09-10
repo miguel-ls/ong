@@ -78,6 +78,10 @@ try {
     <?php endif; ?>
 
     <form id="auxiliarForm" action="../src/actions/auxiliares_process.php" method="post">
+        <input type="hidden" name="action" value="<?= $is_edit ? 'update' : 'create' ?>">
+        <?php if ($is_edit): ?>
+            <input type="hidden" name="id" value="<?= htmlspecialchars($item['id']) ?>">
+        <?php endif; ?>
         <!-- Form fields... -->
         <div class="form-row">
             <div class="form-group">

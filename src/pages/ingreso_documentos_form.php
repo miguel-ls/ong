@@ -138,8 +138,9 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                             <tr>
                                 <th style="width: 5%;">#</th>
                                 <th style="width: 10%;">Cant.</th>
-                                <th style="width: 30%;">Concepto</th>
-                                <th style="width: 30%;">Descripción</th>
+                                <th style="width: 25%;">Concepto</th>
+                                <th style="width: 20%;">Descripción</th>
+                                <th style="width: 15%;">CC</th>
                                 <th style="width: 10%;">P. Unit.</th>
                                 <th style="width: 10%;">Total</th>
                                 <th style="width: 5%;">Acción</th>
@@ -201,6 +202,13 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
             </select>
         </td>
         <td><input type="text" class="form-control form-control-sm" name="descripcion"></td>
+        <td>
+            <select class="form-select form-select-sm" name="id_centro_costo" required>
+                <?php foreach($centros_costo as $cc): ?>
+                <option value="<?= $cc['id'] ?>"><?= htmlspecialchars($cc['nombre']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </td>
         <td><input type="number" class="form-control form-control-sm" name="precio_unitario" step="0.0001" required></td>
         <td><input type="text" class="form-control form-control-sm total-row" name="precio_total" readonly></td>
         <td><button type="button" class="btn btn-sm btn-danger removeRowBtn">X</button></td>
@@ -216,6 +224,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const rowTemplate = document.getElementById('detalleRowTemplate');
 
     // Header fields
+    const headerCentroCostoSelect = document.getElementById('id_centro_costo');
     const proyectoSelect = document.getElementById('id_proyecto');
     const subProyectoSelect = document.getElementById('id_sub_proyecto');
     const fechaInput = document.getElementById('fecha_emision');
@@ -246,12 +255,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const priceInput = tr.querySelector('[name="precio_unitario"]');
         const conceptSelect = tr.querySelector('[name="id_concepto"]');
         const descInput = tr.querySelector('[name="descripcion"]');
+        const centroCostoSelect = tr.querySelector('[name="id_centro_costo"]');
 
         if (detail) {
+            // Populate from existing data in edit mode
             qtyInput.value = detail.cantidad;
             priceInput.value = detail.precio_unitario;
             conceptSelect.value = detail.id_concepto;
             descInput.value = detail.descripcion || '';
+            // Set the cost center from the detail data
+            if (detail.id_centro_costo) {
+                centroCostoSelect.value = detail.id_centro_costo;
+            }
+        } else {
+            // Set default from header for new rows
+            const headerCentroCostoId = headerCentroCostoSelect.value;
+            if (headerCentroCostoId) {
+                centroCostoSelect.value = headerCentroCostoId;
+            }
         }
 
         tr.querySelector('.removeRowBtn').addEventListener('click', () => {

@@ -37,6 +37,30 @@ try {
                 throw new Exception('Datos del formulario inválidos o incompletos.');
             }
 
+            // -- Padding de Número de Documento --
+            $numero_documento = $header['numero_documento'];
+            if (is_numeric($numero_documento) && strlen($numero_documento) < 8) {
+                $header['numero_documento'] = str_pad($numero_documento, 8, '0', STR_PAD_LEFT);
+            }
+
+            // -- Validación de Duplicados --
+            $doc_id_to_check = !empty($header['id_documento']) ? $header['id_documento'] : null;
+            $stmt_check = $pdo->prepare("CALL sp_check_documento_duplicado(?, ?, ?, ?, ?)");
+            $stmt_check->execute([
+                $header['id_tipo_documento'],
+                $header['serie_documento'],
+                $header['numero_documento'],
+                $header['id_auxiliar'],
+                $doc_id_to_check
+            ]);
+            $duplicate = $stmt_check->fetch(PDO::FETCH_ASSOC);
+            $stmt_check->closeCursor();
+
+            if ($duplicate) {
+                $message = "El documento " . htmlspecialchars($duplicate['serie_documento']) . "-" . htmlspecialchars($duplicate['numero_documento']) . " ya existe para este auxiliar.";
+                throw new Exception($message);
+            }
+
             // Server-side Calculation and Validation
             $subtotal = 0;
             foreach ($details as $item) {
@@ -68,13 +92,14 @@ try {
             }
 
             // Insert new details for both create and update
-            $stmt_insert_detail = $pdo->prepare("CALL sp_create_documento_detalle(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt_insert_detail = $pdo->prepare("CALL sp_create_documento_detalle(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             foreach ($details as $index => $item) {
                 $item_total = (float)$item['cantidad'] * (float)$item['precio_unitario'];
                 $item_total_soles = $is_soles ? $item_total : $item_total * $tc;
                 $item_total_dolares = !$is_soles ? $item_total : $item_total / $tc;
-                $descripcion = $item['descripcion'] ?? ''; // Get description from item
-                $stmt_insert_detail->execute([$doc_id, $index + 1, $item['cantidad'], $descripcion, $item['id_concepto'], $item['precio_unitario'], $item_total, $item_total_soles, $item_total_dolares]);
+                $descripcion = $item['descripcion'] ?? '';
+                $id_centro_costo = $item['id_centro_costo'] ?? null;
+                $stmt_insert_detail->execute([$doc_id, $index + 1, $item['cantidad'], $descripcion, $item['id_concepto'], $id_centro_costo, $item['precio_unitario'], $item_total, $item_total_soles, $item_total_dolares]);
             }
             break;
 

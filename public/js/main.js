@@ -35,4 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+    const body = document.body;
+
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', () => {
+            body.classList.toggle('sidebar-collapsed');
+        });
+    }
 });

@@ -138,20 +138,27 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                     </div>
                 </fieldset>
 
-                <!-- Adjuntos -->
+                <!-- Comentarios -->
                 <fieldset class="border p-3 mb-4">
-                    <legend class="w-auto px-2 h6">Adjuntos y Comentarios</legend>
+                    <!-- <legend class="w-auto px-2 h6">Adjuntos y Comentarios</legend> -->
                     <div class="mb-3">
                         <label for="observaciones" class="form-label"><strong>Comentarios:</strong></label>
                         <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
                     </div>
+
+                </fieldset>
+
+                <!-- Adjuntos -->
+                <fieldset class="border p-3 mb-4">
+                    <!-- <legend class="w-auto px-2 h6">Adjuntos y Comentarios</legend> -->
+
                     <div class="mb-3">
                         <label for="adjuntos" class="form-label"><strong>Añadir nuevos archivos:</strong></label>
                         <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
                     </div>
                     <?php if (!empty($adjuntos)): ?>
                         <div class="mb-3">
-                            <p><strong>Archivos existentes:</strong></p>
+                            <!-- <p><strong>Archivos existentes:</strong></p> -->
                             <ul class="list-group" id="lista-adjuntos">
                                 <?php foreach ($adjuntos as $adjunto): ?>
                                     <li class="list-group-item d-flex justify-content-between align-items-center" id="adjunto-<?= $adjunto['id'] ?>">
@@ -168,7 +175,7 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
 
                 <!-- Detalle del Documento -->
                 <fieldset class="border p-3 mb-4">
-                    <legend class="w-auto px-2 h6">Detalle del Documento</legend>
+                    <!-- <legend class="w-auto px-2 h6">Detalle del Documento</legend> -->
                     <table class="table table-sm table-bordered">
                         <thead class="table-light">
                             <tr>

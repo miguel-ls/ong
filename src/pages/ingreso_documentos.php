@@ -68,7 +68,7 @@ try {
 
 <style>
     .table { width: 100%; border-collapse: collapse; }
-    .table th, .table td { border: 1px solid #ddd; padding: 8px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 8px; vertical-align: middle; }
     .table th { background-color: #004a99; color: white; }
     .table tr:nth-child(even) { background-color: #f2f2f2; }
     .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; color: white; }
@@ -81,6 +81,7 @@ try {
     .filter-form .form-group input, .filter-form .form-group select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
     .btn-clear { background-color: #6c757d; }
+    .col-acciones { white-space: nowrap; }
 </style>
 
 <header>
@@ -149,7 +150,7 @@ try {
                 <th>Centro de Costo</th>
                 <th>Moneda</th>
                 <th>Total</th>
-                <th>Acciones</th>
+                <th style="width: 90px;">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -173,7 +174,7 @@ try {
                     <td><?= htmlspecialchars($doc['centro_costo']) ?></td>
                     <td><?= htmlspecialchars($doc['moneda']) ?></td>
                     <td style="text-align: right;"><?= htmlspecialchars(number_format($doc['total'], 2)) ?></td>
-                    <td>
+                    <td class="col-acciones">
                         <a href="index.php?page=ingreso_documentos_form&id=<?= $doc['id'] ?>" class="btn btn-sm btn-edit" title="Editar"><i class="fas fa-edit"></i></a>
                         <a href="../src/actions/documentos_process.php?action=delete&id=<?= $doc['id'] ?>" class="btn btn-sm btn-delete" title="Eliminar" onclick="return confirm('¿Está seguro de que quiere eliminar este documento?');"><i class="fas fa-trash-alt"></i></a>
                     </td>

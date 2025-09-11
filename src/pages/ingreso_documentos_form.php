@@ -18,6 +18,7 @@ $doc_id = $is_edit ? $_GET['id'] : null;
 
 $header = null;
 $details = [];
+$adjuntos = []; // Initialize attachments array
 
 if ($is_edit) {
     // Fetch header
@@ -31,6 +32,12 @@ if ($is_edit) {
     $stmt_details->execute([$doc_id]);
     $details = $stmt_details->fetchAll(PDO::FETCH_ASSOC);
     $stmt_details->closeCursor();
+
+    // Fetch attachments
+    $stmt_adjuntos = $pdo->prepare("CALL sp_read_adjuntos_by_documento_id(?)");
+    $stmt_adjuntos->execute([$doc_id]);
+    $adjuntos = $stmt_adjuntos->fetchAll(PDO::FETCH_ASSOC);
+    $stmt_adjuntos->closeCursor();
 }
 
 // Fetch dropdown data
@@ -48,7 +55,7 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
             <h4 class="mb-0"><?= $is_edit ? 'Editar' : 'Nuevo'; ?> Documento</h4>
         </div>
         <div class="card-body">
-            <form id="documentoForm">
+            <form id="documentoForm" enctype="multipart/form-data">
                 <input type="hidden" name="id_documento" value="<?= htmlspecialchars($doc_id ?? '') ?>">
 
                 <!-- Encabezado del Documento -->
@@ -131,8 +138,33 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                     </div>
                 </fieldset>
 
+                <!-- Adjuntos -->
+                <fieldset class="border p-3 mb-4">
+                    <legend class="w-auto px-2 h6">Adjuntos</legend>
+                    <div class="mb-3">
+                        <label for="adjuntos" class="form-label">Añadir nuevos archivos</label>
+                        <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
+                    </div>
+                    <?php if (!empty($adjuntos)): ?>
+                        <div class="mb-3">
+                            <p><strong>Archivos existentes:</strong></p>
+                            <ul class="list-group" id="lista-adjuntos">
+                                <?php foreach ($adjuntos as $adjunto): ?>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center" id="adjunto-<?= $adjunto['id'] ?>">
+                                        <a href="/ong/public/<?= htmlspecialchars($adjunto['ruta_almacenamiento']) . htmlspecialchars($adjunto['nombre_almacenado']) ?>" target="_blank">
+                                            <?= htmlspecialchars($adjunto['nombre_original']) ?>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="eliminarAdjunto(<?= $adjunto['id'] ?>)">Eliminar</button>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+                </fieldset>
+
                 <!-- Detalle del Documento -->
                 <fieldset class="border p-3 mb-4">
+                    <legend class="w-auto px-2 h6">Detalle del Documento</legend>
                     <table class="table table-sm table-bordered">
                         <thead class="table-light">
                             <tr>
@@ -217,6 +249,34 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
 </template>
 
 <script>
+function eliminarAdjunto(idAdjunto) {
+    if (!confirm('¿Está seguro de que desea eliminar este archivo adjunto? Esta acción no se puede deshacer.')) {
+        return;
+    }
+
+    fetch(`../src/actions/adjuntos_process.php?action=delete&id=${idAdjunto}`, {
+        method: 'GET', // O POST si se prefiere
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const item = document.getElementById(`adjunto-${idAdjunto}`);
+            if (item) {
+                item.remove();
+            }
+            // Opcional: mostrar una notificación de éxito
+            alert(data.message);
+        } else {
+            // Opcional: mostrar una notificación de error
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error al eliminar adjunto:', error);
+        alert('Ocurrió un error de red al intentar eliminar el archivo.');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // --- ELEMENT REFERENCES ---
     const form = document.getElementById('documentoForm');
@@ -409,9 +469,24 @@ document.addEventListener('DOMContentLoaded', function() {
     form.addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const formData = new FormData(form);
-        const headerData = Object.fromEntries(formData.entries());
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Guardando...';
 
+        // 1. Create FormData
+        const submissionData = new FormData();
+
+        // 2. Gather header data (excluding files)
+        const formElements = form.elements;
+        const headerData = {};
+        for (const element of formElements) {
+            if (element.name && element.type !== 'file' && !element.closest('#detalleBody')) {
+                 headerData[element.name] = element.value;
+            }
+        }
+        submissionData.append('header', JSON.stringify(headerData));
+
+        // 3. Gather details data
         const detailData = [];
         detalleBody.querySelectorAll('tr').forEach(row => {
             const rowData = {};
@@ -422,35 +497,34 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             detailData.push(rowData);
         });
+        submissionData.append('details', JSON.stringify(detailData));
 
-        const payload = {
-            header: headerData,
-            details: detailData
-        };
+        // 4. Append files
+        const files = document.getElementById('adjuntos').files;
+        for (let i = 0; i < files.length; i++) {
+            submissionData.append('adjuntos[]', files[i]);
+        }
 
-        document.getElementById('submitBtn').disabled = true;
-        document.getElementById('submitBtn').textContent = 'Guardando...';
-
+        // 5. Fetch using FormData
         fetch('../src/actions/documentos_process.php', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: submissionData // The browser will set the correct 'Content-Type' for multipart/form-data
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 window.location.href = `index.php?page=ingreso_documentos&success=${encodeURIComponent(data.message)}`;
             } else {
-                showAlertModal(data.message);
-                document.getElementById('submitBtn').disabled = false;
-                document.getElementById('submitBtn').textContent = 'Guardar Documento';
+                showAlertModal(data.message); // Assuming showAlertModal is a global function
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Guardar Documento';
             }
         })
         .catch(error => {
             console.error('Error:', error);
             alert('Ocurrió un error de red o de servidor.');
-            document.getElementById('submitBtn').disabled = false;
-            document.getElementById('submitBtn').textContent = 'Guardar Documento';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Guardar Documento';
         });
     });
 

@@ -145,6 +145,10 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                         <label for="adjuntos" class="form-label">Añadir nuevos archivos</label>
                         <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
                     </div>
+                    <div class="mb-3">
+                        <label for="observaciones" class="form-label">Comentarios</label>
+                        <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
+                    </div>
                     <?php if (!empty($adjuntos)): ?>
                         <div class="mb-3">
                             <p><strong>Archivos existentes:</strong></p>

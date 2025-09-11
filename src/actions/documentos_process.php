@@ -82,14 +82,14 @@ try {
 
             if ($action === 'update') {
                 $doc_id = $header['id_documento'];
-                $stmt_update = $pdo->prepare("CALL sp_update_documento_header(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt_update->execute([$doc_id, $header['id_tipo_documento'], $header['id_proyecto'], $header['id_sub_proyecto'], $header['id_centro_costo'], $header['id_auxiliar'], $header['serie_documento'], $header['numero_documento'], $header['fecha_emision'], $header['moneda'], $tc, $subtotal, $igv, $total, $total_soles, $total_dolares, $header['glosa']]);
+                $stmt_update = $pdo->prepare("CALL sp_update_documento_header(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt_update->execute([$doc_id, $header['id_tipo_documento'], $header['id_proyecto'], $header['id_sub_proyecto'], $header['id_centro_costo'], $header['id_auxiliar'], $header['serie_documento'], $header['numero_documento'], $header['fecha_emision'], $header['moneda'], $tc, $subtotal, $igv, $total, $total_soles, $total_dolares, $header['glosa'], $header['observaciones'] ?? null]);
                 $stmt_delete_details = $pdo->prepare("CALL sp_delete_documento_detalle_by_id_documento(?)");
                 $stmt_delete_details->execute([$doc_id]);
                 $response['message'] = 'Documento actualizado con éxito.';
             } else { // create
-                $stmt_create = $pdo->prepare("CALL sp_create_documento_header(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @new_id)");
-                $stmt_create->execute([$header['id_tipo_documento'], $header['id_proyecto'], $header['id_sub_proyecto'], $header['id_centro_costo'], $header['id_auxiliar'], $_SESSION['user_id'], $header['serie_documento'], $header['numero_documento'], $header['fecha_emision'], $header['moneda'], $tc, $subtotal, $igv, $total, $total_soles, $total_dolares, $header['glosa']]);
+                $stmt_create = $pdo->prepare("CALL sp_create_documento_header(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @new_id)");
+                $stmt_create->execute([$header['id_tipo_documento'], $header['id_proyecto'], $header['id_sub_proyecto'], $header['id_centro_costo'], $header['id_auxiliar'], $_SESSION['user_id'], $header['serie_documento'], $header['numero_documento'], $header['fecha_emision'], $header['moneda'], $tc, $subtotal, $igv, $total, $total_soles, $total_dolares, $header['glosa'], $header['observaciones'] ?? null]);
                 $stmt_create->closeCursor();
                 $doc_id = $pdo->query("SELECT @new_id as new_id")->fetch(PDO::FETCH_ASSOC)['new_id'];
                 if (!$doc_id) throw new Exception("No se pudo crear el encabezado del documento.");

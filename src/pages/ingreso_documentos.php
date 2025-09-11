@@ -174,8 +174,8 @@ try {
                     <td><?= htmlspecialchars($doc['moneda']) ?></td>
                     <td style="text-align: right;"><?= htmlspecialchars(number_format($doc['total'], 2)) ?></td>
                     <td>
-                        <a href="index.php?page=ingreso_documentos_form&id=<?= $doc['id'] ?>" class="btn btn-edit" title="Editar"><i class="fas fa-edit"></i></a>
-                        <a href="../src/actions/documentos_process.php?action=delete&id=<?= $doc['id'] ?>" class="btn btn-delete" title="Eliminar" onclick="return confirm('¿Está seguro de que quiere eliminar este documento?');"><i class="fas fa-trash-alt"></i></a>
+                        <a href="index.php?page=ingreso_documentos_form&id=<?= $doc['id'] ?>" class="btn btn-sm btn-edit" title="Editar"><i class="fas fa-edit"></i></a>
+                        <a href="../src/actions/documentos_process.php?action=delete&id=<?= $doc['id'] ?>" class="btn btn-sm btn-delete" title="Eliminar" onclick="return confirm('¿Está seguro de que quiere eliminar este documento?');"><i class="fas fa-trash-alt"></i></a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

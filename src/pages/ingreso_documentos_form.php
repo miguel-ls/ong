@@ -151,7 +151,7 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                             <ul class="list-group" id="lista-adjuntos">
                                 <?php foreach ($adjuntos as $adjunto): ?>
                                     <li class="list-group-item d-flex justify-content-between align-items-center" id="adjunto-<?= $adjunto['id'] ?>">
-                                        <a href="/ong/public/<?= htmlspecialchars($adjunto['ruta_almacenamiento']) . htmlspecialchars($adjunto['nombre_almacenado']) ?>" target="_blank">
+                                        <a href="../src/actions/download_attachment.php?id=<?= $adjunto['id'] ?>" target="_blank">
                                             <?= htmlspecialchars($adjunto['nombre_original']) ?>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-danger" onclick="eliminarAdjunto(<?= $adjunto['id'] ?>)">Eliminar</button>

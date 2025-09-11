@@ -140,14 +140,14 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
 
                 <!-- Adjuntos -->
                 <fieldset class="border p-3 mb-4">
-                    <legend class="w-auto px-2 h6">Adjuntos</legend>
+                    <legend class="w-auto px-2 h6">Adjuntos y Comentarios</legend>
                     <div class="mb-3">
-                        <label for="adjuntos" class="form-label">Añadir nuevos archivos</label>
-                        <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
+                        <label for="observaciones" class="form-label"><strong>Comentarios:</strong></label>
+                        <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
                     </div>
                     <div class="mb-3">
-                        <label for="observaciones" class="form-label">Comentarios</label>
-                        <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
+                        <label for="adjuntos" class="form-label"><strong>Añadir nuevos archivos:</strong></label>
+                        <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
                     </div>
                     <?php if (!empty($adjuntos)): ?>
                         <div class="mb-3">

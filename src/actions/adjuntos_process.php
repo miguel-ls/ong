@@ -35,11 +35,20 @@ if ($action === 'delete' && $id_adjunto > 0) {
         $stmt_delete->closeCursor();
 
         // 3. Eliminar el archivo físico del servidor
-        $file_path = __DIR__ . '/../../public/' . $file_info['ruta_almacenamiento'] . $file_info['nombre_almacenado'];
-        if (file_exists($file_path)) {
-            if (!unlink($file_path)) {
+        $base_path = realpath(__DIR__ . '/../../public/');
+        if ($base_path === false) {
+             throw new Exception("Error de configuración: El directorio público no se encuentra.");
+        }
+
+        $file_path = $base_path . DIRECTORY_SEPARATOR . $file_info['ruta_almacenamiento'] . $file_info['nombre_almacenado'];
+
+        // Normalizar la ruta para asegurar compatibilidad
+        $normalized_path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $file_path);
+
+        if (file_exists($normalized_path)) {
+            if (!unlink($normalized_path)) {
                 // Si unlink falla, revertimos la transacción para no tener un registro huérfano
-                throw new Exception("No se pudo eliminar el archivo físico del servidor.");
+                throw new Exception("No se pudo eliminar el archivo físico. Verifique los permisos.");
             }
         }
 

@@ -108,9 +108,17 @@ try {
             }
 
             // -- Procesamiento de Archivos Adjuntos --
-            if (isset($_FILES['adjuntos'])) {
-                $upload_dir = __DIR__ . '/../../public/uploads/documentos/';
-                $allowed_types = ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+            if (isset($_FILES['adjuntos']) && is_array($_FILES['adjuntos']['name'])) {
+                $upload_dir_relative = __DIR__ . '/../../public/uploads/documentos';
+                $upload_dir_absolute = realpath($upload_dir_relative);
+
+                if ($upload_dir_absolute === false) {
+                    throw new Exception("Error de configuración: El directorio de subida no existe en '" . htmlspecialchars($upload_dir_relative) . "'.");
+                }
+
+                if (!is_writable($upload_dir_absolute)) {
+                    throw new Exception("Error de permisos: El directorio de subida '" . htmlspecialchars($upload_dir_absolute) . "' no tiene permisos de escritura.");
+                }
 
                 foreach ($_FILES['adjuntos']['name'] as $key => $name) {
                     if ($_FILES['adjuntos']['error'][$key] === UPLOAD_ERR_OK) {
@@ -119,21 +127,19 @@ try {
                         $file_type = $_FILES['adjuntos']['type'][$key];
                         $file_size = $_FILES['adjuntos']['size'][$key];
 
-                        // Basic security check for file type
-                        // if (!in_array($file_type, $allowed_types)) {
-                        //     throw new Exception("Tipo de archivo no permitido: " . htmlspecialchars($file_name));
-                        // }
-
                         $safe_file_name = uniqid() . '-' . preg_replace("/[^a-zA-Z0-9.\-_]/", "", $file_name);
-                        $destination = $upload_dir . $safe_file_name;
+                        $destination = $upload_dir_absolute . DIRECTORY_SEPARATOR . $safe_file_name;
 
                         if (move_uploaded_file($tmp_name, $destination)) {
                             $stmt_adjunto = $pdo->prepare("CALL sp_create_documento_adjunto(?, ?, ?, ?, ?, ?)");
-                            $storage_path = 'uploads/documentos/'; // Relative path for URLs
+                            $storage_path = 'uploads/documentos/'; // Relative path for URLs remains the same
                             $stmt_adjunto->execute([$doc_id, $name, $safe_file_name, $storage_path, $file_type, $file_size]);
                         } else {
-                            throw new Exception("No se pudo mover el archivo subido: " . htmlspecialchars($file_name));
+                            throw new Exception("No se pudo mover el archivo subido '" . htmlspecialchars($file_name) . "'. Verifique los permisos del servidor.");
                         }
+                    } elseif ($_FILES['adjuntos']['error'][$key] !== UPLOAD_ERR_NO_FILE) {
+                        // Handle other upload errors
+                        throw new Exception("Error al subir el archivo '" . htmlspecialchars($name) . "'. Código de error: " . $_FILES['adjuntos']['error'][$key]);
                     }
                 }
             }

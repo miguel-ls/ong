@@ -141,6 +141,7 @@ try {
         <thead>
             <tr>
                 <th>ID</th>
+                <th><i class="fas fa-paperclip"></i></th>
                 <th>Fecha Emisión</th>
                 <th>Tipo Documento</th>
                 <th>Serie y Número</th>
@@ -154,12 +155,17 @@ try {
         <tbody>
             <?php if (empty($documentos)): ?>
                 <tr>
-                    <td colspan="9" style="text-align: center;">No hay documentos que coincidan con los filtros.</td>
+                    <td colspan="10" style="text-align: center;">No hay documentos que coincidan con los filtros.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($documentos as $doc): ?>
                 <tr>
                     <td><?= htmlspecialchars($doc['id']) ?></td>
+                    <td class="text-center">
+                        <?php if ($doc['tiene_adjuntos']): ?>
+                            <i class="fas fa-paperclip text-secondary"></i>
+                        <?php endif; ?>
+                    </td>
                     <td><?= htmlspecialchars($doc['fecha_emision']) ?></td>
                     <td><?= htmlspecialchars($doc['tipo_documento']) ?></td>
                     <td><?= htmlspecialchars($doc['serie_documento'] . '-' . $doc['numero_documento']) ?></td>
@@ -168,8 +174,8 @@ try {
                     <td><?= htmlspecialchars($doc['moneda']) ?></td>
                     <td style="text-align: right;"><?= htmlspecialchars(number_format($doc['total'], 2)) ?></td>
                     <td>
-                        <a href="index.php?page=ingreso_documentos_form&id=<?= $doc['id'] ?>" class="btn btn-edit">Editar</a>
-                        <a href="../src/actions/documentos_process.php?action=delete&id=<?= $doc['id'] ?>" class="btn btn-delete" onclick="return confirm('¿Está seguro de que quiere eliminar este documento?');">Eliminar</a>
+                        <a href="index.php?page=ingreso_documentos_form&id=<?= $doc['id'] ?>" class="btn btn-edit" title="Editar"><i class="fas fa-edit"></i></a>
+                        <a href="../src/actions/documentos_process.php?action=delete&id=<?= $doc['id'] ?>" class="btn btn-delete" title="Eliminar" onclick="return confirm('¿Está seguro de que quiere eliminar este documento?');"><i class="fas fa-trash-alt"></i></a>
                     </td>
                 </tr>
                 <?php endforeach; ?>

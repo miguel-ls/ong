@@ -12,12 +12,17 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $is_post = $_SERVER['REQUEST_METHOD'] === 'POST';
-$action = $is_post ? (json_decode(file_get_contents('php://input'), true)['header']['action'] ?? null) : ($_GET['action'] ?? null);
-if($is_post) {
-    // For create/update, the action is inside the JSON payload
-    $data = json_decode(file_get_contents('php://input'), true);
-    $header = $data['header'];
-    $details = $data['details'];
+$action = $_GET['action'] ?? null;
+
+if ($is_post) {
+    // Data now comes from FormData, not a single JSON payload
+    if (!isset($_POST['header']) || !isset($_POST['details'])) {
+        $response['message'] = 'Datos del formulario no recibidos correctamente.';
+        echo json_encode($response);
+        exit();
+    }
+    $header = json_decode($_POST['header'], true);
+    $details = json_decode($_POST['details'], true);
     $action = !empty($header['id_documento']) ? 'update' : 'create';
 }
 
@@ -33,7 +38,7 @@ try {
     switch ($action) {
         case 'create':
         case 'update':
-            if (!$data || !isset($data['header']) || !isset($data['details'])) {
+            if (!$header || !$details) {
                 throw new Exception('Datos del formulario inválidos o incompletos.');
             }
 
@@ -100,6 +105,37 @@ try {
                 $descripcion = $item['descripcion'] ?? '';
                 $id_centro_costo = $item['id_centro_costo'] ?? null;
                 $stmt_insert_detail->execute([$doc_id, $index + 1, $item['cantidad'], $descripcion, $item['id_concepto'], $id_centro_costo, $item['precio_unitario'], $item_total, $item_total_soles, $item_total_dolares]);
+            }
+
+            // -- Procesamiento de Archivos Adjuntos --
+            if (isset($_FILES['adjuntos'])) {
+                $upload_dir = __DIR__ . '/../../public/uploads/documentos/';
+                $allowed_types = ['image/jpeg', 'image/png', 'application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
+
+                foreach ($_FILES['adjuntos']['name'] as $key => $name) {
+                    if ($_FILES['adjuntos']['error'][$key] === UPLOAD_ERR_OK) {
+                        $tmp_name = $_FILES['adjuntos']['tmp_name'][$key];
+                        $file_name = basename($name);
+                        $file_type = $_FILES['adjuntos']['type'][$key];
+                        $file_size = $_FILES['adjuntos']['size'][$key];
+
+                        // Basic security check for file type
+                        // if (!in_array($file_type, $allowed_types)) {
+                        //     throw new Exception("Tipo de archivo no permitido: " . htmlspecialchars($file_name));
+                        // }
+
+                        $safe_file_name = uniqid() . '-' . preg_replace("/[^a-zA-Z0-9.\-_]/", "", $file_name);
+                        $destination = $upload_dir . $safe_file_name;
+
+                        if (move_uploaded_file($tmp_name, $destination)) {
+                            $stmt_adjunto = $pdo->prepare("CALL sp_create_documento_adjunto(?, ?, ?, ?, ?, ?)");
+                            $storage_path = 'uploads/documentos/'; // Relative path for URLs
+                            $stmt_adjunto->execute([$doc_id, $name, $safe_file_name, $storage_path, $file_type, $file_size]);
+                        } else {
+                            throw new Exception("No se pudo mover el archivo subido: " . htmlspecialchars($file_name));
+                        }
+                    }
+                }
             }
             break;
 

@@ -265,24 +265,48 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function exportToXlsx(data) {
+        // 1. Create worksheet from data
         const ws = XLSX.utils.json_to_sheet(data);
 
-        // Define a very simple style
-        const headerStyle = { font: { bold: true } };
+        // 2. Define styles
+        const headerStyle = { font: { bold: true, color: { rgb: "FFFFFFFF" } }, fill: { fgColor: { rgb: "FF2C3E50" } } };
+        const oddRowStyle = { fill: { fgColor: { rgb: "FFECF0F1" } } };
 
-        // Get the range of the worksheet
+        // 3. Apply styles and calculate widths
         const range = XLSX.utils.decode_range(ws['!ref']);
+        let colWidths = [];
 
-        // Loop ONLY through the header row (R=0) and apply the simple style
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cell_ref = XLSX.utils.encode_cell({ c: C, r: 0 });
-            if (ws[cell_ref]) {
-                ws[cell_ref].s = headerStyle;
+        for(let C = range.s.c; C <= range.e.c; ++C) {
+            let max_width = 0;
+            for(let R = range.s.r; R <= range.e.r; ++R) {
+                const cell_ref = XLSX.utils.encode_cell({c:C, r:R});
+
+                // Apply style
+                if(R === 0) { // Header row
+                    if(ws[cell_ref]) ws[cell_ref].s = headerStyle;
+                } else if (R % 2 === 1) { // Odd data rows
+                    if(!ws[cell_ref]) ws[cell_ref] = {}; // Create cell object if it doesn't exist
+                    ws[cell_ref].s = oddRowStyle;
+                }
+
+                // Calculate width - ensure cell exists before reading value
+                if(ws[cell_ref] && ws[cell_ref].v) {
+                    const cell_text_length = String(ws[cell_ref].v).length;
+                    max_width = Math.max(max_width, cell_text_length);
+                }
             }
-        }
+            // Use header name length as a minimum width
+            const header_cell_ref = XLSX.utils.encode_cell({c:C, r:0});
+            const header_text_length = ws[header_cell_ref] ? String(ws[header_cell_ref].v).length : 0;
+            max_width = Math.max(max_width, header_text_length);
 
+            colWidths[C] = { wch: max_width + 2 };
+        }
+        ws['!cols'] = colWidths;
+
+        // 4. Create workbook and export
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Reporte");
-        XLSX.writeFile(wb, "ReporteDinamico.xlsx");
+        XLSX.writeFile(wb, "ReporteDinamico.xlsx", { bookSST: true });
     }
 });

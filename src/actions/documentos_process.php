@@ -141,6 +141,9 @@ try {
 
                         // 3. Mover archivo y guardar en DB
                         if (move_uploaded_file($tmp_name, $destination)) {
+                            // Establecer permisos para que el archivo sea legible por el servidor web
+                            chmod($destination, 0644);
+
                             $stmt_adjunto = $pdo->prepare("CALL sp_create_documento_adjunto(?, ?, ?, ?, ?, ?)");
                             $storage_path_for_db = $doc_upload_dir_relative . '/';
                             $stmt_adjunto->execute([$doc_id, $original_file_name, $final_file_name, $storage_path_for_db, $file_type, $file_size]);

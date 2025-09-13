@@ -17,6 +17,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const paginationContainer = document.getElementById('paginationContainer');
     const filterTemplate = document.getElementById('filterTemplate');
 
+    // Template UI Elements
+    const templateSelect = document.getElementById('template-select');
+    const loadTemplateBtn = document.getElementById('load-template-btn');
+    const deleteTemplateBtn = document.getElementById('delete-template-btn');
+    const templateNameInput = document.getElementById('template-name-input');
+    const saveTemplateBtn = document.getElementById('save-template-btn');
+
     let reportColumns = []; // To store the dictionary columns
     let fullReportData = []; // To store the complete dataset for pagination/export
     let currentPage = 1;
@@ -309,4 +316,126 @@ document.addEventListener('DOMContentLoaded', function () {
         XLSX.utils.book_append_sheet(wb, ws, "Reporte");
         XLSX.writeFile(wb, "ReporteDinamico.xlsx", { bookSST: true });
     }
+
+    // --- Template Management ---
+
+    function loadTemplates(selectId = null) {
+        fetch('../src/ajax/plantillas_reporte_process.php?action=obtener_todas')
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) throw new Error(result.error);
+
+                templateSelect.innerHTML = '<option value="" selected>-- Seleccione una plantilla --</option>'; // Reset
+                result.templates.forEach(template => {
+                    const option = document.createElement('option');
+                    option.value = template.id;
+                    option.textContent = template.nombre_plantilla;
+                    templateSelect.appendChild(option);
+                });
+
+                if (selectId) {
+                    templateSelect.value = selectId;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading templates:', error);
+                alert('No se pudieron cargar las plantillas.');
+            });
+    }
+
+    saveTemplateBtn.addEventListener('click', function() {
+        const name = templateNameInput.value.trim();
+        if (!name) {
+            alert('Por favor, ingrese un nombre para la plantilla.');
+            return;
+        }
+
+        const selectedColumns = Array.from(selectedColumnsEl.querySelectorAll('.list-item')).map(item => item.dataset.key);
+
+        fetch('../src/ajax/plantillas_reporte_process.php?action=guardar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, columns: selectedColumns })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) throw new Error(result.error);
+            alert('Plantilla guardada con éxito.');
+            templateNameInput.value = '';
+            loadTemplates(result.new_id); // Refresh list and select the new one
+        })
+        .catch(error => {
+            console.error('Error saving template:', error);
+            alert(`Error al guardar la plantilla: ${error.message}`);
+        });
+    });
+
+    loadTemplateBtn.addEventListener('click', function() {
+        const templateId = templateSelect.value;
+        if (!templateId) {
+            alert('Por favor, seleccione una plantilla para cargar.');
+            return;
+        }
+
+        fetch(`../src/ajax/plantillas_reporte_process.php?action=obtener_una&id=${templateId}`)
+            .then(response => response.json())
+            .then(result => {
+                if (!result.success) throw new Error(result.error);
+
+                // 1. Reset current selection by moving all selected columns back to available
+                const allSelectedItems = selectedColumnsEl.querySelectorAll('.list-item');
+                if (allSelectedItems.length > 0) {
+                    moveItems(selectedColumnsEl, availableColumnsEl, allSelectedItems);
+                }
+
+                // 2. Load new columns from template
+                const columnsToSelect = result.columns || [];
+
+                columnsToSelect.forEach(columnKey => {
+                    const columnElement = availableColumnsEl.querySelector(`.list-item[data-key="${columnKey}"]`);
+                    if (columnElement) {
+                        moveItems(availableColumnsEl, selectedColumnsEl, [columnElement]);
+                    }
+                });
+
+                // Also copy name to input field for easy updating
+                templateNameInput.value = templateSelect.options[templateSelect.selectedIndex].text;
+            })
+            .catch(error => {
+                console.error('Error loading template:', error);
+                alert(`Error al cargar la plantilla: ${error.message}`);
+            });
+    });
+
+    deleteTemplateBtn.addEventListener('click', function() {
+        const templateId = templateSelect.value;
+        if (!templateId) {
+            alert('Por favor, seleccione una plantilla para eliminar.');
+            return;
+        }
+
+        if (!confirm('¿Está seguro de que desea eliminar la plantilla seleccionada? Esta acción no se puede deshacer.')) {
+            return;
+        }
+
+        fetch('../src/ajax/plantillas_reporte_process.php?action=eliminar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: templateId })
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (!result.success) throw new Error(result.error);
+            alert(result.message);
+            loadTemplates(); // Refresh list
+        })
+        .catch(error => {
+            console.error('Error deleting template:', error);
+            alert(`Error al eliminar la plantilla: ${error.message}`);
+        });
+    });
+
+    // Initial load of templates
+    loadTemplates();
+
 });

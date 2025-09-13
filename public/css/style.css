@@ -6,7 +6,7 @@ body {
     color: #333;
 }
 
-.container-fluid {
+.container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -175,7 +175,7 @@ body.sidebar-collapsed .sidebar nav ul li a i {
 .footer {
     background-color: #ffffff;
     border-top: 1px solid #dee2e6;
-    padding: 0.25rem 0.5rem;
+    padding: 0.5rem;
     text-align: center;
     font-size: 0.9rem;
     color: #6c757d;

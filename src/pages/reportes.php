@@ -3,54 +3,6 @@
 </header>
 
 <section class="report-builder">
-    <!-- Sección de Plantillas -->
-    <div class="row">
-        <div class="col-12 mb-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0"><i class="fas fa-save"></i> Plantillas de Reporte</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row align-items-end gx-2">
-                        <!-- Cargar Plantilla -->
-                        <div class="col-md-6 mb-2">
-                            <label for="template-select" class="form-label">Cargar plantilla existente</label>
-                            <select id="template-select" class="form-select">
-                                <option value="" selected>-- Seleccione una plantilla --</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <button id="load-template-btn" class="btn btn-secondary w-100">
-                                <i class="fas fa-download"></i> Cargar
-                            </button>
-                        </div>
-                         <div class="col-md-3 mb-2">
-                            <button id="delete-template-btn" class="btn btn-outline-danger w-100">
-                                <i class="fas fa-trash"></i> Eliminar
-                            </button>
-                        </div>
-                    </div>
-                    <hr class="my-3">
-                    <div class="row align-items-end gx-2">
-                        <!-- Guardar Plantilla -->
-                        <div class="col-md-6 mb-2">
-                            <label for="template-name-input" class="form-label">Guardar columnas seleccionadas como nueva plantilla</label>
-                            <input type="text" id="template-name-input" class="form-control" placeholder="Escriba un nombre para la plantilla...">
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <button id="save-template-btn" class="btn btn-primary w-100">
-                                <i class="fas fa-save"></i> Guardar
-                            </button>
-                        </div>
-                        <div class="col-md-3 mb-2">
-                            <small class="text-muted">Si el nombre ya existe, se actualizará.</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Fila para Selectores y Filtros -->
     <div class="row">
         <!-- Selector de Columnas -->

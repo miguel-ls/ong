@@ -275,6 +275,9 @@ document.addEventListener('DOMContentLoaded', function () {
         // 1. Create worksheet from data
         const ws = XLSX.utils.json_to_sheet(data);
 
+        // Set autofilter on the sheet
+        ws['!autofilter'] = { ref: ws['!ref'] };
+
         // 2. Define styles
         const borderStyle = { style: 'thin', color: { rgb: "FF000000" } };
         const headerStyle = {

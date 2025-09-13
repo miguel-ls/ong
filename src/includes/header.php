@@ -14,7 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <div class="container">
+    <div class="container-fluid">
         <div class="main-wrapper">
             <aside class="sidebar">
             <div class="logo">

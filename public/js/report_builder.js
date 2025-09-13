@@ -278,11 +278,14 @@ document.addEventListener('DOMContentLoaded', function () {
         // Set autofilter on the sheet
         ws['!autofilter'] = { ref: ws['!ref'] };
 
-        // 2. Define styles
+        // Freeze the top row
+        ws['!views'] = [{state: 'frozen', ySplit: 1}];
+
+        // 2. Define styles with a blue color scheme
         const borderStyle = { style: 'thin', color: { rgb: "FF000000" } };
         const headerStyle = {
             font: { bold: true, color: { rgb: "FFFFFFFF" } },
-            fill: { fgColor: { rgb: "FF2C3E50" } },
+            fill: { fgColor: { rgb: "FF4F81BD" } }, // Medium Blue
             border: {
                 top: borderStyle,
                 bottom: borderStyle,
@@ -299,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         };
         const oddRowStyle = {
-            fill: { fgColor: { rgb: "FFECF0F1" } }, // Light Grey
+            fill: { fgColor: { rgb: "FFDCE6F1" } }, // Light Blue
             border: {
                 top: borderStyle,
                 bottom: borderStyle,

@@ -17,13 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const paginationContainer = document.getElementById('paginationContainer');
     const filterTemplate = document.getElementById('filterTemplate');
 
-    // Template UI Elements
-    const templateSelect = document.getElementById('template-select');
-    const loadTemplateBtn = document.getElementById('load-template-btn');
-    const deleteTemplateBtn = document.getElementById('delete-template-btn');
-    const templateNameInput = document.getElementById('template-name-input');
-    const saveTemplateBtn = document.getElementById('save-template-btn');
-
     let reportColumns = []; // To store the dictionary columns
     let fullReportData = []; // To store the complete dataset for pagination/export
     let currentPage = 1;
@@ -275,66 +268,38 @@ document.addEventListener('DOMContentLoaded', function () {
         // 1. Create worksheet from data
         const ws = XLSX.utils.json_to_sheet(data);
 
-        // Set autofilter on the sheet
-        ws['!autofilter'] = { ref: ws['!ref'] };
-
         // Freeze the top row
-        ws['!views'] = [{state: 'frozen', ySplit: 1, xSplit: 0, topLeftCell: 'A2', activePane: 'bottomLeft'}];
+        ws['!view'] = { state: 'frozen', ySplit: 1 };
 
-        // 2. Define styles with a blue color scheme
-        const borderStyle = { style: 'thin', color: { rgb: "FF000000" } };
-        const headerStyle = {
-            font: { bold: true, color: { rgb: "FFFFFFFF" } },
-            fill: { fgColor: { rgb: "FF4F81BD" } }, // Medium Blue
-            border: {
-                top: borderStyle,
-                bottom: borderStyle,
-                left: borderStyle,
-                right: borderStyle
-            }
-        };
-        const evenRowStyle = {
-            border: {
-                top: borderStyle,
-                bottom: borderStyle,
-                left: borderStyle,
-                right: borderStyle
-            }
-        };
-        const oddRowStyle = {
-            fill: { fgColor: { rgb: "FFDCE6F1" } }, // Light Blue
-            border: {
-                top: borderStyle,
-                bottom: borderStyle,
-                left: borderStyle,
-                right: borderStyle
-            }
-        };
+        // 2. Define styles
+        const headerStyle = { font: { bold: true, color: { rgb: "FFFFFFFF" } }, fill: { fgColor: { rgb: "FF2C3E50" } } };
+        const oddRowStyle = { fill: { fgColor: { rgb: "FFECF0F1" } } };
 
         // 3. Apply styles and calculate widths
         const range = XLSX.utils.decode_range(ws['!ref']);
         let colWidths = [];
 
-        for (let C = range.s.c; C <= range.e.c; ++C) {
+        for(let C = range.s.c; C <= range.e.c; ++C) {
             let max_width = 0;
-            for (let R = range.s.r; R <= range.e.r; ++R) {
-                const cell_ref = XLSX.utils.encode_cell({ c: C, r: R });
-                if (!ws[cell_ref]) continue; // Skip empty cells
+            for(let R = range.s.r; R <= range.e.r; ++R) {
+                const cell_ref = XLSX.utils.encode_cell({c:C, r:R});
 
                 // Apply style
-                if (R === 0) { // Header row
-                    ws[cell_ref].s = headerStyle;
-                } else { // Data rows
-                    ws[cell_ref].s = (R % 2 !== 0) ? oddRowStyle : evenRowStyle;
+                if(R === 0) { // Header row
+                    if(ws[cell_ref]) ws[cell_ref].s = headerStyle;
+                } else if (R % 2 === 1) { // Odd data rows
+                    if(!ws[cell_ref]) ws[cell_ref] = {}; // Create cell object if it doesn't exist
+                    ws[cell_ref].s = oddRowStyle;
                 }
 
-                // Calculate width
+                // Calculate width - ensure cell exists before reading value
                 if(ws[cell_ref] && ws[cell_ref].v) {
                     const cell_text_length = String(ws[cell_ref].v).length;
                     max_width = Math.max(max_width, cell_text_length);
                 }
             }
-            const header_cell_ref = XLSX.utils.encode_cell({ c: C, r: 0 });
+            // Use header name length as a minimum width
+            const header_cell_ref = XLSX.utils.encode_cell({c:C, r:0});
             const header_text_length = ws[header_cell_ref] ? String(ws[header_cell_ref].v).length : 0;
             max_width = Math.max(max_width, header_text_length);
 
@@ -347,126 +312,4 @@ document.addEventListener('DOMContentLoaded', function () {
         XLSX.utils.book_append_sheet(wb, ws, "Reporte");
         XLSX.writeFile(wb, "ReporteDinamico.xlsx", { bookSST: true });
     }
-
-    // --- Template Management ---
-
-    function loadTemplates(selectId = null) {
-        fetch('../src/ajax/plantillas_reporte_process.php?action=obtener_todas')
-            .then(response => response.json())
-            .then(result => {
-                if (!result.success) throw new Error(result.error);
-
-                templateSelect.innerHTML = '<option value="" selected>-- Seleccione una plantilla --</option>'; // Reset
-                result.templates.forEach(template => {
-                    const option = document.createElement('option');
-                    option.value = template.id;
-                    option.textContent = template.nombre_plantilla;
-                    templateSelect.appendChild(option);
-                });
-
-                if (selectId) {
-                    templateSelect.value = selectId;
-                }
-            })
-            .catch(error => {
-                console.error('Error loading templates:', error);
-                alert('No se pudieron cargar las plantillas.');
-            });
-    }
-
-    saveTemplateBtn.addEventListener('click', function() {
-        const name = templateNameInput.value.trim();
-        if (!name) {
-            alert('Por favor, ingrese un nombre para la plantilla.');
-            return;
-        }
-
-        const selectedColumns = Array.from(selectedColumnsEl.querySelectorAll('.list-item')).map(item => item.dataset.key);
-
-        fetch('../src/ajax/plantillas_reporte_process.php?action=guardar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name, columns: selectedColumns })
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (!result.success) throw new Error(result.error);
-            alert('Plantilla guardada con éxito.');
-            templateNameInput.value = '';
-            loadTemplates(result.new_id); // Refresh list and select the new one
-        })
-        .catch(error => {
-            console.error('Error saving template:', error);
-            alert(`Error al guardar la plantilla: ${error.message}`);
-        });
-    });
-
-    loadTemplateBtn.addEventListener('click', function() {
-        const templateId = templateSelect.value;
-        if (!templateId) {
-            alert('Por favor, seleccione una plantilla para cargar.');
-            return;
-        }
-
-        fetch(`../src/ajax/plantillas_reporte_process.php?action=obtener_una&id=${templateId}`)
-            .then(response => response.json())
-            .then(result => {
-                if (!result.success) throw new Error(result.error);
-
-                // 1. Reset current selection by moving all selected columns back to available
-                const allSelectedItems = selectedColumnsEl.querySelectorAll('.list-item');
-                if (allSelectedItems.length > 0) {
-                    moveItems(selectedColumnsEl, availableColumnsEl, allSelectedItems);
-                }
-
-                // 2. Load new columns from template
-                const columnsToSelect = result.columns || [];
-
-                columnsToSelect.forEach(columnKey => {
-                    const columnElement = availableColumnsEl.querySelector(`.list-item[data-key="${columnKey}"]`);
-                    if (columnElement) {
-                        moveItems(availableColumnsEl, selectedColumnsEl, [columnElement]);
-                    }
-                });
-
-                // Also copy name to input field for easy updating
-                templateNameInput.value = templateSelect.options[templateSelect.selectedIndex].text;
-            })
-            .catch(error => {
-                console.error('Error loading template:', error);
-                alert(`Error al cargar la plantilla: ${error.message}`);
-            });
-    });
-
-    deleteTemplateBtn.addEventListener('click', function() {
-        const templateId = templateSelect.value;
-        if (!templateId) {
-            alert('Por favor, seleccione una plantilla para eliminar.');
-            return;
-        }
-
-        if (!confirm('¿Está seguro de que desea eliminar la plantilla seleccionada? Esta acción no se puede deshacer.')) {
-            return;
-        }
-
-        fetch('../src/ajax/plantillas_reporte_process.php?action=eliminar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ id: templateId })
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (!result.success) throw new Error(result.error);
-            alert(result.message);
-            loadTemplates(); // Refresh list
-        })
-        .catch(error => {
-            console.error('Error deleting template:', error);
-            alert(`Error al eliminar la plantilla: ${error.message}`);
-        });
-    });
-
-    // Initial load of templates
-    loadTemplates();
-
 });

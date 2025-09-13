@@ -268,38 +268,64 @@ document.addEventListener('DOMContentLoaded', function () {
         // 1. Create worksheet from data
         const ws = XLSX.utils.json_to_sheet(data);
 
-        // Freeze the top row
+        // 2. Set worksheet properties
+        ws['!autofilter'] = { ref: ws['!ref'] };
         ws['!view'] = { state: 'frozen', ySplit: 1 };
 
-        // 2. Define styles
-        const headerStyle = { font: { bold: true, color: { rgb: "FFFFFFFF" } }, fill: { fgColor: { rgb: "FF2C3E50" } } };
-        const oddRowStyle = { fill: { fgColor: { rgb: "FFECF0F1" } } };
+        // 3. Define styles with a blue color scheme
+        const borderStyle = { style: 'thin', color: { rgb: "FF000000" } };
+        const headerStyle = {
+            font: { bold: true, color: { rgb: "FFFFFFFF" } },
+            fill: { fgColor: { rgb: "FF4F81BD" } }, // Medium Blue
+            border: {
+                top: borderStyle,
+                bottom: borderStyle,
+                left: borderStyle,
+                right: borderStyle
+            }
+        };
+        const evenRowStyle = {
+            border: {
+                top: borderStyle,
+                bottom: borderStyle,
+                left: borderStyle,
+                right: borderStyle
+            }
+        };
+        const oddRowStyle = {
+            fill: { fgColor: { rgb: "FFDCE6F1" } }, // Light Blue
+            border: {
+                top: borderStyle,
+                bottom: borderStyle,
+                left: borderStyle,
+                right: borderStyle
+            }
+        };
 
-        // 3. Apply styles and calculate widths
+        // 4. Apply styles and calculate widths
         const range = XLSX.utils.decode_range(ws['!ref']);
         let colWidths = [];
 
-        for(let C = range.s.c; C <= range.e.c; ++C) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
             let max_width = 0;
-            for(let R = range.s.r; R <= range.e.r; ++R) {
-                const cell_ref = XLSX.utils.encode_cell({c:C, r:R});
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                const cell_ref = XLSX.utils.encode_cell({ c: C, r: R });
+                if (!ws[cell_ref]) continue; // Skip empty cells
 
                 // Apply style
-                if(R === 0) { // Header row
-                    if(ws[cell_ref]) ws[cell_ref].s = headerStyle;
-                } else if (R % 2 === 1) { // Odd data rows
-                    if(!ws[cell_ref]) ws[cell_ref] = {}; // Create cell object if it doesn't exist
-                    ws[cell_ref].s = oddRowStyle;
+                if (R === 0) { // Header row
+                    ws[cell_ref].s = headerStyle;
+                } else { // Data rows
+                    ws[cell_ref].s = (R % 2 !== 0) ? oddRowStyle : evenRowStyle;
                 }
 
-                // Calculate width - ensure cell exists before reading value
+                // Calculate width
                 if(ws[cell_ref] && ws[cell_ref].v) {
                     const cell_text_length = String(ws[cell_ref].v).length;
                     max_width = Math.max(max_width, cell_text_length);
                 }
             }
-            // Use header name length as a minimum width
-            const header_cell_ref = XLSX.utils.encode_cell({c:C, r:0});
+            const header_cell_ref = XLSX.utils.encode_cell({ c: C, r: 0 });
             const header_text_length = ws[header_cell_ref] ? String(ws[header_cell_ref].v).length : 0;
             max_width = Math.max(max_width, header_text_length);
 
@@ -307,7 +333,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         ws['!cols'] = colWidths;
 
-        // 4. Create workbook and export
+        // 5. Create workbook and export
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Reporte");
         XLSX.writeFile(wb, "ReporteDinamico.xlsx", { bookSST: true });

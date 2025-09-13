@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', function () {
         ws['!autofilter'] = { ref: ws['!ref'] };
 
         // Freeze the top row
-        ws['!views'] = [{state: 'frozen', ySplit: 1}];
+        ws['!views'] = [{state: 'frozen', ySplit: 1, xSplit: 0, topLeftCell: 'A2', activePane: 'bottomLeft'}];
 
         // 2. Define styles with a blue color scheme
         const borderStyle = { style: 'thin', color: { rgb: "FF000000" } };

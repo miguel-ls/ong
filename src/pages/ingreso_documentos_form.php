@@ -58,106 +58,110 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
             <form id="documentoForm" enctype="multipart/form-data">
                 <input type="hidden" name="id_documento" value="<?= htmlspecialchars($doc_id ?? '') ?>">
 
-                <!-- Encabezado del Documento -->
-                <fieldset class="border p-3 mb-4">
-                    <div class="row">
-                        <div class="col-md-2 mb-3">
-                            <label for="id_tipo_documento" class="form-label">Tipo Documento</label>
-                            <select class="form-select" id="id_tipo_documento" name="id_tipo_documento" required>
-                                <?php foreach($tipos_documento as $tipo): ?>
-                                <option value="<?= $tipo['id'] ?>" <?= ($header && $header['id_tipo_documento'] == $tipo['id']) ? 'selected' : '' ?>><?= htmlspecialchars($tipo['nombre']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="serie_documento" class="form-label">Serie</label>
-                            <input type="text" class="form-control" id="serie_documento" name="serie_documento" value="<?= htmlspecialchars($header['serie_documento'] ?? '') ?>" required>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="numero_documento" class="form-label">Número</label>
-                            <input type="text" class="form-control" id="numero_documento" name="numero_documento" value="<?= htmlspecialchars($header['numero_documento'] ?? '') ?>" required>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="moneda" class="form-label">Moneda</label>
-                            <select class="form-select" id="moneda" name="moneda" required>
-                                <option value="SOLES" <?= ($header && $header['moneda'] == 'SOLES') ? 'selected' : '' ?>>Soles (S/)</option>
-                                <option value="DOLARES" <?= ($header && $header['moneda'] == 'DOLARES') ? 'selected' : '' ?>>Dólares ($)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="fecha_emision" class="form-label">Fecha Emisión</label>
-                            <input type="date" class="form-control" id="fecha_emision" name="fecha_emision" value="<?= htmlspecialchars($header['fecha_emision'] ?? date('Y-m-d')) ?>" required>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="tipo_cambio" class="form-label">Tipo Cambio</label>
-                            <input type="number" step="0.0001" class="form-control" id="tipo_cambio" name="tipo_cambio" value="<?= htmlspecialchars($header['tipo_cambio'] ?? '1.0000') ?>" required>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12 mb-3">
-                            <label for="id_auxiliar" class="form-label">Auxiliar</label>
-                            <select class="form-select" id="id_auxiliar" name="id_auxiliar" required>
-                                 <option value="">Seleccione</option>
-                                <?php foreach($auxiliares as $aux): ?>
-                                <option value="<?= $aux['id'] ?>" <?= ($header && $header['id_auxiliar'] == $aux['id']) ? 'selected' : '' ?>><?= htmlspecialchars($aux['nombre']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="row">
-                         <div class="col-md-4 mb-3">
-                            <label for="id_proyecto" class="form-label">Proyecto</label>
-                            <select class="form-select" id="id_proyecto" name="id_proyecto" required>
-                                <option value="">Seleccione</option>
-                                <?php foreach($proyectos as $proy): ?>
-                                <option value="<?= $proy['id'] ?>" <?= ($header && $header['id_proyecto'] == $proy['id']) ? 'selected' : '' ?>><?= htmlspecialchars($proy['nombre']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="id_sub_proyecto" class="form-label">Sub-Proyecto</label>
-                            <select class="form-select" id="id_sub_proyecto" name="id_sub_proyecto" required>
-                                <option value="">Seleccione un proyecto primero</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label for="id_centro_costo" class="form-label">Centro de Costo</label>
-                             <select class="form-select" id="id_centro_costo" name="id_centro_costo" required>
-                                <option value="">Seleccione</option>
-                                <?php foreach($centros_costo as $cc): ?>
-                                <option value="<?= $cc['id'] ?>" <?= ($header && $header['id_centro_costo'] == $cc['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cc['nombre']) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                    </div>
-                     <div class="row">
-                         <div class="col-md-12 mb-3">
-                            <label for="glosa" class="form-label">Glosa</label>
-                            <input type="text" class="form-control" id="glosa" name="glosa" value="<?= htmlspecialchars($header['glosa'] ?? '') ?>" required>
-                        </div>
-                    </div>
-                </fieldset>
-
-                <!-- Pestañas para Comentarios y Adjuntos -->
+                <!-- Pestañas para Documento, Comentarios y Adjuntos -->
                 <div class="mb-4">
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="comentarios-tab" data-bs-toggle="tab" data-bs-target="#comentarios-tab-pane" type="button" role="tab" aria-controls="comentarios-tab-pane" aria-selected="true">Comentarios</button>
+                            <button class="nav-link active" id="documento-tab" data-bs-toggle="tab" data-bs-target="#documento-tab-pane" type="button" role="tab" aria-controls="documento-tab-pane" aria-selected="true">Documento</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="comentarios-tab" data-bs-toggle="tab" data-bs-target="#comentarios-tab-pane" type="button" role="tab" aria-controls="comentarios-tab-pane" aria-selected="false">Comentarios</button>
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="adjuntos-tab" data-bs-toggle="tab" data-bs-target="#adjuntos-tab-pane" type="button" role="tab" aria-controls="adjuntos-tab-pane" aria-selected="false">Archivos Adjuntos</button>
                         </li>
                     </ul>
                     <div class="tab-content border border-top-0 p-3" id="myTabContent">
-                        <div class="tab-pane fade show active" id="comentarios-tab-pane" role="tabpanel" aria-labelledby="comentarios-tab" tabindex="0">
-                            <!-- Contenido de Comentarios -->
+                        <!-- Pestaña de Documento -->
+                        <div class="tab-pane fade show active" id="documento-tab-pane" role="tabpanel" aria-labelledby="documento-tab" tabindex="0">
+                            <fieldset class="border-0">
+                                <div class="row">
+                                    <div class="col-md-2 mb-3">
+                                        <label for="id_tipo_documento" class="form-label">Tipo Documento</label>
+                                        <select class="form-select" id="id_tipo_documento" name="id_tipo_documento" required>
+                                            <?php foreach($tipos_documento as $tipo): ?>
+                                            <option value="<?= $tipo['id'] ?>" <?= ($header && $header['id_tipo_documento'] == $tipo['id']) ? 'selected' : '' ?>><?= htmlspecialchars($tipo['nombre']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label for="serie_documento" class="form-label">Serie</label>
+                                        <input type="text" class="form-control" id="serie_documento" name="serie_documento" value="<?= htmlspecialchars($header['serie_documento'] ?? '') ?>" required>
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label for="numero_documento" class="form-label">Número</label>
+                                        <input type="text" class="form-control" id="numero_documento" name="numero_documento" value="<?= htmlspecialchars($header['numero_documento'] ?? '') ?>" required>
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label for="moneda" class="form-label">Moneda</label>
+                                        <select class="form-select" id="moneda" name="moneda" required>
+                                            <option value="SOLES" <?= ($header && $header['moneda'] == 'SOLES') ? 'selected' : '' ?>>Soles (S/)</option>
+                                            <option value="DOLARES" <?= ($header && $header['moneda'] == 'DOLARES') ? 'selected' : '' ?>>Dólares ($)</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label for="fecha_emision" class="form-label">Fecha Emisión</label>
+                                        <input type="date" class="form-control" id="fecha_emision" name="fecha_emision" value="<?= htmlspecialchars($header['fecha_emision'] ?? date('Y-m-d')) ?>" required>
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label for="tipo_cambio" class="form-label">Tipo Cambio</label>
+                                        <input type="number" step="0.0001" class="form-control" id="tipo_cambio" name="tipo_cambio" value="<?= htmlspecialchars($header['tipo_cambio'] ?? '1.0000') ?>" required>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label for="id_auxiliar" class="form-label">Auxiliar</label>
+                                        <select class="form-select" id="id_auxiliar" name="id_auxiliar" required>
+                                             <option value="">Seleccione</option>
+                                            <?php foreach($auxiliares as $aux): ?>
+                                            <option value="<?= $aux['id'] ?>" <?= ($header && $header['id_auxiliar'] == $aux['id']) ? 'selected' : '' ?>><?= htmlspecialchars($aux['nombre']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                     <div class="col-md-4 mb-3">
+                                        <label for="id_proyecto" class="form-label">Proyecto</label>
+                                        <select class="form-select" id="id_proyecto" name="id_proyecto" required>
+                                            <option value="">Seleccione</option>
+                                            <?php foreach($proyectos as $proy): ?>
+                                            <option value="<?= $proy['id'] ?>" <?= ($header && $header['id_proyecto'] == $proy['id']) ? 'selected' : '' ?>><?= htmlspecialchars($proy['nombre']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="id_sub_proyecto" class="form-label">Sub-Proyecto</label>
+                                        <select class="form-select" id="id_sub_proyecto" name="id_sub_proyecto" required>
+                                            <option value="">Seleccione un proyecto primero</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="id_centro_costo" class="form-label">Centro de Costo</label>
+                                         <select class="form-select" id="id_centro_costo" name="id_centro_costo" required>
+                                            <option value="">Seleccione</option>
+                                            <?php foreach($centros_costo as $cc): ?>
+                                            <option value="<?= $cc['id'] ?>" <?= ($header && $header['id_centro_costo'] == $cc['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cc['nombre']) ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
+                                 <div class="row">
+                                     <div class="col-md-12 mb-3">
+                                        <label for="glosa" class="form-label">Glosa</label>
+                                        <input type="text" class="form-control" id="glosa" name="glosa" value="<?= htmlspecialchars($header['glosa'] ?? '') ?>" required>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <!-- Pestaña de Comentarios -->
+                        <div class="tab-pane fade" id="comentarios-tab-pane" role="tabpanel" aria-labelledby="comentarios-tab" tabindex="0">
                             <div class="mb-3">
                                 <label for="observaciones" class="form-label"><strong>Comentarios:</strong></label>
                                 <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
                             </div>
                         </div>
+                        <!-- Pestaña de Adjuntos -->
                         <div class="tab-pane fade" id="adjuntos-tab-pane" role="tabpanel" aria-labelledby="adjuntos-tab" tabindex="0">
-                            <!-- Contenido de Adjuntos -->
                             <div class="mb-3">
                                 <label for="adjuntos" class="form-label"><strong>Añadir nuevos archivos:</strong></label>
                                 <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>

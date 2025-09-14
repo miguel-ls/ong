@@ -1,10 +1,6 @@
 <?php
 require_once __DIR__ . '/../database.php';
 
-if ($_SESSION['user_role'] !== 'administrador') {
-    echo "<p>Acceso denegado.</p>";
-    exit();
-}
 
 $filter_codigo = $_GET['codigo'] ?? null;
 $filter_nombre = $_GET['nombre'] ?? null;

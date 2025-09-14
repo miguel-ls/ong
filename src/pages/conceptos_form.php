@@ -58,8 +58,10 @@ if (isset($_GET['id'])) {
             </select>
         </div>
         <div class="form-group">
-            <label for="cuenta_contable">Cuenta Contable</label>
-            <input type="text" id="cuenta_contable" name="cuenta_contable" value="<?= htmlspecialchars($item['cuenta_contable'] ?? '') ?>" maxlength="20">
+            <label for="cuenta_contable_display">Cuenta Contable</label>
+            <input type="text" id="cuenta_contable_display" name="cuenta_contable_display" list="cuentas_contables_list" value="" maxlength="150" autocomplete="off" placeholder="Escriba para buscar...">
+            <input type="hidden" id="cuenta_contable" name="cuenta_contable" value="<?= htmlspecialchars($item['cuenta_contable'] ?? '') ?>">
+            <datalist id="cuentas_contables_list"></datalist>
         </div>
         <div class="form-group">
             <label for="descripcion">Descripción</label>
@@ -78,3 +80,57 @@ if (isset($_GET['id'])) {
         <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Concepto</button>
     </form>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const displayInput = document.getElementById('cuenta_contable_display');
+    const hiddenInput = document.getElementById('cuenta_contable');
+    const dataList = document.getElementById('cuentas_contables_list');
+    let accountsData = [];
+
+    function setInitialValue() {
+        const initialCode = hiddenInput.value;
+        if (initialCode && accountsData.length > 0) {
+            const account = accountsData.find(acc => acc.value === initialCode);
+            if (account) {
+                displayInput.value = account.text;
+            }
+        }
+    }
+
+    fetch('../src/ajax/get_cuentas_contables.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error del servidor:', data.error);
+                return;
+            }
+            accountsData = data;
+            data.forEach(cuenta => {
+                const option = document.createElement('option');
+                option.value = cuenta.text;
+                option.dataset.value = cuenta.value;
+                dataList.appendChild(option);
+            });
+
+            // Si estamos editando, intentamos poner el valor descriptivo
+            setInitialValue();
+        })
+        .catch(error => {
+            console.error('Error al cargar las cuentas contables:', error);
+        });
+
+    displayInput.addEventListener('input', function(e) {
+        const inputText = e.target.value;
+        const selectedOption = Array.from(dataList.options).find(opt => opt.value === inputText);
+
+        if (selectedOption) {
+            hiddenInput.value = selectedOption.dataset.value;
+        } else {
+            // Si el usuario borra el input o escribe algo que no está en la lista,
+            // borramos el valor del campo oculto para evitar enviar un dato inválido.
+            hiddenInput.value = '';
+        }
+    });
+});
+</script>

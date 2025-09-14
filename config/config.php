@@ -9,6 +9,7 @@ define('DB_CHARSET', 'utf8mb4');
 // Configuración de la aplicación
 define('APP_URL', 'http://localhost/ong'); // URL base de la aplicación
 
-define('Emp_cCodigo', '088');
-define('Pan_cAnio', '2025');
+// Configuración para la migración de auxiliares
+define('EMP_CODIGO', '088');
+define('PAN_ANIO', '2025');
 ?>

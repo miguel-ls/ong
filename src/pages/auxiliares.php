@@ -43,11 +43,13 @@ try {
     .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
     .table th { background-color: #004a99; color: white; }
     .table tr:nth-child(even) { background-color: #f2f2f2; }
-    .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; color: white !important; display: inline-block; border: none; cursor: pointer; }
+    .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; color: white !important; display: inline-block; border: none; cursor: pointer; transition: background-color 0.3s; }
+    .btn:hover { background-color: #6c757d; }
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
-    .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .btn-add { background-color: #28a745; }
     .btn-migrate { background-color: #ffc107; /* Light Orange */ color: black; }
+    .action-buttons { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
     .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
     .filter-form .form-group { display: flex; flex-direction: column; }
     .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
@@ -128,8 +130,10 @@ try {
          <div class="alert alert-danger"><?= htmlspecialchars($_GET['error']) ?></div>
     <?php endif; ?>
 
-    <a href="index.php?page=auxiliares_form" class="btn btn-add">Nuevo Auxiliar</a>
-    <button type="button" id="migrateBtn" class="btn btn-migrate">Migrar Auxiliares</button>
+    <div class="action-buttons">
+        <a href="index.php?page=auxiliares_form" class="btn btn-add">Nuevo Auxiliar</a>
+        <button type="button" id="migrateBtn" class="btn btn-migrate">Migrar Auxiliares</button>
+    </div>
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="auxiliares">

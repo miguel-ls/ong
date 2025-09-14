@@ -138,40 +138,47 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                     </div>
                 </fieldset>
 
-                <!-- Comentarios -->
-                <fieldset class="border p-3 mb-4">
-                    <!-- <legend class="w-auto px-2 h6">Adjuntos y Comentarios</legend> -->
-                    <div class="mb-3">
-                        <label for="observaciones" class="form-label"><strong>Comentarios:</strong></label>
-                        <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
-                    </div>
-
-                </fieldset>
-
-                <!-- Adjuntos -->
-                <fieldset class="border p-3 mb-4">
-                    <!-- <legend class="w-auto px-2 h6">Adjuntos y Comentarios</legend> -->
-
-                    <div class="mb-3">
-                        <label for="adjuntos" class="form-label"><strong>Añadir nuevos archivos:</strong></label>
-                        <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
-                    </div>
-                    <?php if (!empty($adjuntos)): ?>
-                        <div class="mb-3">
-                            <!-- <p><strong>Archivos existentes:</strong></p> -->
-                            <ul class="list-group" id="lista-adjuntos">
-                                <?php foreach ($adjuntos as $adjunto): ?>
-                                    <li class="list-group-item d-flex justify-content-between align-items-center" id="adjunto-<?= $adjunto['id'] ?>">
-                                        <a href="../src/actions/download_attachment.php?id=<?= $adjunto['id'] ?>" target="_blank">
-                                            <?= htmlspecialchars($adjunto['nombre_original']) ?>
-                                        </a>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="eliminarAdjunto(<?= $adjunto['id'] ?>)">Eliminar</button>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
+                <!-- Pestañas para Comentarios y Adjuntos -->
+                <div class="mb-4">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="comentarios-tab" data-bs-toggle="tab" data-bs-target="#comentarios-tab-pane" type="button" role="tab" aria-controls="comentarios-tab-pane" aria-selected="true">Comentarios</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="adjuntos-tab" data-bs-toggle="tab" data-bs-target="#adjuntos-tab-pane" type="button" role="tab" aria-controls="adjuntos-tab-pane" aria-selected="false">Archivos Adjuntos</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content border border-top-0 p-3" id="myTabContent">
+                        <div class="tab-pane fade show active" id="comentarios-tab-pane" role="tabpanel" aria-labelledby="comentarios-tab" tabindex="0">
+                            <!-- Contenido de Comentarios -->
+                            <div class="mb-3">
+                                <label for="observaciones" class="form-label"><strong>Comentarios:</strong></label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
+                            </div>
                         </div>
-                    <?php endif; ?>
-                </fieldset>
+                        <div class="tab-pane fade" id="adjuntos-tab-pane" role="tabpanel" aria-labelledby="adjuntos-tab" tabindex="0">
+                            <!-- Contenido de Adjuntos -->
+                            <div class="mb-3">
+                                <label for="adjuntos" class="form-label"><strong>Añadir nuevos archivos:</strong></label>
+                                <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
+                            </div>
+                            <?php if (!empty($adjuntos)): ?>
+                                <div class="mb-3">
+                                    <ul class="list-group" id="lista-adjuntos">
+                                        <?php foreach ($adjuntos as $adjunto): ?>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center" id="adjunto-<?= $adjunto['id'] ?>">
+                                                <a href="../src/actions/download_attachment.php?id=<?= $adjunto['id'] ?>" target="_blank">
+                                                    <?= htmlspecialchars($adjunto['nombre_original']) ?>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="eliminarAdjunto(<?= $adjunto['id'] ?>)">Eliminar</button>
+                                            </li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Detalle del Documento -->
                 <fieldset class="border p-3 mb-4">

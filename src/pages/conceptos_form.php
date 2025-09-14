@@ -30,6 +30,8 @@ if (isset($_GET['id'])) {
     .form-group label { display: block; margin-bottom: 5px; }
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     .btn-submit { background-color: #005cb3; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-cancel { display: inline-block; padding: 10px 15px; background-color: #6c757d; color: white; text-align: center; text-decoration: none; border-radius: 4px; }
+    .form-buttons { display: flex; gap: 10px; align-items: center; }
 </style>
 
 <header>
@@ -77,7 +79,10 @@ if (isset($_GET['id'])) {
         </div>
         <?php endif; ?>
 
-        <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Concepto</button>
+        <div class="form-buttons">
+            <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Concepto</button>
+            <a href="index.php?page=conceptos" class="btn-cancel">Cancelar</a>
+        </div>
     </form>
 </section>
 

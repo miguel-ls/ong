@@ -1,41 +1,28 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('reusableModal');
+    // --- Reusable Bootstrap Modal Logic ---
+    const modalElement = document.getElementById('reusableModal');
     const modalMessage = document.getElementById('modalMessage');
-    const modalOkButton = document.getElementById('modalOkButton');
+    let reusableModal; // Variable to hold the Bootstrap Modal instance
 
-    // Función global para mostrar el modal
+    if (modalElement) {
+        // Initialize the Bootstrap Modal instance
+        reusableModal = new bootstrap.Modal(modalElement);
+    }
+
+    // Make showAlertModal globally accessible
     window.showAlertModal = function(message) {
-        if (modal && modalMessage) {
+        if (reusableModal && modalMessage) {
+            // Set the message in the modal's body
             modalMessage.textContent = message;
-            modal.style.display = 'flex';
+            // Show the modal using Bootstrap's API
+            reusableModal.show();
+        } else {
+            // Fallback for browsers or situations where Bootstrap isn't loaded
+            alert(message);
         }
     }
 
-    // Función para adjuntar el evento de cierre al botón OK
-    function closeModal() {
-        if (modal) {
-            modal.style.display = 'none';
-        }
-        // Limpiar el evento onclick para que no se acumulen si se reutiliza el modal para diferentes acciones
-        if (modalOkButton) {
-            modalOkButton.onclick = closeModal;
-        }
-    }
-
-    // Evento para cerrar el modal con el botón OK
-    if (modalOkButton) {
-        modalOkButton.addEventListener('click', closeModal);
-    }
-
-    // Opcional: cerrar el modal si se hace clic fuera de él
-    if (modal) {
-        modal.addEventListener('click', function(event) {
-            if (event.target === modal) {
-                closeModal();
-            }
-        });
-    }
-
+    // --- Sidebar Toggle Logic ---
     const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
     const body = document.body;
 
@@ -43,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebarToggleBtn.addEventListener('click', () => {
             body.classList.toggle('sidebar-collapsed');
             const icon = sidebarToggleBtn.querySelector('i');
+
             // Check the state *after* toggling
             if (body.classList.contains('sidebar-collapsed')) {
                 // Now it's collapsed, so show the 'bars' icon

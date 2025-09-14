@@ -51,12 +51,22 @@
     });
     </script>
 
-    <!-- Reusable Modal -->
-    <div id="reusableModal" class="modal-overlay" style="display: none;">
+    <!-- Reusable Alert Modal -->
+    <div class="modal fade" id="reusableModal" tabindex="-1" aria-labelledby="reusableModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
         <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="reusableModalLabel">Alerta del Sistema</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
             <p id="modalMessage"></p>
-            <button id="modalOkButton" class="btn">Aceptar</button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" id="modalOkButton" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+          </div>
         </div>
+      </div>
     </div>
 
     <script src="js/main.js"></script>

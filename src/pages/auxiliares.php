@@ -47,6 +47,7 @@ try {
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
     .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .btn-migrate { background-color: #ffc107; /* Light Orange */ color: black; }
     .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
     .filter-form .form-group { display: flex; flex-direction: column; }
     .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
@@ -128,6 +129,7 @@ try {
     <?php endif; ?>
 
     <a href="index.php?page=auxiliares_form" class="btn btn-add">Nuevo Auxiliar</a>
+    <button type="button" id="migrateBtn" class="btn btn-migrate">Migrar Auxiliares</button>
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="auxiliares">
@@ -221,11 +223,11 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // --- START DELETE LOGIC ---
     const deleteButtons = document.querySelectorAll('.btn-delete');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-
-    // The modal logic relies on Bootstrap's JS being loaded globally.
     const deleteModalElement = document.getElementById('deleteConfirmModal');
+
     if (deleteModalElement && typeof bootstrap !== 'undefined') {
         const deleteModal = new bootstrap.Modal(deleteModalElement);
 
@@ -238,5 +240,45 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    // --- END DELETE LOGIC ---
+
+    // --- START MIGRATE LOGIC ---
+    const migrateBtn = document.getElementById('migrateBtn');
+    migrateBtn.addEventListener('click', function() {
+        // Show some visual feedback that the process has started
+        migrateBtn.disabled = true;
+        migrateBtn.textContent = 'Migrando...';
+
+        const apiData = {
+            Emp_cCodigo: "<?= defined('EMP_CODIGO') ? EMP_CODIGO : '' ?>",
+            Pan_cAnio: "<?= defined('PAN_ANIO') ? PAN_ANIO : '' ?>"
+        };
+
+        fetch('http://localhost:1880/maestros/migrarauxiliares', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(apiData),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && data.data && typeof data.data.inserted !== 'undefined') {
+                showAlertModal(`Se migraron ${data.data.inserted} registros.`);
+            } else {
+                showAlertModal('No se encontraron registros para migrar.');
+            }
+        })
+        .catch(error => {
+            console.error('Error en la migración:', error);
+            showAlertModal('Ocurrió un error al intentar la migración. Verifique la consola para más detalles.');
+        })
+        .finally(() => {
+            // Restore button state
+            migrateBtn.disabled = false;
+            migrateBtn.textContent = 'Migrar Auxiliares';
+        });
+    });
+    // --- END MIGRATE LOGIC ---
 });
 </script>

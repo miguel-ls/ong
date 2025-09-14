@@ -9,8 +9,7 @@ BEGIN
     WHERE
         Emp_cCodigo = p_Emp_cCodigo AND
         Pan_cAnio = p_Pan_cAnio AND
-        Pla_cEstado = '1' AND
-        Pla_cDeleted = '0'
+        Pla_cEstado = 'A'  AND Pla_cTitulo='N'
     ORDER BY
         Pla_cCuentaContable;
 END$$

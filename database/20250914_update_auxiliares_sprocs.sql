@@ -40,9 +40,22 @@ CREATE PROCEDURE `sp_read_all_auxiliares`(
     IN p_codigo_erp VARCHAR(5)
 )
 BEGIN
-    SELECT a.*, ta.nombre as nombre_tipo_auxiliar
-    FROM auxiliares a
-    JOIN tipos_auxiliar ta ON a.id_tipo_auxiliar = ta.id
+    SELECT
+        a.id,
+        a.razon_social_nombres,
+        tdi.nombre as tipo_doc_identidad,
+        a.num_doc_identidad,
+        a.telefono,
+        a.TipoERP,
+        a.CodigoERP,
+        a.estado,
+        ta.nombre as nombre_tipo_auxiliar
+    FROM
+        auxiliares a
+    JOIN
+        tipos_auxiliar ta ON a.id_tipo_auxiliar = ta.id
+    LEFT JOIN
+        tipos_documento_identidad tdi ON a.id_tipo_documento_identidad = tdi.id
     WHERE
         (p_nombre IS NULL OR p_nombre = '' OR a.razon_social_nombres LIKE CONCAT('%', p_nombre, '%'))
         AND (p_num_doc IS NULL OR p_num_doc = '' OR a.num_doc_identidad LIKE CONCAT('%', p_num_doc, '%'))

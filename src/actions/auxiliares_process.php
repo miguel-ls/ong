@@ -34,7 +34,7 @@ try {
             }
             $stmt_check->closeCursor();
 
-            $stmt = $pdo->prepare("CALL sp_create_auxiliar(?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_create_auxiliar(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id_tipo_auxiliar'],
                 $_POST['id_tipo_documento_identidad'],
@@ -43,7 +43,9 @@ try {
                 $_POST['direccion'],
                 $_POST['telefono'],
                 $_POST['email'],
-                $_POST['ubigeo']
+                $_POST['ubigeo'],
+                $_POST['TipoERP'],
+                $_POST['CodigoERP']
             ]);
             $redirect_page .= '&success=' . urlencode("Auxiliar creado con éxito.");
             break;
@@ -63,7 +65,7 @@ try {
             }
             $stmt_check->closeCursor();
 
-            $stmt = $pdo->prepare("CALL sp_update_auxiliar(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_update_auxiliar(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id'],
                 $_POST['id_tipo_auxiliar'],
@@ -74,7 +76,9 @@ try {
                 $_POST['telefono'],
                 $_POST['email'],
                 $_POST['ubigeo'],
-                $_POST['estado']
+                $_POST['estado'],
+                $_POST['TipoERP'],
+                $_POST['CodigoERP']
             ]);
             $redirect_page .= '&success=' . urlencode("Auxiliar actualizado con éxito.");
             break;

@@ -13,14 +13,16 @@ $pdo = getDbConnection();
 $filter_nombre = $_GET['nombre'] ?? null;
 $filter_num_doc = $_GET['num_doc'] ?? null;
 $filter_tipo_aux = $_GET['tipo_aux'] ?? null;
+$filter_tipo_erp = $_GET['tipo_erp'] ?? null;
+$filter_codigo_erp = $_GET['codigo_erp'] ?? null;
 
 $items = [];
 $tipos_auxiliar = [];
 
 try {
     // First query: get the main list of items
-    $stmt = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?)");
-    $stmt->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux]);
+    $stmt = $pdo->prepare("CALL sp_read_all_auxiliares(?, ?, ?, ?, ?)");
+    $stmt->execute([$filter_nombre, $filter_num_doc, $filter_tipo_aux, $filter_tipo_erp, $filter_codigo_erp]);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
     while ($stmt->nextRowset());
     $stmt->closeCursor();
@@ -147,6 +149,14 @@ try {
             </select>
         </div>
         <div class="form-group">
+            <label for="tipo_erp">Tipo ERP</label>
+            <input type="text" id="tipo_erp" name="tipo_erp" value="<?= htmlspecialchars($filter_tipo_erp ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="codigo_erp">Código ERP</label>
+            <input type="text" id="codigo_erp" name="codigo_erp" value="<?= htmlspecialchars($filter_codigo_erp ?? '') ?>">
+        </div>
+        <div class="form-group">
             <button type="submit" class="btn btn-filter">Filtrar</button>
         </div>
     </form>
@@ -158,13 +168,15 @@ try {
                 <th>Tipo Doc.</th>
                 <th>Nro. Documento</th>
                 <th>Teléfono</th>
+                <th>Tipo ERP</th>
+                <th>Código ERP</th>
                 <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($items)): ?>
-                <tr><td colspan="6" style="text-align: center;">No se encontraron auxiliares.</td></tr>
+                <tr><td colspan="8" style="text-align: center;">No se encontraron auxiliares.</td></tr>
             <?php else: ?>
                 <?php foreach ($items as $item): ?>
                 <tr>
@@ -172,6 +184,8 @@ try {
                     <td><?= htmlspecialchars($item['tipo_doc_identidad']) ?></td>
                     <td><?= htmlspecialchars($item['num_doc_identidad']) ?></td>
                     <td><?= htmlspecialchars($item['telefono']) ?></td>
+                    <td><?= htmlspecialchars($item['TipoERP']) ?></td>
+                    <td><?= htmlspecialchars($item['CodigoERP']) ?></td>
                     <td><span class="badge <?= $item['estado'] ? 'bg-success' : 'bg-danger' ?>"><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></span></td>
                     <td>
                         <a href="index.php?page=auxiliares_form&id=<?= $item['id'] ?>" class="btn btn-edit" title="Editar">Editar</a>

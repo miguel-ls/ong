@@ -146,6 +146,16 @@ try {
                 <input type="email" id="email" name="email" value="<?= htmlspecialchars($form_data['email'] ?? $item['email'] ?? '') ?>">
             </div>
         </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="TipoERP">Tipo ERP</label>
+                <input type="text" id="TipoERP" name="TipoERP" value="<?= htmlspecialchars($form_data['TipoERP'] ?? $item['TipoERP'] ?? '') ?>" maxlength="1">
+            </div>
+            <div class="form-group">
+                <label for="CodigoERP">Código ERP</label>
+                <input type="text" id="CodigoERP" name="CodigoERP" value="<?= htmlspecialchars($form_data['CodigoERP'] ?? $item['CodigoERP'] ?? '') ?>" maxlength="5">
+            </div>
+        </div>
         <?php if ($is_edit): ?>
         <div class="form-group">
             <label for="estado">Estado</label>

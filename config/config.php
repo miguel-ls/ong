@@ -12,4 +12,5 @@ define('APP_URL', 'http://localhost/ong'); // URL base de la aplicación
 // Configuración para la migración de auxiliares
 define('Emp_cCodigo', '088');
 define('Pan_cAnio', '2025');
+define('NODE_RED', 'http://localhost:1880');
 ?>

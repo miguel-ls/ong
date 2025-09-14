@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../../config/config.php';
 
 // session_start() is removed as it's likely called in a global header or index file.
 if (!isset($_SESSION['user_id'])) {
@@ -198,12 +199,14 @@ document.addEventListener('DOMContentLoaded', function() {
         migrateBtn.disabled = true;
         migrateBtn.textContent = 'Migrando...';
 
+        const NODE_RED = "<?php echo NODE_RED; ?>";
+
         const apiData = {
             Emp_cCodigo: "<?= defined('Emp_cCodigo') ? Emp_cCodigo : '' ?>",
             Pan_cAnio: "<?= defined('Pan_cAnio') ? Pan_cAnio : '' ?>"
         };
 
-        fetch('http://localhost:1880/maestros/migrarauxiliares', {
+        fetch(`${NODE_RED}/maestros/migrarauxiliares`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

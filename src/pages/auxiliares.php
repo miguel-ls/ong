@@ -250,8 +250,8 @@ document.addEventListener('DOMContentLoaded', function() {
         migrateBtn.textContent = 'Migrando...';
 
         const apiData = {
-            Emp_cCodigo: "<?= defined('EMP_CODIGO') ? EMP_CODIGO : '' ?>",
-            Pan_cAnio: "<?= defined('PAN_ANIO') ? PAN_ANIO : '' ?>"
+            Emp_cCodigo: "<?= defined('Emp_cCodigo') ? Emp_cCodigo : '' ?>",
+            Pan_cAnio: "<?= defined('Pan_cAnio') ? Pan_cAnio : '' ?>"
         };
 
         fetch('http://localhost:1880/maestros/migrarauxiliares', {

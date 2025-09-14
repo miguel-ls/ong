@@ -39,6 +39,31 @@ try {
 ?>
 
 
+<style>
+    .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .table th, .table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .table th { background-color: #004a99; color: white; }
+    .table tr:nth-child(even) { background-color: #f2f2f2; }
+    .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; color: white !important; display: inline-block; border: none; cursor: pointer; transition: background-color 0.3s; }
+    .btn:hover { background-color: #6c757d; }
+    .btn-edit { background-color: #ffc107; }
+    .btn-delete { background-color: #dc3545; }
+    .btn-add { background-color: #28a745; }
+    .btn-migrate { background-color: #ffc107; /* Light Orange */ color: black; }
+    .action-buttons { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+    .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+    .filter-form .form-group { display: flex; flex-direction: column; }
+    .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
+    .filter-form .form-group input, .filter-form .form-group select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; min-width: 200px; }
+    .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; }
+    .badge { padding: 5px 8px; border-radius: 4px; color: white; font-weight: bold; }
+    .bg-success { background-color: #28a745; }
+    .bg-danger { background-color: #dc3545; }
+    .alert { padding: 15px; margin-bottom: 20px; border: 1px solid transparent; border-radius: 4px; }
+    .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+    .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+</style>
+
 <header>
     <h1>Gestión de Auxiliares</h1>
 </header>

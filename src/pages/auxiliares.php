@@ -164,6 +164,7 @@ try {
     <table class="table">
         <thead>
             <tr>
+                <th>Tipo de Auxiliar</th>
                 <th>Razón Social / Nombre</th>
                 <th>Tipo Doc.</th>
                 <th>Nro. Documento</th>
@@ -176,10 +177,11 @@ try {
         </thead>
         <tbody>
             <?php if (empty($items)): ?>
-                <tr><td colspan="8" style="text-align: center;">No se encontraron auxiliares.</td></tr>
+                <tr><td colspan="9" style="text-align: center;">No se encontraron auxiliares.</td></tr>
             <?php else: ?>
                 <?php foreach ($items as $item): ?>
                 <tr>
+                    <td><?= htmlspecialchars($item['nombre_tipo_auxiliar']) ?></td>
                     <td><?= htmlspecialchars($item['razon_social_nombres']) ?></td>
                     <td><?= htmlspecialchars($item['tipo_doc_identidad']) ?></td>
                     <td><?= htmlspecialchars($item['num_doc_identidad']) ?></td>

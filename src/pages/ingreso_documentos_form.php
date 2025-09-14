@@ -156,14 +156,12 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                         <!-- Pestaña de Comentarios -->
                         <div class="tab-pane fade" id="comentarios-tab-pane" role="tabpanel" aria-labelledby="comentarios-tab" tabindex="0">
                             <div class="mb-3">
-                                <label for="observaciones" class="form-label"><strong>Comentarios:</strong></label>
-                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
+                                <textarea class="form-control" id="observaciones" name="observaciones" placeholder="Añadir un comentario..." rows="3"><?= htmlspecialchars($header['observaciones'] ?? '') ?></textarea>
                             </div>
                         </div>
                         <!-- Pestaña de Adjuntos -->
                         <div class="tab-pane fade" id="adjuntos-tab-pane" role="tabpanel" aria-labelledby="adjuntos-tab" tabindex="0">
                             <div class="mb-3">
-                                <label for="adjuntos" class="form-label"><strong>Añadir nuevos archivos:</strong></label>
                                 <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
                             </div>
                             <?php if (!empty($adjuntos)): ?>

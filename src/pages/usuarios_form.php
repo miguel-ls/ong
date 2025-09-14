@@ -2,8 +2,9 @@
 require_once __DIR__ . '/../database.php';
 
 // Solo los administradores pueden acceder
-if ($_SESSION['user_role'] !== 'administrador') {
-    echo "<p>Acceso denegado.</p>";
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'administrador') {
+    // Redirigir a la página de inicio con un mensaje de error
+    header('Location: index.php?page=inicio&error=acceso_denegado');
     exit();
 }
 

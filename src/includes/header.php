@@ -63,6 +63,7 @@
                     </li>
                     
                     
+                    <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'administrador'): ?>
                     <li>
                         <a href="#seguridadSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div><i class="fas fa-users"></i><span class="sidebar-item-text"> Seguridad</span></div>
@@ -72,6 +73,7 @@
                             <li><a href="index.php?page=usuarios"><span class="sidebar-item-text">Usuarios</span></a></li>
                         </ul>
                     </li>
+                    <?php endif; ?>
 
                     <hr>
                     <li><a href="index.php?page=perfil"><i class="fas fa-user-circle"></i><span class="sidebar-item-text"> Mi Perfil</span></a></li>

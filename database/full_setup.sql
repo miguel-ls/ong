@@ -79,13 +79,16 @@ CREATE TABLE IF NOT EXISTS `tipos_auxiliar` (
 CREATE TABLE IF NOT EXISTS `auxiliares` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `id_tipo_auxiliar` INT NOT NULL,
-  `tipo_doc_identidad` ENUM('RUC', 'DNI', 'CE', 'PASAPORTE', 'OTRO') NOT NULL,
-  `num_doc_identidad` VARCHAR(20) NOT NULL UNIQUE,
+  `id_tipo_documento_identidad` INT NOT NULL,
+  `num_doc_identidad` VARCHAR(20) NOT NULL,
   `razon_social_nombres` VARCHAR(255) NOT NULL,
   `direccion` VARCHAR(255),
   `telefono` VARCHAR(50),
   `email` VARCHAR(100),
+  `ubigeo` VARCHAR(6) DEFAULT NULL,
   `estado` BOOLEAN NOT NULL DEFAULT TRUE,
+  `TipoERP` CHAR(1) NULL,
+  `CodigoERP` VARCHAR(5) NULL,
   FOREIGN KEY (`id_tipo_auxiliar`) REFERENCES `tipos_auxiliar`(`id`)
 );
 
@@ -642,16 +645,19 @@ DROP PROCEDURE IF EXISTS sp_create_auxiliar;
 DELIMITER $$
 CREATE PROCEDURE `sp_create_auxiliar`(
     IN p_id_tipo_auxiliar INT,
-    IN p_tipo_doc_identidad ENUM('RUC', 'DNI', 'CE', 'PASAPORTE', 'OTRO'),
+    IN p_id_tipo_documento_identidad INT,
     IN p_num_doc_identidad VARCHAR(20),
     IN p_razon_social_nombres VARCHAR(255),
     IN p_direccion VARCHAR(255),
     IN p_telefono VARCHAR(50),
-    IN p_email VARCHAR(100)
+    IN p_email VARCHAR(100),
+    IN p_ubigeo VARCHAR(6),
+    IN p_TipoERP CHAR(1),
+    IN p_CodigoERP VARCHAR(5)
 )
 BEGIN
-    INSERT INTO auxiliares (id_tipo_auxiliar, tipo_doc_identidad, num_doc_identidad, razon_social_nombres, direccion, telefono, email)
-    VALUES (p_id_tipo_auxiliar, p_tipo_doc_identidad, p_num_doc_identidad, p_razon_social_nombres, p_direccion, p_telefono, p_email);
+    INSERT INTO auxiliares (id_tipo_auxiliar, id_tipo_documento_identidad, num_doc_identidad, razon_social_nombres, direccion, telefono, email, ubigeo, TipoERP, CodigoERP)
+    VALUES (p_id_tipo_auxiliar, p_id_tipo_documento_identidad, p_num_doc_identidad, p_razon_social_nombres, p_direccion, p_telefono, p_email, p_ubigeo, p_TipoERP, p_CodigoERP);
 END$$
 DELIMITER ;
 
@@ -660,7 +666,9 @@ DELIMITER $$
 CREATE PROCEDURE `sp_read_all_auxiliares`(
     IN p_nombre VARCHAR(255),
     IN p_num_doc VARCHAR(20),
-    IN p_tipo_aux INT
+    IN p_tipo_aux INT,
+    IN p_tipo_erp CHAR(1),
+    IN p_codigo_erp VARCHAR(5)
 )
 BEGIN
     SELECT a.*, ta.nombre as nombre_tipo_auxiliar
@@ -669,15 +677,16 @@ BEGIN
     WHERE
         (p_nombre IS NULL OR p_nombre = '' OR a.razon_social_nombres LIKE CONCAT('%', p_nombre, '%'))
         AND (p_num_doc IS NULL OR p_num_doc = '' OR a.num_doc_identidad LIKE CONCAT('%', p_num_doc, '%'))
-        AND (p_tipo_aux IS NULL OR p_tipo_aux = 0 OR a.id_tipo_auxiliar = p_tipo_aux);
+        AND (p_tipo_aux IS NULL OR p_tipo_aux = 0 OR a.id_tipo_auxiliar = p_tipo_aux)
+        AND (p_tipo_erp IS NULL OR p_tipo_erp = '' OR a.TipoERP LIKE CONCAT('%', p_tipo_erp, '%'))
+        AND (p_codigo_erp IS NULL OR p_codigo_erp = '' OR a.CodigoERP LIKE CONCAT('%', p_codigo_erp, '%'));
 END$$
 DELIMITER ;
 
 DROP PROCEDURE IF EXISTS sp_read_auxiliar_by_id;
-DELIMITER $$
 CREATE PROCEDURE `sp_read_auxiliar_by_id`(IN p_id INT)
 BEGIN
-    SELECT * FROM auxiliares WHERE id = p_id;
+    SELECT id, id_tipo_auxiliar, tipo_doc_identidad, num_doc_identidad, razon_social_nombres, direccion, telefono, email, estado, TipoERP, CodigoERP, id_tipo_documento_identidad, ubigeo FROM auxiliares WHERE id = p_id;
 END$$
 DELIMITER ;
 
@@ -686,25 +695,31 @@ DELIMITER $$
 CREATE PROCEDURE `sp_update_auxiliar`(
     IN p_id INT,
     IN p_id_tipo_auxiliar INT,
-    IN p_tipo_doc_identidad ENUM('RUC', 'DNI', 'CE', 'PASAPORTE', 'OTRO'),
+    IN p_id_tipo_documento_identidad INT,
     IN p_num_doc_identidad VARCHAR(20),
     IN p_razon_social_nombres VARCHAR(255),
     IN p_direccion VARCHAR(255),
     IN p_telefono VARCHAR(50),
     IN p_email VARCHAR(100),
-    IN p_estado BOOLEAN
+    IN p_ubigeo VARCHAR(6),
+    IN p_estado BOOLEAN,
+    IN p_TipoERP CHAR(1),
+    IN p_CodigoERP VARCHAR(5)
 )
 BEGIN
     UPDATE auxiliares
     SET
         id_tipo_auxiliar = p_id_tipo_auxiliar,
-        tipo_doc_identidad = p_tipo_doc_identidad,
+        id_tipo_documento_identidad = p_id_tipo_documento_identidad,
         num_doc_identidad = p_num_doc_identidad,
         razon_social_nombres = p_razon_social_nombres,
         direccion = p_direccion,
         telefono = p_telefono,
         email = p_email,
-        estado = p_estado
+        ubigeo = p_ubigeo,
+        estado = p_estado,
+        TipoERP = p_TipoERP,
+        CodigoERP = p_CodigoERP
     WHERE id = p_id;
 END$$
 DELIMITER ;

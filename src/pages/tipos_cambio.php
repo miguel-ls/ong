@@ -1,10 +1,6 @@
 <?php
 require_once __DIR__ . '/../database.php';
 
-if ($_SESSION['user_role'] !== 'administrador') {
-    echo "<p>Acceso denegado.</p>";
-    exit();
-}
 
 // Obtener los valores del filtro
 $filter_inicio = $_GET['fecha_inicio'] ?? null;

@@ -112,7 +112,7 @@ try {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const nodeRedUrl = '<?php echo NODE_RED; ?>';
-    const Emp_cCodigo = '<?php echo Emp_cCodigo; ?>';
+    const empresa = '<?php echo Emp_cCodigo; ?>';
     
     const yearSelect = document.getElementById('year');
     const monthSelect = document.getElementById('month');
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const requestBody = {
-            "Emp_cCodigo": Emp_cCodigo,
+            "Emp_cCodigo": empresa,
             "Pan_cAnio": year,
             "Per_cPeriodo": month
         };

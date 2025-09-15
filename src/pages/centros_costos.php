@@ -3,13 +3,14 @@ require_once __DIR__ . '/../database.php';
 
 
 // Obtener los valores del filtro
+$filter_year = $_GET['year'] ?? date('Y');
 $filter_codigo = $_GET['codigo'] ?? null;
 $filter_nombre = $_GET['nombre'] ?? null;
 
 try {
     $pdo = getDbConnection();
-    $stmt = $pdo->prepare("CALL sp_read_all_centros_costos(?, ?)");
-    $stmt->execute([$filter_codigo, $filter_nombre]);
+    $stmt = $pdo->prepare("CALL sp_read_all_centros_costos(?, ?, ?)");
+    $stmt->execute([$filter_year, $filter_codigo, $filter_nombre]);
     $items = $stmt->fetchAll();
 } catch (PDOException $e) {
     die("Error al obtener los centros de costos: " . $e->getMessage());
@@ -41,6 +42,15 @@ try {
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="centros_costos">
         <div class="form-group">
+            <label for="year">Año</label>
+            <select id="year" name="year" class="form-control">
+                <option value="0">Todos</option>
+                <?php for ($y = date('Y'); $y >= 2020; $y--): ?>
+                    <option value="<?= $y ?>" <?= ($filter_year == $y) ? 'selected' : '' ?>><?= $y ?></option>
+                <?php endfor; ?>
+            </select>
+        </div>
+        <div class="form-group">
             <label for="codigo">Código</label>
             <input type="text" id="codigo" name="codigo" value="<?= htmlspecialchars($filter_codigo ?? '') ?>">
         </div>
@@ -55,6 +65,7 @@ try {
         <thead>
             <tr>
                 <th>ID</th>
+                <th>Año</th>
                 <th>Código</th>
                 <th>Nombre</th>
                 <th>Descripción</th>
@@ -66,6 +77,7 @@ try {
             <?php foreach ($items as $item): ?>
             <tr>
                 <td><?= htmlspecialchars($item['id']) ?></td>
+                <td><?= htmlspecialchars($item['anio']) ?></td>
                 <td><?= htmlspecialchars($item['codigo']) ?></td>
                 <td><?= htmlspecialchars($item['nombre']) ?></td>
                 <td><?= htmlspecialchars($item['descripcion']) ?></td>

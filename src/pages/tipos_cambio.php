@@ -188,12 +188,22 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .then(data => {
-            alert(data.message || 'Migración completada con éxito.');
-            location.reload(); // Reload the page to show new data
+            if (data.status === 'success') {
+                if (data.data && data.data.inserted > 0) {
+                    showAlertModal(`Se insertaron ${data.data.inserted} registros.`);
+                } else {
+                    showAlertModal('No se encontraron registros a migrar.');
+                }
+                // Reload after a short delay to allow the user to read the modal
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                // Handle cases where status is not 'success'
+                throw new Error(data.message || 'La migración falló pero el servidor no especificó un error.');
+            }
         })
         .catch(error => {
             console.error('Error en la migración:', error);
-            alert(`Ocurrió un error durante la migración: ${error.message}`);
+            showAlertModal(`Ocurrió un error durante la migración: ${error.message}`);
         })
         .finally(() => {
             // Re-enable button

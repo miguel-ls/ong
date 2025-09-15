@@ -3,14 +3,15 @@ require_once __DIR__ . '/../database.php';
 
 
 // Obtener los valores del filtro
+$filter_año = $_GET['año'] ?? null;
 $filter_codigo = $_GET['codigo'] ?? null;
 $filter_nombre = $_GET['nombre'] ?? null;
 $filter_tipo = $_GET['tipo'] ?? null;
 
 try {
     $pdo = getDbConnection();
-    $stmt = $pdo->prepare("CALL sp_read_all_conceptos(?, ?, ?)");
-    $stmt->execute([$filter_codigo, $filter_nombre, $filter_tipo]);
+    $stmt = $pdo->prepare("CALL sp_read_all_conceptos(?, ?, ?, ?)");
+    $stmt->execute([$filter_año, $filter_codigo, $filter_nombre, $filter_tipo]);
     $items = $stmt->fetchAll();
 } catch (PDOException $e) {
     die("Error al obtener los conceptos: " . $e->getMessage());
@@ -42,6 +43,13 @@ try {
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="conceptos">
         <div class="form-group">
+            <label for="año">Año</label>
+            <select id="año" name="año">
+                <option value="">Todos</option>
+                <!-- Opciones de año se cargarán aquí -->
+            </select>
+        </div>
+        <div class="form-group">
             <label for="codigo">Código</label>
             <input type="text" id="codigo" name="codigo" value="<?= htmlspecialchars($filter_codigo ?? '') ?>">
         </div>
@@ -68,6 +76,7 @@ try {
                 <th>Nombre</th>
                 <th>Tipo</th>
                 <th>Descripción</th>
+                <th>Año</th>
                 <th>Cta. Contable</th>
                 <th>Estado</th>
                 <th>Acciones</th>
@@ -81,6 +90,7 @@ try {
                 <td><?= htmlspecialchars($item['nombre']) ?></td>
                 <td><?= htmlspecialchars($item['tipo']) ?></td>
                 <td><?= htmlspecialchars($item['descripcion']) ?></td>
+                <td><?= htmlspecialchars($item['año']) ?></td>
                 <td><?= htmlspecialchars($item['cuenta_contable']) ?></td>
                 <td><?= $item['estado'] ? 'Activo' : 'Inactivo' ?></td>
                 <td>
@@ -92,3 +102,31 @@ try {
         </tbody>
     </table>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const anioSelect = document.getElementById('año');
+    const selectedAnio = "<?= htmlspecialchars($filter_año ?? '') ?>";
+
+    fetch('../src/ajax/get_conceptos_years.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error del servidor:', data.error);
+                return;
+            }
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.año;
+                option.textContent = item.año;
+                if (item.año == selectedAnio) {
+                    option.selected = true;
+                }
+                anioSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error al cargar los años:', error);
+        });
+});
+</script>

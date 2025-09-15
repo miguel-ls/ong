@@ -13,23 +13,25 @@ $pdo = getDbConnection();
 try {
     switch ($action) {
         case 'create':
-            $stmt = $pdo->prepare("CALL sp_create_concepto(?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_create_concepto(?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['codigo'],
                 $_POST['nombre'],
                 $_POST['descripcion'],
                 $_POST['tipo'],
+                $_POST['año'],
                 $_POST['cuenta_contable']
             ]);
             break;
 
         case 'update':
-            $stmt = $pdo->prepare("CALL sp_update_concepto(?, ?, ?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_update_concepto(?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id'],
                 $_POST['nombre'],
                 $_POST['descripcion'],
                 $_POST['tipo'],
+                $_POST['año'],
                 $_POST['estado'],
                 $_POST['cuenta_contable']
             ]);

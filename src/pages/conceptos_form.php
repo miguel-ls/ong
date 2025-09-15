@@ -56,6 +56,12 @@ if (isset($_GET['id'])) {
             </select>
         </div>
         <div class="form-group">
+            <label for="año">Año</label>
+            <select id="año" name="año" required>
+                <!-- Opciones de año se cargarán aquí -->
+            </select>
+        </div>
+        <div class="form-group">
             <label for="cuenta_contable_display">Cuenta Contable</label>
             <input type="text" id="cuenta_contable_display" name="cuenta_contable_display" list="cuentas_contables_list" value="" maxlength="150" autocomplete="off" placeholder="Escriba para buscar...">
             <input type="hidden" id="cuenta_contable" name="cuenta_contable" value="<?= htmlspecialchars($item['cuenta_contable'] ?? '') ?>">
@@ -133,5 +139,60 @@ document.addEventListener('DOMContentLoaded', function() {
             hiddenInput.value = '';
         }
     });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const anioSelect = document.getElementById('año');
+    const currentAnio = "<?= htmlspecialchars($item['año'] ?? '') ?>";
+
+    // Si no hay años, podemos agregar el actual o dejarlo vacío
+    // Para este caso, vamos a buscar los años disponibles
+    fetch('../src/ajax/get_conceptos_years.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error del servidor:', data.error);
+                return;
+            }
+
+            // Si no hay años en la BD, se puede agregar el año actual como opción
+            let years = data.map(item => item.año);
+            if (years.length === 0) {
+                const currentServerYear = new Date().getFullYear();
+                years.push(currentServerYear);
+            }
+
+            // Si estamos editando y el año del item no está en la lista, lo agregamos
+            if (currentAnio && !years.includes(parseInt(currentAnio))) {
+                years.push(parseInt(currentAnio));
+                years.sort((a, b) => b - a); // Re-ordenar descendente
+            }
+
+            anioSelect.innerHTML = ''; // Limpiar opciones existentes
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                if (year == currentAnio) {
+                    option.selected = true;
+                }
+                anioSelect.appendChild(option);
+            });
+
+            // Si no hay año seleccionado (ej. en 'crear'), y hay años, seleccionar el más reciente
+            if (!currentAnio && years.length > 0) {
+                 anioSelect.value = years[0];
+            }
+        })
+        .catch(error => {
+            console.error('Error al cargar los años:', error);
+            // Fallback: agregar solo el año actual si la carga falla
+            const option = document.createElement('option');
+            const year = new Date().getFullYear();
+            option.value = year;
+            option.textContent = year;
+            anioSelect.appendChild(option);
+            anioSelect.value = year;
+        });
 });
 </script>

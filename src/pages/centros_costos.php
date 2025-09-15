@@ -40,7 +40,7 @@ try {
 <section>
     <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
         <a href="index.php?page=centros_costos_form" class="btn btn-add" style="display: inline-block;">Añadir Nuevo Centro de Costo</a>
-        <button id="btnMigrarCc" class="btn btn-primary" style="background-color: #007bff; border: none; cursor: pointer; color: white; padding: 5px 10px; border-radius: 4px;">Migrar CC</button>
+        <a href="#" id="btnMigrarCc" class="btn btn-primary" role="button" style="background-color: #007bff; text-decoration: none;">Migrar CC</a>
     </div>
 
     <form action="index.php" method="GET" class="filter-form">
@@ -102,7 +102,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearSelect = document.getElementById('year');
     const migrarCcBtn = document.getElementById('btnMigrarCc');
 
-    migrarCcBtn.addEventListener('click', function() {
+    migrarCcBtn.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent the link from navigating
         const year = yearSelect.value;
 
         if (!year || year === '0') {

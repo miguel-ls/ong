@@ -44,8 +44,9 @@ if ($is_edit) {
 $proyectos = $pdo->query("CALL sp_read_proyectos_for_dropdown()")->fetchAll(PDO::FETCH_ASSOC);
 $tipos_documento = $pdo->query("CALL sp_read_tipos_documento_for_dropdown()")->fetchAll(PDO::FETCH_ASSOC);
 $auxiliares = $pdo->query("CALL sp_read_auxiliares_for_dropdown()")->fetchAll(PDO::FETCH_ASSOC);
-$conceptos = $pdo->query("CALL sp_read_conceptos_for_dropdown()")->fetchAll(PDO::FETCH_ASSOC);
-$centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetchAll(PDO::FETCH_ASSOC);
+// The concepts and centros_costo will now be loaded via AJAX based on the selected year.
+$conceptos = [];
+$centros_costo = [];
 
 ?>
 
@@ -138,10 +139,7 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
                                     <div class="col-md-4 mb-3">
                                         <label for="id_centro_costo" class="form-label">Centro de Costo</label>
                                          <select class="form-select" id="id_centro_costo" name="id_centro_costo" required>
-                                            <option value="">Seleccione</option>
-                                            <?php foreach($centros_costo as $cc): ?>
-                                            <option value="<?= $cc['id'] ?>" <?= ($header && $header['id_centro_costo'] == $cc['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cc['nombre']) ?></option>
-                                            <?php endforeach; ?>
+                                            <option value="">Seleccione un año</option>
                                         </select>
                                     </div>
                                 </div>
@@ -247,19 +245,13 @@ $centros_costo = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetc
         <td><input type="number" class="form-control form-control-sm" name="cantidad" step="0.01" required></td>
         <td>
             <select class="form-select form-select-sm" name="id_concepto" required>
-                <option value="">Seleccione</option>
-                <?php foreach($conceptos as $c): ?>
-                <option value="<?= $c['id'] ?>"><?= htmlspecialchars($c['nombre']) ?></option>
-                <?php endforeach; ?>
+                <option value="">Seleccione un año</option>
             </select>
         </td>
         <td><input type="text" class="form-control form-control-sm" name="descripcion"></td>
         <td>
             <select class="form-select form-select-sm" name="id_centro_costo" required>
-                <option value="">Seleccione</option>
-                <?php foreach($centros_costo as $cc): ?>
-                <option value="<?= $cc['id'] ?>"><?= htmlspecialchars($cc['nombre']) ?></option>
-                <?php endforeach; ?>
+                <option value="">Seleccione un año</option>
             </select>
         </td>
         <td><input type="number" class="form-control form-control-sm" name="precio_unitario" step="0.0001" required></td>
@@ -574,6 +566,100 @@ document.addEventListener('DOMContentLoaded', function() {
             direction: 'asc'
         }
     });
+});
+</script>
+
+<script>
+// Script para cargar dinámicamente los desplegables basados en el año
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaEmisionInput = document.getElementById('fecha_emision');
+    const headerCentroCostoSelect = document.getElementById('id_centro_costo');
+    const template = document.getElementById('detalleRowTemplate');
+    const templateConceptoSelect = template.content.querySelector('[name="id_concepto"]');
+    const templateCentroCostoSelect = template.content.querySelector('[name="id_centro_costo"]');
+
+    /**
+     * Rellena un elemento <select> con opciones.
+     * @param {HTMLSelectElement} selectElement - El elemento select a rellenar.
+     * @param {Array} options - Un array de objetos, cada uno con 'id' y 'nombre'.
+     * @param {string} [placeholder='Seleccione'] - El texto para la opción por defecto.
+     */
+    function updateSelectWithOptions(selectElement, options, placeholder = 'Seleccione') {
+        selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+        if (Array.isArray(options)) {
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.id;
+                option.textContent = opt.nombre;
+                selectElement.appendChild(option);
+            });
+        }
+    }
+
+    /**
+     * Carga los datos de los desplegables de Centros de Costo y Conceptos para un año dado.
+     * @param {number} year - El año para el cual se deben cargar los datos.
+     */
+    function loadDropdownData(year) {
+        if (!year) return;
+
+        // Cargar Centros de Costo
+        fetch(`../src/ajax/get_centros_costos_for_dropdown.php?año=${year}`)
+            .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
+            .then(data => {
+                const currentHeaderCC = headerCentroCostoSelect.value;
+                updateSelectWithOptions(headerCentroCostoSelect, data);
+                if (Array.isArray(data) && data.some(d => d.id == currentHeaderCC)) {
+                    headerCentroCostoSelect.value = currentHeaderCC;
+                }
+
+                updateSelectWithOptions(templateCentroCostoSelect, data);
+
+                document.querySelectorAll('#detalleBody [name="id_centro_costo"]').forEach(select => {
+                    const currentVal = select.value;
+                    updateSelectWithOptions(select, data);
+                    if (Array.isArray(data) && data.some(d => d.id == currentVal)) {
+                        select.value = currentVal;
+                    }
+                });
+            })
+            .catch(error => console.error('Error al cargar Centros de Costo:', error));
+
+        // Cargar Conceptos
+        fetch(`../src/ajax/get_conceptos_for_dropdown.php?año=${year}`)
+            .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
+            .then(data => {
+                updateSelectWithOptions(templateConceptoSelect, data);
+                document.querySelectorAll('#detalleBody [name="id_concepto"]').forEach(select => {
+                    const currentVal = select.value;
+                    updateSelectWithOptions(select, data);
+                     if (Array.isArray(data) && data.some(d => d.id == currentVal)) {
+                        select.value = currentVal;
+                    }
+                });
+            })
+            .catch(error => console.error('Error al cargar Conceptos:', error));
+    }
+
+    // --- Event Listeners ---
+    fechaEmisionInput.addEventListener('change', function() {
+        const date = this.value;
+        if (date) {
+            const year = new Date(date + 'T00:00:00').getFullYear();
+
+            // Limpiar selecciones dependientes
+            headerCentroCostoSelect.value = '';
+            document.querySelectorAll('#detalleBody select').forEach(s => s.value = '');
+
+            loadDropdownData(year);
+        }
+    });
+
+    // --- Inicialización ---
+    if (fechaEmisionInput.value) {
+        const initialYear = new Date(fechaEmisionInput.value + 'T00:00:00').getFullYear();
+        loadDropdownData(initialYear);
+    }
 });
 </script>
 <?php

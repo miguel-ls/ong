@@ -39,6 +39,18 @@ if (isset($_GET['id'])) {
         <?php endif; ?>
 
         <div class="form-group">
+            <label for="anio">Año</label>
+            <select id="anio" name="anio" required>
+                <?php
+                $current_year = date('Y');
+                for ($y = $current_year; $y >= 2020; $y--):
+                    $selected = (isset($item['anio']) && $item['anio'] == $y) ? 'selected' : '';
+                ?>
+                    <option value="<?= $y ?>" <?= $selected ?>><?= $y ?></option>
+                <?php endfor; ?>
+            </select>
+        </div>
+        <div class="form-group">
             <label for="codigo">Código</label>
             <input type="text" id="codigo" name="codigo" value="<?= htmlspecialchars($item['codigo'] ?? '') ?>" required <?= $is_edit ? 'readonly' : '' ?>>
         </div>
@@ -60,6 +72,9 @@ if (isset($_GET['id'])) {
         </div>
         <?php endif; ?>
 
-        <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Centro de Costo</button>
+        <div class="form-buttons" style="display: flex; gap: 10px;">
+            <button type="submit" class="btn-submit"><?= $is_edit ? 'Actualizar' : 'Crear' ?> Centro de Costo</button>
+            <a href="index.php?page=centros_costos" class="btn btn-secondary" style="background-color: #6c757d; text-decoration: none; padding: 10px 15px; border-radius: 4px; color: white;">Cancelar</a>
+        </div>
     </form>
 </section>

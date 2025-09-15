@@ -13,8 +13,9 @@ $pdo = getDbConnection();
 try {
     switch ($action) {
         case 'create':
-            $stmt = $pdo->prepare("CALL sp_create_centro_costo(?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_create_centro_costo(?, ?, ?, ?)");
             $stmt->execute([
+                $_POST['anio'],
                 $_POST['codigo'],
                 $_POST['nombre'],
                 $_POST['descripcion']
@@ -22,9 +23,10 @@ try {
             break;
 
         case 'update':
-            $stmt = $pdo->prepare("CALL sp_update_centro_costo(?, ?, ?, ?)");
+            $stmt = $pdo->prepare("CALL sp_update_centro_costo(?, ?, ?, ?, ?)");
             $stmt->execute([
                 $_POST['id'],
+                $_POST['anio'],
                 $_POST['nombre'],
                 $_POST['descripcion'],
                 $_POST['estado']

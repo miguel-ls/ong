@@ -5,6 +5,12 @@ require_once __DIR__ . '/../database.php';
 // Obtener los valores del filtro
 $filter_inicio = $_GET['fecha_inicio'] ?? null;
 $filter_fin = $_GET['fecha_fin'] ?? null;
+$filter_year = $_GET['year'] ?? date('Y');
+$filter_month = $_GET['month'] ?? date('m');
+$meses = [
+    1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio',
+    7 => 'Julio', 8 => 'Agosto', 9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+];
 
 try {
     $pdo = getDbConnection();
@@ -40,6 +46,25 @@ try {
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="tipos_cambio">
+
+        <div class="form-group">
+            <label for="year">Año</label>
+            <select id="year" name="year" class="form-control">
+                <?php for ($y = date('Y'); $y >= 2020; $y--): ?>
+                    <option value="<?= $y ?>" <?= ($filter_year == $y) ? 'selected' : '' ?>><?= $y ?></option>
+                <?php endfor; ?>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="month">Mes</label>
+            <select id="month" name="month" class="form-control">
+                <?php foreach ($meses as $num => $nombre): ?>
+                    <option value="<?= str_pad($num, 2, '0', STR_PAD_LEFT) ?>" <?= ($filter_month == $num) ? 'selected' : '' ?>><?= $nombre ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
         <div class="form-group">
             <label for="fecha_inicio">Fecha Desde</label>
             <input type="date" id="fecha_inicio" name="fecha_inicio" value="<?= htmlspecialchars($filter_inicio ?? '') ?>">
@@ -77,3 +102,45 @@ try {
         </tbody>
     </table>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const yearSelect = document.getElementById('year');
+    const monthSelect = document.getElementById('month');
+    const startDateInput = document.getElementById('fecha_inicio');
+    const endDateInput = document.getElementById('fecha_fin');
+
+    function updateDateFields() {
+        const year = parseInt(yearSelect.value, 10);
+        const month = parseInt(monthSelect.value, 10);
+
+        if (!year || !month) {
+            return;
+        }
+
+        // Calculate the first day of the month
+        const startDate = new Date(year, month - 1, 1);
+
+        // Calculate the last day of the month
+        const endDate = new Date(year, month, 0);
+
+        // Format dates as YYYY-MM-DD
+        const startDateStr = startDate.toISOString().split('T')[0];
+        const endDateStr = endDate.toISOString().split('T')[0];
+
+        // Set the values of the date inputs
+        startDateInput.value = startDateStr;
+        endDateInput.value = endDateStr;
+    }
+
+    // Add event listeners
+    yearSelect.addEventListener('change', updateDateFields);
+    monthSelect.addEventListener('change', updateDateFields);
+
+    // Initial call on page load to set dates if year/month are pre-selected,
+    // but only if the date fields are not already filled from a specific GET request.
+    if (!startDateInput.value && !endDateInput.value) {
+        updateDateFields();
+    }
+});
+</script>

@@ -14,22 +14,6 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style/dist/xlsx.bundle.js"></script>
 </head>
 <body>
-    <?php
-    // Get current page, if set
-    $currentPage = $_GET['page'] ?? '';
-
-    // Define menu structures
-    $mantenimientoPages = ['proyectos', 'sub_proyectos', 'centros_costos', 'conceptos', 'tipos_documento', 'tipos_documento_identidad', 'tipos_auxiliar'];
-    $operacionesPages = ['tipos_cambio', 'auxiliares', 'ingreso_documentos'];
-    $reportesPages = ['reportes'];
-    $seguridadPages = ['usuarios'];
-
-    // Determine which submenu is active
-    $isMantenimientoActive = in_array($currentPage, $mantenimientoPages);
-    $isOperacionesActive = in_array($currentPage, $operacionesPages);
-    $isReportesActive = in_array($currentPage, $reportesPages);
-    $isSeguridadActive = in_array($currentPage, $seguridadPages);
-    ?>
     <div class="container-fluid">
         <div class="main-wrapper">
             <aside class="sidebar">
@@ -41,10 +25,11 @@
                 <ul>
                     <li><a href="index.php?page=inicio"><i class="fas fa-home"></i><span class="sidebar-item-text"> Inicio</span></a></li>
                     <li>
-                        <a href="#mantenimientoSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="<?php echo $isMantenimientoActive ? 'true' : 'false'; ?>" aria-controls="mantenimientoSubmenu" class="dropdown-toggle <?php echo $isMantenimientoActive ? 'active' : ''; ?>">
+                        <a href="#mantenimientoSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div><i class="fas fa-cogs"></i><span class="sidebar-item-text"> Mantenimiento</span></div>
+
                         </a>
-                        <ul class="collapse list-unstyled <?php echo $isMantenimientoActive ? 'show' : ''; ?>" id="mantenimientoSubmenu">
+                        <ul class="collapse list-unstyled" id="mantenimientoSubmenu">
                             <li><a href="index.php?page=proyectos"><span class="sidebar-item-text">Proyectos</span></a></li>
                             <li><a href="index.php?page=sub_proyectos"><span class="sidebar-item-text">Sub Proyectos</span></a></li>
                             <li><a href="index.php?page=centros_costos"><span class="sidebar-item-text">Centros de Costos</span></a></li>
@@ -55,33 +40,41 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="#operacionesSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="<?php echo $isOperacionesActive ? 'true' : 'false'; ?>" aria-controls="operacionesSubmenu" class="dropdown-toggle <?php echo $isOperacionesActive ? 'active' : ''; ?>">
+                        <a href="#operacionesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div><i class="fas fa-file-invoice-dollar"></i><span class="sidebar-item-text"> Operaciones</span></div>
+
                         </a>
-                        <ul class="collapse list-unstyled <?php echo $isOperacionesActive ? 'show' : ''; ?>" id="operacionesSubmenu">
+                        <ul class="collapse list-unstyled" id="operacionesSubmenu">
                             <li><a href="index.php?page=tipos_cambio"><span class="sidebar-item-text">Tipo de Cambio</span></a></li>                            
                             <li><a href="index.php?page=auxiliares"><span class="sidebar-item-text">Auxiliares</span></a></li>                            
                             <li><a href="index.php?page=ingreso_documentos"><span class="sidebar-item-text">Ingreso de documentos</span></a></li>
                         </ul>
                     </li>
+
+
                     <li>
-                        <a href="#reportesSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="<?php echo $isReportesActive ? 'true' : 'false'; ?>" aria-controls="reportesSubmenu" class="dropdown-toggle <?php echo $isReportesActive ? 'active' : ''; ?>">
+                        <a href="#reportesSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div><i class="fas fa-chart-bar"></i><span class="sidebar-item-text"> Reportes</span></div>
+
                         </a>
-                        <ul class="collapse list-unstyled <?php echo $isReportesActive ? 'show' : ''; ?>" id="reportesSubmenu">
+                        <ul class="collapse list-unstyled" id="reportesSubmenu">
                             <li><a href="index.php?page=reportes"><span class="sidebar-item-text"> Reportes de Documentos</span></a></li>
                         </ul>
                     </li>
+
+
                     <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'administrador'): ?>
                     <li>
-                        <a href="#seguridadSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="<?php echo $isSeguridadActive ? 'true' : 'false'; ?>" aria-controls="seguridadSubmenu" class="dropdown-toggle <?php echo $isSeguridadActive ? 'active' : ''; ?>">
+                        <a href="#seguridadSubmenu" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
                             <div><i class="fas fa-users"></i><span class="sidebar-item-text"> Seguridad</span></div>
+
                         </a>
-                        <ul class="collapse list-unstyled <?php echo $isSeguridadActive ? 'show' : ''; ?>" id="seguridadSubmenu">
+                        <ul class="collapse list-unstyled" id="seguridadSubmenu">
                             <li><a href="index.php?page=usuarios"><span class="sidebar-item-text">Usuarios</span></a></li>
                         </ul>
                     </li>
                     <?php endif; ?>
+
                     <hr>
                     <li><a href="index.php?page=perfil"><i class="fas fa-user-circle"></i><span class="sidebar-item-text"> Mi Perfil</span></a></li>
                     <li><a href="../src/actions/logout_process.php"><i class="fas fa-sign-out-alt"></i><span class="sidebar-item-text"> Cerrar Sesión</span></a></li>

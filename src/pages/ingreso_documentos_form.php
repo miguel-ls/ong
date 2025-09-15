@@ -139,7 +139,7 @@ $centros_costo = [];
                                     <div class="col-md-4 mb-3">
                                         <label for="id_centro_costo" class="form-label">Centro de Costo</label>
                                          <select class="form-select" id="id_centro_costo" name="id_centro_costo" required>
-                                            <option value="">Seleccione un año</option>
+                                            <option value="">Seleccione</option>
                                         </select>
                                     </div>
                                 </div>
@@ -245,13 +245,13 @@ $centros_costo = [];
         <td><input type="number" class="form-control form-control-sm" name="cantidad" step="0.01" required></td>
         <td>
             <select class="form-select form-select-sm" name="id_concepto" required>
-                <option value="">Seleccione un año</option>
+                <option value="">Seleccione</option>
             </select>
         </td>
         <td><input type="text" class="form-control form-control-sm" name="descripcion"></td>
         <td>
             <select class="form-select form-select-sm" name="id_centro_costo" required>
-                <option value="">Seleccione un año</option>
+                <option value="">Seleccione</option>
             </select>
         </td>
         <td><input type="number" class="form-control form-control-sm" name="precio_unitario" step="0.0001" required></td>
@@ -585,14 +585,25 @@ document.addEventListener('DOMContentLoaded', function() {
      * @param {string} [placeholder='Seleccione'] - El texto para la opción por defecto.
      */
     function updateSelectWithOptions(selectElement, options, placeholder = 'Seleccione') {
+        const currentValue = selectElement.value;
         selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+
+        let valueExistsInNewOptions = false;
         if (Array.isArray(options)) {
             options.forEach(opt => {
                 const option = document.createElement('option');
                 option.value = opt.id;
                 option.textContent = opt.nombre;
                 selectElement.appendChild(option);
+                if (option.value == currentValue) {
+                    valueExistsInNewOptions = true;
+                }
             });
+        }
+
+        // Si el valor anterior sigue siendo válido, lo re-seleccionamos.
+        if (valueExistsInNewOptions) {
+            selectElement.value = currentValue;
         }
     }
 
@@ -607,20 +618,10 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`../src/ajax/get_centros_costos_for_dropdown.php?año=${year}`)
             .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
             .then(data => {
-                const currentHeaderCC = headerCentroCostoSelect.value;
-                updateSelectWithOptions(headerCentroCostoSelect, data);
-                if (Array.isArray(data) && data.some(d => d.id == currentHeaderCC)) {
-                    headerCentroCostoSelect.value = currentHeaderCC;
-                }
-
-                updateSelectWithOptions(templateCentroCostoSelect, data);
-
+                updateSelectWithOptions(headerCentroCostoSelect, data, 'Seleccione Centro de Costo');
+                updateSelectWithOptions(templateCentroCostoSelect, data, 'Seleccione Centro de Costo');
                 document.querySelectorAll('#detalleBody [name="id_centro_costo"]').forEach(select => {
-                    const currentVal = select.value;
-                    updateSelectWithOptions(select, data);
-                    if (Array.isArray(data) && data.some(d => d.id == currentVal)) {
-                        select.value = currentVal;
-                    }
+                    updateSelectWithOptions(select, data, 'Seleccione Centro de Costo');
                 });
             })
             .catch(error => console.error('Error al cargar Centros de Costo:', error));
@@ -629,13 +630,9 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`../src/ajax/get_conceptos_for_dropdown.php?año=${year}`)
             .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
             .then(data => {
-                updateSelectWithOptions(templateConceptoSelect, data);
+                updateSelectWithOptions(templateConceptoSelect, data, 'Seleccione Concepto');
                 document.querySelectorAll('#detalleBody [name="id_concepto"]').forEach(select => {
-                    const currentVal = select.value;
-                    updateSelectWithOptions(select, data);
-                     if (Array.isArray(data) && data.some(d => d.id == currentVal)) {
-                        select.value = currentVal;
-                    }
+                    updateSelectWithOptions(select, data, 'Seleccione Concepto');
                 });
             })
             .catch(error => console.error('Error al cargar Conceptos:', error));

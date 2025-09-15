@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Event Listeners ---
 
     // Cuando el valor del año cambia, limpia el campo de cuenta y recarga las cuentas.
-    anioInput.addEventListener('change', function() {
+    anioInput.addEventListener('input', function() {
         cuentaDisplayInput.value = '';
         cuentaHiddenInput.value = '';
         loadCuentasContables(this.value);

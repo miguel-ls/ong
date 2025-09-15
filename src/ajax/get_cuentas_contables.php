@@ -13,7 +13,14 @@ try {
 
     // El SP espera los parámetros de la empresa y el año
     $empresaCodigo = defined('Emp_cCodigo') ? Emp_cCodigo : '';
-    $anio = defined('Pan_cAnio') ? Pan_cAnio : '';
+    $anio = $_GET['año'] ?? null;
+
+    // Si no se proporciona un año, no se pueden obtener las cuentas.
+    if (!$anio) {
+        header('Content-Type: application/json');
+        echo json_encode([]);
+        exit();
+    }
 
     $stmt = $pdo->prepare("CALL sp_get_cuentas_contables(?, ?)");
     $stmt->execute([$empresaCodigo, $anio]);

@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../../config/config.php';
 
 
 // Obtener los valores del filtro
@@ -37,7 +38,10 @@ try {
     <h1>Mantenimiento de Centros de Costos</h1>
 </header>
 <section>
-    <a href="index.php?page=centros_costos_form" class="btn btn-add">Añadir Nuevo Centro de Costo</a>
+    <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <a href="index.php?page=centros_costos_form" class="btn btn-add" style="display: inline-block;">Añadir Nuevo Centro de Costo</a>
+        <button id="btnMigrarCc" class="btn btn-primary" style="background-color: #007bff; border: none; cursor: pointer; color: white; padding: 5px 10px; border-radius: 4px;">Migrar CC</button>
+    </div>
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="centros_costos">
@@ -91,3 +95,59 @@ try {
         </tbody>
     </table>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nodeRedUrl = '<?php echo NODE_RED; ?>';
+    const yearSelect = document.getElementById('year');
+    const migrarCcBtn = document.getElementById('btnMigrarCc');
+
+    migrarCcBtn.addEventListener('click', function() {
+        const year = yearSelect.value;
+
+        if (!year || year === '0') {
+            showAlertModal('Por favor, seleccione un año específico para la migración.');
+            return;
+        }
+
+        const requestBody = {
+            "Emp_cCodigo": "088",
+            "Pan_cAnio": year
+        };
+
+        migrarCcBtn.disabled = true;
+        migrarCcBtn.textContent = 'Migrando...';
+
+        fetch(`${nodeRedUrl}/maestros/migraracc`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error del servidor: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                if (data.data && data.data.inserted > 0) {
+                    showAlertModal(`Se insertaron ${data.data.inserted} registros.`);
+                } else {
+                    showAlertModal('No se encontraron registros a migrar.');
+                }
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                throw new Error(data.message || 'La migración falló.');
+            }
+        })
+        .catch(error => {
+            showAlertModal(`Ocurrió un error: ${error.message}`);
+        })
+        .finally(() => {
+            migrarCcBtn.disabled = false;
+            migrarCcBtn.textContent = 'Migrar CC';
+        });
+    });
+});
+</script>

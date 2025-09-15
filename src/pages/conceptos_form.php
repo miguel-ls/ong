@@ -57,9 +57,7 @@ if (isset($_GET['id'])) {
         </div>
         <div class="form-group">
             <label for="año">Año</label>
-            <select id="año" name="año" required>
-                <!-- Opciones de año se cargarán aquí -->
-            </select>
+            <input type="number" id="año" name="año" value="<?= htmlspecialchars($item['año'] ?? date('Y')) ?>" required min="1990" max="2100" placeholder="YYYY">
         </div>
         <div class="form-group">
             <label for="cuenta_contable_display">Cuenta Contable</label>
@@ -91,22 +89,24 @@ if (isset($_GET['id'])) {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Elementos del DOM
-    const anioSelect = document.getElementById('año');
+    const anioInput = document.getElementById('año');
     const cuentaDisplayInput = document.getElementById('cuenta_contable_display');
     const cuentaHiddenInput = document.getElementById('cuenta_contable');
     const cuentaDataList = document.getElementById('cuentas_contables_list');
 
     // Estado
     let accountsData = [];
-    const initialCuentaCode = cuentaHiddenInput.value;
 
     /**
      * Carga las cuentas contables para un año específico.
      * @param {string} year - El año para el cual cargar las cuentas.
+     * @param {function} [onComplete] - Callback a ejecutar cuando la carga es exitosa.
      */
-    function loadCuentasContables(year) {
-        if (!year) {
+    function loadCuentasContables(year, onComplete) {
+        // Valida que el año sea un número de 4 dígitos.
+        if (!year || !/^\d{4}$/.test(year)) {
             cuentaDataList.innerHTML = '';
+            accountsData = [];
             return;
         }
 
@@ -127,70 +127,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     cuentaDataList.appendChild(option);
                 });
 
-                // Si el código de cuenta inicial existe, intenta establecer el valor de visualización.
-                // Esto es importante para el modo de edición.
-                if (initialCuentaCode) {
-                    const account = accountsData.find(acc => acc.value === initialCuentaCode);
-                    if (account) {
-                        cuentaDisplayInput.value = account.text;
-                    } else {
-                        // La cuenta guardada no es válida para este año, así que la limpiamos.
-                        cuentaDisplayInput.value = '';
-                        cuentaHiddenInput.value = '';
-                    }
+                if (onComplete) {
+                    onComplete();
                 }
             })
             .catch(error => console.error('Error al cargar las cuentas contables:', error));
     }
 
-    /**
-     * Carga los años disponibles en el desplegable de años.
-     */
-    function loadAnios() {
-        const currentAnio = "<?= htmlspecialchars($item['año'] ?? '') ?>";
-
-        fetch('../src/ajax/get_conceptos_years.php')
-            .then(response => response.json())
-            .then(data => {
-                let years = data.map(item => item.año);
-                if (years.length === 0) years.push(new Date().getFullYear());
-                if (currentAnio && !years.includes(parseInt(currentAnio))) {
-                    years.push(parseInt(currentAnio));
-                    years.sort((a, b) => b - a);
-                }
-
-                anioSelect.innerHTML = '';
-                years.forEach(year => {
-                    const option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = year;
-                    if (year == currentAnio) option.selected = true;
-                    anioSelect.appendChild(option);
-                });
-
-                if (!currentAnio && years.length > 0) {
-                    anioSelect.value = years[0];
-                }
-
-                // Una vez que los años están cargados y seleccionados, carga las cuentas contables.
-                loadCuentasContables(anioSelect.value);
-            })
-            .catch(error => {
-                console.error('Error al cargar los años:', error);
-                // Fallback
-                const option = document.createElement('option');
-                const year = new Date().getFullYear();
-                option.value = year;
-                option.textContent = year;
-                anioSelect.appendChild(option);
-                loadCuentasContables(year);
-            });
-    }
-
     // --- Event Listeners ---
 
-    // Cuando el año cambia, limpia el campo de cuenta y recarga las cuentas.
-    anioSelect.addEventListener('change', function() {
+    // Cuando el valor del año cambia, limpia el campo de cuenta y recarga las cuentas.
+    anioInput.addEventListener('change', function() {
         cuentaDisplayInput.value = '';
         cuentaHiddenInput.value = '';
         loadCuentasContables(this.value);
@@ -203,6 +150,24 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- Inicialización ---
-    loadAnios();
+
+    // Al cargar la página, carga las cuentas para el año inicial.
+    loadCuentasContables(anioInput.value, () => {
+        // Este callback se ejecuta después de que las cuentas iniciales se han cargado.
+        // Ahora verificamos si la cuenta contable existente (en modo edición) es válida.
+        const initialCuentaCode = cuentaHiddenInput.value;
+        if (initialCuentaCode) {
+            const accountIsValid = accountsData.some(acc => acc.value === initialCuentaCode);
+            if (accountIsValid) {
+                // Si es válida, mostramos su texto.
+                const account = accountsData.find(acc => acc.value === initialCuentaCode);
+                cuentaDisplayInput.value = account.text;
+            } else {
+                // Si no es válida para este año, limpiamos los campos.
+                cuentaDisplayInput.value = '';
+                cuentaHiddenInput.value = '';
+            }
+        }
+    });
 });
 </script>

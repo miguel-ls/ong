@@ -23,10 +23,23 @@ try {
     .table th, .table td { border: 1px solid #ddd; padding: 8px; }
     .table th { background-color: #004a99; color: white; }
     .table tr:nth-child(even) { background-color: #f2f2f2; }
-    .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; color: white; }
+    .btn {
+        padding: 8px 12px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: white;
+        display: inline-block;
+        line-height: 1.5;
+        text-align: center;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
-    .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .btn-add { background-color: #28a745; }
+    .btn-primary { background-color: #007bff; }
+    .action-buttons { display: flex; gap: 10px; margin-bottom: 20px; align-items: stretch; }
     .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
     .filter-form .form-group { display: flex; flex-direction: column; }
     .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
@@ -38,9 +51,9 @@ try {
     <h1>Mantenimiento de Centros de Costos</h1>
 </header>
 <section>
-    <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <a href="index.php?page=centros_costos_form" class="btn btn-add" style="display: inline-block;">Añadir Nuevo Centro de Costo</a>
-        <a href="#" id="btnMigrarCc" class="btn btn-primary" role="button" style="background-color: #007bff; text-decoration: none;">Migrar CC</a>
+    <div class="action-buttons">
+        <a href="index.php?page=centros_costos_form" class="btn btn-add">Añadir Nuevo Centro de Costo</a>
+        <a href="#" id="btnMigrarCc" class="btn btn-primary" role="button">Migrar CC</a>
     </div>
 
     <form action="index.php" method="GET" class="filter-form">

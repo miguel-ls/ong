@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../../config/config.php';
 
 
 // Obtener los valores del filtro
@@ -30,8 +31,10 @@ try {
     .btn { padding: 5px 10px; border-radius: 4px; text-decoration: none; color: white; }
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
-    .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
-    .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
+    .btn-add { background-color: #28a745; }
+    .btn-primary { background-color: #007bff; border: none; cursor: pointer;}
+    .action-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+    .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
     .filter-form .form-group { display: flex; flex-direction: column; }
     .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
     .filter-form .form-group input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
@@ -42,7 +45,10 @@ try {
     <h1>Mantenimiento de Tipos de Cambio</h1>
 </header>
 <section>
-    <a href="index.php?page=tipos_cambio_form" class="btn btn-add">Añadir Nuevo Tipo de Cambio</a>
+    <div class="action-buttons">
+        <a href="index.php?page=tipos_cambio_form" class="btn btn-add">Añadir Nuevo Tipo de Cambio</a>
+        <button id="btnMigrarTc" class="btn btn-primary">Migrar TC</button>
+    </div>
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="tipos_cambio">
@@ -105,6 +111,7 @@ try {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const nodeRedUrl = '<?php echo NODE_RED; ?>';
     const yearSelect = document.getElementById('year');
     const monthSelect = document.getElementById('month');
     const startDateInput = document.getElementById('fecha_inicio');
@@ -142,5 +149,57 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!startDateInput.value && !endDateInput.value) {
         updateDateFields();
     }
+
+    // --- Logic for Migrar TC button ---
+    const migrarTcBtn = document.getElementById('btnMigrarTc');
+
+    migrarTcBtn.addEventListener('click', function() {
+        const year = yearSelect.value;
+        const month = monthSelect.value;
+
+        if (!year || !month) {
+            alert('Por favor, seleccione un año y un mes para la migración.');
+            return;
+        }
+
+        const requestBody = {
+            "Emp_cCodigo": "088",
+            "Pan_cAnio": year,
+            "Per_cPeriodo": month
+        };
+
+        // Disable button to prevent multiple clicks
+        migrarTcBtn.disabled = true;
+        migrarTcBtn.textContent = 'Migrando...';
+
+        fetch(`${nodeRedUrl}/maestros/migraratc`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                // If response is not ok, throw an error to be caught by .catch
+                throw new Error('Error en la respuesta del servidor. Código: ' + response.status);
+            }
+        })
+        .then(data => {
+            alert(data.message || 'Migración completada con éxito.');
+            location.reload(); // Reload the page to show new data
+        })
+        .catch(error => {
+            console.error('Error en la migración:', error);
+            alert(`Ocurrió un error durante la migración: ${error.message}`);
+        })
+        .finally(() => {
+            // Re-enable button
+            migrarTcBtn.disabled = false;
+            migrarTcBtn.textContent = 'Migrar TC';
+        });
+    });
 });
 </script>

@@ -9,6 +9,7 @@ if ($current_page < 1) {
 }
 
 // Obtener valores de filtro de la URL
+$f_anio = $_GET['anio'] ?? null;
 $f_fecha_desde = $_GET['fecha_desde'] ?? null;
 $f_fecha_hasta = $_GET['fecha_hasta'] ?? null;
 $f_id_tipo_documento = $_GET['id_tipo_documento'] ?? null;
@@ -33,10 +34,12 @@ try {
     // Obtener datos para los dropdowns de los filtros
     $tipos_documento_list = $pdo->query("CALL sp_read_tipos_documento_for_dropdown()")->fetchAll(PDO::FETCH_ASSOC);
     $centros_costo_list = $pdo->query("CALL sp_read_centros_costos_for_dropdown()")->fetchAll(PDO::FETCH_ASSOC);
+    $years_list = $pdo->query("CALL sp_get_years_with_documents()")->fetchAll(PDO::FETCH_ASSOC);
 
     // Llamar al SP con los filtros y la paginación
-    $stmt = $pdo->prepare("CALL sp_read_all_documentos(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("CALL sp_read_all_documentos(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $params = [
+        empty($f_anio) ? null : $f_anio,
         empty($f_fecha_desde) ? null : $f_fecha_desde,
         empty($f_fecha_hasta) ? null : $f_fecha_hasta,
         empty($f_id_tipo_documento) ? null : $f_id_tipo_documento,
@@ -90,8 +93,17 @@ try {
 <section>
     <a href="index.php?page=ingreso_documentos_form" class="btn btn-add">Añadir Nuevo Documento</a>
 
-    <form action="index.php" method="GET" class="filter-form">
+    <form action="index.php" method="GET" class="filter-form" id="filter-form">
         <input type="hidden" name="page" value="ingreso_documentos">
+        <div class="form-group">
+            <label for="anio">Año</label>
+            <select id="anio" name="anio">
+                <option value="">Todos</option>
+                <?php foreach($years_list as $year): ?>
+                    <option value="<?= $year['anio'] ?>" <?= (($f_anio ?? null) == $year['anio']) ? 'selected' : '' ?>><?= htmlspecialchars($year['anio']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
         <div class="form-group">
             <label for="fecha_desde">Fecha Desde</label>
             <input type="date" id="fecha_desde" name="fecha_desde" value="<?= htmlspecialchars($f_fecha_desde ?? '') ?>">
@@ -215,3 +227,22 @@ try {
         </ul>
     </nav>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const anioSelect = document.getElementById('anio');
+    const fechaDesdeInput = document.getElementById('fecha_desde');
+    const fechaHastaInput = document.getElementById('fecha_hasta');
+
+    anioSelect.addEventListener('change', function() {
+        const selectedYear = this.value;
+        if (selectedYear) {
+            fechaDesdeInput.value = `${selectedYear}-01-01`;
+            fechaHastaInput.value = `${selectedYear}-12-31`;
+        } else {
+            fechaDesdeInput.value = '';
+            fechaHastaInput.value = '';
+        }
+    });
+});
+</script>

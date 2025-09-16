@@ -4,8 +4,24 @@ require_once __DIR__ . '/../database.php';
 
 
 // Obtener los valores del filtro
+$filter_anio = $_GET['filter_anio'] ?? null;
+$filter_mes = $_GET['filter_mes'] ?? null;
 $filter_inicio = $_GET['fecha_inicio'] ?? null;
 $filter_fin = $_GET['fecha_fin'] ?? null;
+
+// Si se selecciona año y/o mes, estos tienen precedencia y calculan el rango de fechas.
+if (!empty($filter_anio) && $filter_anio !== "") {
+    if (!empty($filter_mes) && $filter_mes !== "") {
+        // Año y mes seleccionados: calcula el primer y último día del mes.
+        $filter_inicio = "{$filter_anio}-{$filter_mes}-01";
+        $ultimo_dia = date('t', strtotime($filter_inicio));
+        $filter_fin = "{$filter_anio}-{$filter_mes}-{$ultimo_dia}";
+    } else {
+        // Solo año seleccionado: calcula el primer y último día del año.
+        $filter_inicio = "{$filter_anio}-01-01";
+        $filter_fin = "{$filter_anio}-12-31";
+    }
+}
 
 try {
     $pdo = getDbConnection();
@@ -112,13 +128,43 @@ try {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const migrarTcBtn = document.getElementById('migrar-tc-btn');
+    const anioFilter = document.getElementById('filter_anio');
+    const mesFilter = document.getElementById('filter_mes');
+    const fechaInicioFilter = document.getElementById('fecha_inicio');
+    const fechaFinFilter = document.getElementById('fecha_fin');
+
+    const yearMonthGroup = [anioFilter, mesFilter];
+    const dateRangeGroup = [fechaInicioFilter, fechaFinFilter];
+
+    function handleYearMonthChange() {
+        const disableDates = anioFilter.value !== '' || mesFilter.value !== '';
+        dateRangeGroup.forEach(el => {
+            el.disabled = disableDates;
+            if (disableDates) el.value = '';
+        });
+    }
+
+    function handleDateChange() {
+        const disableYearMonth = fechaInicioFilter.value !== '' || fechaFinFilter.value !== '';
+        yearMonthGroup.forEach(el => {
+            el.disabled = disableYearMonth;
+            if (disableYearMonth) el.value = '';
+        });
+    }
+
+    yearMonthGroup.forEach(el => el.addEventListener('change', handleYearMonthChange));
+    dateRangeGroup.forEach(el => el.addEventListener('input', handleDateChange));
+
+    // Set initial state on page load based on URL parameters
+    handleYearMonthChange();
+    handleDateChange();
 
     migrarTcBtn.addEventListener('click', function () {
-        const anio = document.getElementById('filter_anio').value;
-        const mes = document.getElementById('filter_mes').value;
+        const anio = anioFilter.value;
+        const mes = mesFilter.value;
 
         if (!anio || anio === "" || !mes || mes === "") {
-            showAlertModal('Por favor, seleccione un año y un mes.');
+            showAlertModal('Por favor, seleccione un año y un mes para la migración.');
             return;
         }
 
@@ -131,31 +177,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
         fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('Network response was not ok: ' + response.statusText);
             }
             return response.json();
         })
         .then(result => {
             if (result.status === 'success') {
-                if (result.data.inserted > 0) {
+                if (result.data && result.data.inserted > 0) {
                     showAlertModal(`Se insertaron ${result.data.inserted} registros.`);
                 } else {
-                    showAlertModal('No se encontraron registros a migrar.');
+                    showAlertModal('No se encontraron registros nuevos para migrar.');
                 }
             } else {
-                showAlertModal(result.message || 'Ocurrió un error al migrar los tipos de cambio.');
+                showAlertModal(result.message || 'Ocurrió un error durante la migración.');
             }
         })
         .catch(error => {
-            console.error('Error:', error);
-            showAlertModal('Ocurrió un error de conexión al migrar los tipos de cambio. Verifique que el servicio esté disponible.');
+            console.error('Error en la migración:', error);
+            showAlertModal('No se pudo conectar con el servicio de migración. Verifique la consola para más detalles.');
         });
     });
 });

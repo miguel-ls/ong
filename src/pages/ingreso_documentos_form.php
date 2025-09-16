@@ -276,10 +276,8 @@ function eliminarAdjunto(idAdjunto) {
             if (item) {
                 item.remove();
             }
-            // Opcional: mostrar una notificación de éxito
             alert(data.message);
         } else {
-            // Opcional: mostrar una notificación de error
             alert('Error: ' + data.message);
         }
     })
@@ -295,64 +293,50 @@ document.addEventListener('DOMContentLoaded', function() {
     const detalleBody = document.getElementById('detalleBody');
     const addRowBtn = document.getElementById('addRowBtn');
     const rowTemplate = document.getElementById('detalleRowTemplate');
-
-    // Header fields
     const headerCentroCostoSelect = document.getElementById('id_centro_costo');
     const proyectoSelect = document.getElementById('id_proyecto');
     const subProyectoSelect = document.getElementById('id_sub_proyecto');
     const fechaInput = document.getElementById('fecha_emision');
     const monedaSelect = document.getElementById('moneda');
     const tipoCambioInput = document.getElementById('tipo_cambio');
-
-    // Total displays
     const subtotalDisplay = document.getElementById('subtotalDisplay');
     const igvDisplay = document.getElementById('igvDisplay');
     const totalDisplay = document.getElementById('totalDisplay');
-    const totalSolesDisplay = document.getElementById('totalSolesDisplay');
     const totalDolaresDisplay = document.getElementById('totalDolaresDisplay');
     const totalDolaresRow = document.getElementById('totalDolaresRow');
+    const templateConceptoSelect = rowTemplate.content.querySelector('[name="id_concepto"]');
+    const templateCentroCostoSelect = rowTemplate.content.querySelector('[name="id_centro_costo"]');
 
+    // --- CONSTANTS AND STATE ---
     const IGV_RATE = 0.18;
     const isEditMode = <?= $is_edit ? 'true' : 'false' ?>;
     const initialDetails = <?= json_encode($details) ?>;
+    const initialHeader = <?= json_encode($header) ?>;
 
     // --- FUNCTIONS ---
 
     function addRow(detail = null) {
         const newRow = rowTemplate.content.cloneNode(true);
         const tr = newRow.querySelector('tr');
-        detalleBody.appendChild(tr);
-        updateItemNumbers();
 
-        const qtyInput = tr.querySelector('[name="cantidad"]');
-        const priceInput = tr.querySelector('[name="precio_unitario"]');
         const conceptSelect = tr.querySelector('[name="id_concepto"]');
-        const descInput = tr.querySelector('[name="descripcion"]');
         const centroCostoSelect = tr.querySelector('[name="id_centro_costo"]');
 
         if (detail) {
-            // Populate from existing data in edit mode
-            qtyInput.value = detail.cantidad;
-            priceInput.value = detail.precio_unitario;
+            tr.querySelector('[name="cantidad"]').value = detail.cantidad;
+            tr.querySelector('[name="precio_unitario"]').value = detail.precio_unitario;
+            tr.querySelector('[name="descripcion"]').value = detail.descripcion || '';
             conceptSelect.value = detail.id_concepto;
-            descInput.value = detail.descripcion || '';
-            // Set the cost center from the detail data, which we now know is being passed correctly
-            if (detail.id_centro_costo) {
-                centroCostoSelect.value = detail.id_centro_costo;
-            }
+            centroCostoSelect.value = detail.id_centro_costo;
         } else {
-            // Set default from header for new rows
             const headerCentroCostoId = headerCentroCostoSelect.value;
             if (headerCentroCostoId) {
-                // Use a more robust way to set the selected value
-                for (let i = 0; i < centroCostoSelect.options.length; i++) {
-                    if (centroCostoSelect.options[i].value === headerCentroCostoId) {
-                        centroCostoSelect.options[i].selected = true;
-                        break;
-                    }
-                }
+                centroCostoSelect.value = headerCentroCostoId;
             }
         }
+
+        detalleBody.appendChild(tr);
+        updateItemNumbers();
 
         tr.querySelector('.removeRowBtn').addEventListener('click', () => {
             tr.remove();
@@ -360,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function() {
             updateItemNumbers();
         });
 
-        [qtyInput, priceInput].forEach(input => {
+        tr.querySelectorAll('[name="cantidad"], [name="precio_unitario"]').forEach(input => {
             input.addEventListener('input', () => updateRowCalculations(tr));
         });
 
@@ -384,44 +368,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateAllCalculations() {
         let subtotal = 0;
-        const rows = detalleBody.querySelectorAll('tr');
-        rows.forEach(row => {
+        detalleBody.querySelectorAll('tr').forEach(row => {
             subtotal += parseFloat(row.querySelector('.total-row').value) || 0;
         });
 
         const igv = subtotal * IGV_RATE;
         const total = subtotal + igv;
         const tc = parseFloat(tipoCambioInput.value) || 1;
-        const isSoles = monedaSelect.value === 'SOLES';
-
-        let totalSoles = 0;
-        let totalDolares = 0;
-
-        if (isSoles) {
-            totalSoles = total;
-            totalDolares = total / tc;
-        } else {
-            totalDolares = total;
-            totalSoles = total * tc;
-        }
 
         subtotalDisplay.textContent = subtotal.toFixed(2);
         igvDisplay.textContent = igv.toFixed(2);
         totalDisplay.textContent = total.toFixed(2);
-        // totalSolesDisplay is no longer visible
-        totalDolaresDisplay.textContent = totalDolares.toFixed(2);
+        totalDolaresDisplay.textContent = (monedaSelect.value === 'SOLES' && tc > 0 ? total / tc : total).toFixed(2);
+
 
         updateTotalsVisibility();
     }
 
     function updateTotalsVisibility() {
-        const selectedMoneda = monedaSelect.value;
-        // If currency is 'SOLES', hide 'Total Dólares'. Otherwise, show it.
-        if (selectedMoneda === 'SOLES') {
-            totalDolaresRow.style.display = 'none';
-        } else {
-            totalDolaresRow.style.display = '';
-        }
+        totalDolaresRow.style.display = (monedaSelect.value === 'SOLES') ? 'none' : '';
     }
 
     function fetchSubProyectos(id_proyecto, selected_id = null) {
@@ -433,12 +398,8 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`../src/ajax/get_subproyectos.php?id_proyecto=${id_proyecto}`)
             .then(response => response.json())
             .then(data => {
-                let options = '<option value="">Seleccione</option>';
-                data.forEach(sub => {
-                    const selected = (selected_id && sub.id == selected_id) ? 'selected' : '';
-                    options += `<option value="${sub.id}" ${selected}>${htmlspecialchars(sub.nombre)}</option>`;
-                });
-                subProyectoSelect.innerHTML = options;
+                subProyectoSelect.innerHTML = '<option value="">Seleccione</option>' +
+                    data.map(sub => `<option value="${sub.id}" ${selected_id == sub.id ? 'selected' : ''}>${htmlspecialchars(sub.nombre)}</option>`).join('');
             })
             .catch(error => {
                 console.error('Error fetching subproyectos:', error);
@@ -458,76 +419,139 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function htmlspecialchars(str) {
+        if(typeof str !== 'string') return '';
         const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
         return str.replace(/[&<>"']/g, m => map[m]);
     }
 
+    function updateSelectWithOptions(selectElement, options, placeholder = 'Seleccione') {
+        const currentValue = selectElement.value;
+        selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+        let valueExists = false;
+        if (Array.isArray(options)) {
+            options.forEach(opt => {
+                const isSelected = opt.id == currentValue;
+                selectElement.options[selectElement.options.length] = new Option(opt.nombre, opt.id, isSelected, isSelected);
+                if(isSelected) valueExists = true;
+            });
+        }
+        if(valueExists) selectElement.value = currentValue;
+    }
+
+    function loadDropdownData(year) {
+        if (!year) return Promise.resolve();
+
+        const fetchCentros = fetch(`../src/ajax/get_centros_costos_for_dropdown.php?año=${year}`)
+            .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
+            .then(data => {
+                updateSelectWithOptions(headerCentroCostoSelect, data, 'Seleccione Centro de Costo');
+                updateSelectWithOptions(templateCentroCostoSelect, data, 'Seleccione Centro de Costo');
+            });
+
+        const fetchConceptos = fetch(`../src/ajax/get_conceptos_for_dropdown.php?año=${year}`)
+            .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
+            .then(data => {
+                updateSelectWithOptions(templateConceptoSelect, data, 'Seleccione Concepto');
+            });
+
+        return Promise.all([fetchCentros, fetchConceptos]);
+    }
+
+    function initializeForm() {
+        const fechaEmision = fechaInput.value;
+        if (!fechaEmision) {
+            if (!isEditMode) addRow();
+            return;
+        }
+
+        const initialYear = new Date(fechaEmision + 'T00:00:00').getFullYear();
+
+        loadDropdownData(initialYear).then(() => {
+            if (isEditMode) {
+                if (initialHeader.id_centro_costo) {
+                    headerCentroCostoSelect.value = initialHeader.id_centro_costo;
+                }
+                if (initialHeader.id_proyecto) {
+                    fetchSubProyectos(initialHeader.id_proyecto, initialHeader.id_sub_proyecto);
+                }
+                initialDetails.forEach(detail => addRow(detail));
+            } else {
+                addRow();
+                fetchTipoCambio(fechaEmision);
+            }
+            updateAllCalculations();
+        }).catch(error => {
+            console.error("Error al inicializar el formulario:", error);
+            alert("No se pudieron cargar los datos necesarios para el formulario.");
+        });
+    }
+
     // --- EVENT LISTENERS ---
-    const numeroDocumentoInput = document.getElementById('numero_documento');
-    numeroDocumentoInput.addEventListener('blur', () => {
-        const num = numeroDocumentoInput.value;
-        // Pad only if it's a number and less than 8 digits
+    document.getElementById('numero_documento').addEventListener('blur', (e) => {
+        const num = e.target.value;
         if (num && !isNaN(num) && num.length < 8) {
-            numeroDocumentoInput.value = num.padStart(8, '0');
+            e.target.value = num.padStart(8, '0');
         }
     });
 
     addRowBtn.addEventListener('click', () => addRow());
     monedaSelect.addEventListener('change', updateAllCalculations);
     tipoCambioInput.addEventListener('input', updateAllCalculations);
-    fechaInput.addEventListener('change', () => fetchTipoCambio(fechaInput.value));
-    proyectoSelect.addEventListener('change', () => fetchSubProyectos(proyectoSelect.value));
+    proyectoSelect.addEventListener('change', (e) => fetchSubProyectos(e.target.value));
+
+    fechaInput.addEventListener('change', function() {
+        const date = this.value;
+        if (date) {
+            const year = new Date(date + 'T00:00:00').getFullYear();
+            detalleBody.innerHTML = ''; // Clear existing rows
+            loadDropdownData(year).then(() => {
+                addRow();
+                fetchTipoCambio(date);
+                updateAllCalculations();
+            });
+        }
+    });
 
     form.addEventListener('submit', function(e) {
         e.preventDefault();
-
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
         submitBtn.textContent = 'Guardando...';
 
-        // 1. Create FormData
         const submissionData = new FormData();
-
-        // 2. Gather header data (excluding files)
-        const formElements = form.elements;
         const headerData = {};
-        for (const element of formElements) {
+        for (const element of form.elements) {
             if (element.name && element.type !== 'file' && !element.closest('#detalleBody')) {
-                 headerData[element.name] = element.value;
+                headerData[element.name] = element.value;
             }
         }
         submissionData.append('header', JSON.stringify(headerData));
 
-        // 3. Gather details data
         const detailData = [];
         detalleBody.querySelectorAll('tr').forEach(row => {
             const rowData = {};
             row.querySelectorAll('input, select').forEach(input => {
-                if(input.name) {
-                    rowData[input.name] = input.value;
-                }
+                if (input.name) rowData[input.name] = input.value;
             });
             detailData.push(rowData);
         });
         submissionData.append('details', JSON.stringify(detailData));
 
-        // 4. Append files
         const files = document.getElementById('adjuntos').files;
         for (let i = 0; i < files.length; i++) {
             submissionData.append('adjuntos[]', files[i]);
         }
 
-        // 5. Fetch using FormData
         fetch('../src/actions/documentos_process.php', {
             method: 'POST',
-            body: submissionData // The browser will set the correct 'Content-Type' for multipart/form-data
+            body: submissionData
         })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
                 window.location.href = `index.php?page=ingreso_documentos&success=${encodeURIComponent(data.message)}`;
             } else {
-                showAlertModal(data.message); // Assuming showAlertModal is a global function
+                alert(data.message);
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Guardar Documento';
             }
@@ -540,123 +564,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-
     // --- INITIALIZATION ---
-    if (isEditMode) {
-        // Load subproyectos for the existing proyecto
-        if (proyectoSelect.value) {
-            fetchSubProyectos(proyectoSelect.value, <?= $header['id_sub_proyecto'] ?? 'null' ?>);
-        }
-        // Populate detail rows
-        initialDetails.forEach(detail => addRow(detail));
-    } else {
-       // Add one empty row for new documents
-       addRow();
-       fetchTipoCambio(fechaInput.value);
-    }
-
-    updateAllCalculations();
-    updateTotalsVisibility(); // Call this on initial load
-
-    // Initialize Tom Select for the 'auxiliar' dropdown
-    new TomSelect('#id_auxiliar', {
-        create: true,
-        sortField: {
-            field: 'text',
-            direction: 'asc'
-        }
-    });
-});
-</script>
-
-<script>
-// Script para cargar dinámicamente los desplegables basados en el año
-document.addEventListener('DOMContentLoaded', function() {
-    const fechaEmisionInput = document.getElementById('fecha_emision');
-    const headerCentroCostoSelect = document.getElementById('id_centro_costo');
-    const template = document.getElementById('detalleRowTemplate');
-    const templateConceptoSelect = template.content.querySelector('[name="id_concepto"]');
-    const templateCentroCostoSelect = template.content.querySelector('[name="id_centro_costo"]');
-
-    /**
-     * Rellena un elemento <select> con opciones.
-     * @param {HTMLSelectElement} selectElement - El elemento select a rellenar.
-     * @param {Array} options - Un array de objetos, cada uno con 'id' y 'nombre'.
-     * @param {string} [placeholder='Seleccione'] - El texto para la opción por defecto.
-     */
-    function updateSelectWithOptions(selectElement, options, placeholder = 'Seleccione') {
-        const currentValue = selectElement.value;
-        selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-
-        let valueExistsInNewOptions = false;
-        if (Array.isArray(options)) {
-            options.forEach(opt => {
-                const option = document.createElement('option');
-                option.value = opt.id;
-                option.textContent = opt.nombre;
-                selectElement.appendChild(option);
-                if (option.value == currentValue) {
-                    valueExistsInNewOptions = true;
-                }
-            });
-        }
-
-        // Si el valor anterior sigue siendo válido, lo re-seleccionamos.
-        if (valueExistsInNewOptions) {
-            selectElement.value = currentValue;
-        }
-    }
-
-    /**
-     * Carga los datos de los desplegables de Centros de Costo y Conceptos para un año dado.
-     * @param {number} year - El año para el cual se deben cargar los datos.
-     */
-    function loadDropdownData(year) {
-        if (!year) return;
-
-        // Cargar Centros de Costo
-        fetch(`../src/ajax/get_centros_costos_for_dropdown.php?año=${year}`)
-            .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
-            .then(data => {
-                updateSelectWithOptions(headerCentroCostoSelect, data, 'Seleccione Centro de Costo');
-                updateSelectWithOptions(templateCentroCostoSelect, data, 'Seleccione Centro de Costo');
-                document.querySelectorAll('#detalleBody [name="id_centro_costo"]').forEach(select => {
-                    updateSelectWithOptions(select, data, 'Seleccione Centro de Costo');
-                });
-            })
-            .catch(error => console.error('Error al cargar Centros de Costo:', error));
-
-        // Cargar Conceptos
-        fetch(`../src/ajax/get_conceptos_for_dropdown.php?año=${year}`)
-            .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
-            .then(data => {
-                updateSelectWithOptions(templateConceptoSelect, data, 'Seleccione Concepto');
-                document.querySelectorAll('#detalleBody [name="id_concepto"]').forEach(select => {
-                    updateSelectWithOptions(select, data, 'Seleccione Concepto');
-                });
-            })
-            .catch(error => console.error('Error al cargar Conceptos:', error));
-    }
-
-    // --- Event Listeners ---
-    fechaEmisionInput.addEventListener('change', function() {
-        const date = this.value;
-        if (date) {
-            const year = new Date(date + 'T00:00:00').getFullYear();
-
-            // Limpiar selecciones dependientes
-            headerCentroCostoSelect.value = '';
-            document.querySelectorAll('#detalleBody select').forEach(s => s.value = '');
-
-            loadDropdownData(year);
-        }
-    });
-
-    // --- Inicialización ---
-    if (fechaEmisionInput.value) {
-        const initialYear = new Date(fechaEmisionInput.value + 'T00:00:00').getFullYear();
-        loadDropdownData(initialYear);
-    }
+    new TomSelect('#id_auxiliar', { create: true, sortField: { field: 'text', direction: 'asc' } });
+    initializeForm();
 });
 </script>
 <?php

@@ -145,3 +145,8 @@ body.sidebar-collapsed .sidebar nav ul li a i {
     font-size: 0.9rem;
     color: #6c757d;
 }
+
+.btn:hover, .btn-primary:hover, .btn-secondary:hover, .btn-success:hover, .btn-danger:hover, .btn-warning:hover, .btn-info:hover, .btn-light:hover, .btn-dark:hover {
+    background-color: #e9ecef;
+    border-color: #e9ecef;
+}

@@ -137,11 +137,35 @@ document.addEventListener('DOMContentLoaded', function () {
     const dateRangeGroup = [fechaInicioFilter, fechaFinFilter];
 
     function handleYearMonthChange() {
-        const disableDates = anioFilter.value !== '' || mesFilter.value !== '';
-        dateRangeGroup.forEach(el => {
-            el.disabled = disableDates;
-            if (disableDates) el.value = '';
-        });
+        const anio = anioFilter.value;
+        const mes = mesFilter.value;
+
+        if (anio) {
+            let startDate, endDate;
+            if (mes) {
+                // Year and month selected
+                startDate = `${anio}-${mes}-01`;
+                // Get last day of the month. JS month is 0-indexed for constructor, but 'mes' is 1-12.
+                // new Date(year, month, 0) gets the last day of the PREVIOUS month.
+                // So for month 'mes', we use it as is. e.g., for March (3), new Date(year, 3, 0) is last day of March.
+                const lastDay = new Date(anio, parseInt(mes, 10), 0).getDate();
+                endDate = `${anio}-${mes}-${String(lastDay).padStart(2, '0')}`;
+            } else {
+                // Only year selected
+                startDate = `${anio}-01-01`;
+                endDate = `${anio}-12-31`;
+            }
+            fechaInicioFilter.value = startDate;
+            fechaFinFilter.value = endDate;
+            fechaInicioFilter.disabled = true;
+            fechaFinFilter.disabled = true;
+        } else {
+            // Year not selected, so enable date pickers
+            fechaInicioFilter.value = '';
+            fechaFinFilter.value = '';
+            fechaInicioFilter.disabled = false;
+            fechaFinFilter.disabled = false;
+        }
     }
 
     function handleDateChange() {
@@ -155,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
     yearMonthGroup.forEach(el => el.addEventListener('change', handleYearMonthChange));
     dateRangeGroup.forEach(el => el.addEventListener('input', handleDateChange));
 
-    // Set initial state on page load based on URL parameters
+    // Set initial state on page load
     handleYearMonthChange();
     handleDateChange();
 

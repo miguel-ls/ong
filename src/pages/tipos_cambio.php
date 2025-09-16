@@ -1,4 +1,5 @@
 <?php
+setlocale(LC_TIME, 'es_ES.UTF-8', 'Spanish_Spain', 'Spanish');
 require_once __DIR__ . '/../database.php';
 
 
@@ -25,10 +26,11 @@ try {
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
     .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .btn-migrate { background-color: #17a2b8; display: inline-block; margin-bottom: 20px; margin-left: 10px; }
     .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
     .filter-form .form-group { display: flex; flex-direction: column; }
     .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
-    .filter-form .form-group input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    .filter-form .form-group input, .filter-form .form-group select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
 </style>
 
@@ -37,9 +39,38 @@ try {
 </header>
 <section>
     <a href="index.php?page=tipos_cambio_form" class="btn btn-add">Añadir Nuevo Tipo de Cambio</a>
+    <button id="migrar-tc-btn" class="btn btn-migrate">Migrar TC</button>
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="tipos_cambio">
+        <div class="form-group">
+            <label for="filter_anio">Año</label>
+            <select id="filter_anio" name="filter_anio">
+                <option value="">Todos</option>
+                <?php
+                $currentYear = date('Y');
+                // The user wants the year 2025 to be available in the dropdown
+                for ($year = $currentYear + 1; $year >= 2020; $year--) {
+                    $selected = ($_GET['filter_anio'] ?? '') == $year ? 'selected' : '';
+                    echo "<option value=\"$year\" $selected>$year</option>";
+                }
+                ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="filter_mes">Mes</label>
+            <select id="filter_mes" name="filter_mes">
+                <option value="">Todos</option>
+                <?php
+                for ($month = 1; $month <= 12; $month++) {
+                    $monthName = strftime('%B', mktime(0, 0, 0, $month, 10));
+                    $monthValue = str_pad($month, 2, '0', STR_PAD_LEFT);
+                    $selected = ($_GET['filter_mes'] ?? '') == $monthValue ? 'selected' : '';
+                    echo "<option value=\"$monthValue\" $selected>" . ucfirst($monthName) . "</option>";
+                }
+                ?>
+            </select>
+        </div>
         <div class="form-group">
             <label for="fecha_inicio">Fecha Desde</label>
             <input type="date" id="fecha_inicio" name="fecha_inicio" value="<?= htmlspecialchars($filter_inicio ?? '') ?>">
@@ -77,3 +108,55 @@ try {
         </tbody>
     </table>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const migrarTcBtn = document.getElementById('migrar-tc-btn');
+
+    migrarTcBtn.addEventListener('click', function () {
+        const anio = document.getElementById('filter_anio').value;
+        const mes = document.getElementById('filter_mes').value;
+
+        if (!anio || anio === "" || !mes || mes === "") {
+            showAlertModal('Por favor, seleccione un año y un mes.');
+            return;
+        }
+
+        const url = '<?php echo NODE_RED; ?>/maestros/migraratc';
+        const data = {
+            Emp_cCodigo: '<?php echo Emp_cCodigo; ?>',
+            Pan_cAnio: anio,
+            Per_cPeriodo: mes
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.status === 'success') {
+                if (result.data.inserted > 0) {
+                    showAlertModal(`Se insertaron ${result.data.inserted} registros.`);
+                } else {
+                    showAlertModal('No se encontraron registros a migrar.');
+                }
+            } else {
+                showAlertModal(result.message || 'Ocurrió un error al migrar los tipos de cambio.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlertModal('Ocurrió un error de conexión al migrar los tipos de cambio. Verifique que el servicio esté disponible.');
+        });
+    });
+});
+</script>

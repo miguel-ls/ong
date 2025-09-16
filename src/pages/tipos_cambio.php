@@ -37,6 +37,7 @@ try {
 </header>
 <section>
     <a href="index.php?page=tipos_cambio_form" class="btn btn-add">Añadir Nuevo Tipo de Cambio</a>
+    <button id="migrarTcBtn" class="btn" style="background-color: #17a2b8; color: white; margin-left: 10px;">Migrar TC SUNAT</button>
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="tipos_cambio">
@@ -77,3 +78,48 @@ try {
         </tbody>
     </table>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const migrarBtn = document.getElementById('migrarTcBtn');
+    if (migrarBtn) {
+        migrarBtn.addEventListener('click', function() {
+            if (!confirm('¿Está seguro de que desea iniciar la migración de tipos de cambio para el período 09/2025? Esta acción puede tardar unos minutos.')) {
+                return;
+            }
+
+            const url = 'http://localhost:1880/maestros/migraratc';
+            const data = {
+                Emp_cCodigo: "088",
+                Pan_cAnio: "2025",
+                Per_cPeriodo: "09"
+            };
+
+            this.textContent = 'Migrando...';
+            this.disabled = true;
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+                mode: 'no-cors'
+            })
+            .then(() => {
+                alert('Solicitud de migración enviada. El proceso se ejecutará en segundo plano y puede tardar unos minutos. La página se recargará al finalizar.');
+                // We can't know for sure when it finishes with no-cors, so maybe just reload after a delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 2000); // Reload after 2 seconds
+            })
+            .catch(error => {
+                console.error('Error en la migración:', error);
+                alert('Error: No se pudo enviar la solicitud de migración. Verifique la consola para más detalles y asegúrese de que el servicio de migración esté activo.');
+                this.textContent = 'Migrar TC SUNAT';
+                this.disabled = false;
+            });
+        });
+    }
+});
+</script>

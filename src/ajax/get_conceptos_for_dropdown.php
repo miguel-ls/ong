@@ -20,7 +20,7 @@ if (!$año) {
 
 try {
     $pdo = getDbConnection();
-    $stmt = $pdo->prepare("CALL sp_read_conceptos_for_dropdown(?)");
+    $stmt = $pdo->prepare("CALL sp_read_conceptos_for_dropdown_by_year(?)");
     $stmt->execute([$año]);
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode($data);

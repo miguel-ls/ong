@@ -147,6 +147,6 @@ body.sidebar-collapsed .sidebar nav ul li a i {
 }
 
 .btn:hover, .btn-primary:hover, .btn-secondary:hover, .btn-success:hover, .btn-danger:hover, .btn-warning:hover, .btn-info:hover, .btn-light:hover, .btn-dark:hover {
-    background-color: #e9ecef;
-    border-color: #e9ecef;
+    background-color: #cccccc;
+    border-color: #cccccc;
 }

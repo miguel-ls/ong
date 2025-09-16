@@ -1,27 +1,10 @@
 <?php
-setlocale(LC_TIME, 'es_ES.UTF-8', 'Spanish_Spain', 'Spanish');
 require_once __DIR__ . '/../database.php';
 
 
 // Obtener los valores del filtro
-$filter_anio = $_GET['filter_anio'] ?? null;
-$filter_mes = $_GET['filter_mes'] ?? null;
 $filter_inicio = $_GET['fecha_inicio'] ?? null;
 $filter_fin = $_GET['fecha_fin'] ?? null;
-
-// Si se selecciona año y/o mes, estos tienen precedencia y calculan el rango de fechas.
-if (!empty($filter_anio) && $filter_anio !== "") {
-    if (!empty($filter_mes) && $filter_mes !== "") {
-        // Año y mes seleccionados: calcula el primer y último día del mes.
-        $filter_inicio = "{$filter_anio}-{$filter_mes}-01";
-        $ultimo_dia = date('t', strtotime($filter_inicio));
-        $filter_fin = "{$filter_anio}-{$filter_mes}-{$ultimo_dia}";
-    } else {
-        // Solo año seleccionado: calcula el primer y último día del año.
-        $filter_inicio = "{$filter_anio}-01-01";
-        $filter_fin = "{$filter_anio}-12-31";
-    }
-}
 
 try {
     $pdo = getDbConnection();
@@ -42,11 +25,10 @@ try {
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
     .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
-    .btn-migrate { background-color: #17a2b8; display: inline-block; margin-bottom: 20px; margin-left: 10px; }
     .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
     .filter-form .form-group { display: flex; flex-direction: column; }
     .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
-    .filter-form .form-group input, .filter-form .form-group select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+    .filter-form .form-group input { padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     .btn-filter { background-color: #005cb3; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; }
 </style>
 
@@ -55,38 +37,9 @@ try {
 </header>
 <section>
     <a href="index.php?page=tipos_cambio_form" class="btn btn-add">Añadir Nuevo Tipo de Cambio</a>
-    <button id="migrar-tc-btn" class="btn btn-migrate">Migrar TC</button>
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="tipos_cambio">
-        <div class="form-group">
-            <label for="filter_anio">Año</label>
-            <select id="filter_anio" name="filter_anio">
-                <option value="">Todos</option>
-                <?php
-                $currentYear = date('Y');
-                // The user wants the year 2025 to be available in the dropdown
-                for ($year = $currentYear + 1; $year >= 2020; $year--) {
-                    $selected = ($_GET['filter_anio'] ?? '') == $year ? 'selected' : '';
-                    echo "<option value=\"$year\" $selected>$year</option>";
-                }
-                ?>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="filter_mes">Mes</label>
-            <select id="filter_mes" name="filter_mes">
-                <option value="">Todos</option>
-                <?php
-                for ($month = 1; $month <= 12; $month++) {
-                    $monthName = strftime('%B', mktime(0, 0, 0, $month, 10));
-                    $monthValue = str_pad($month, 2, '0', STR_PAD_LEFT);
-                    $selected = ($_GET['filter_mes'] ?? '') == $monthValue ? 'selected' : '';
-                    echo "<option value=\"$monthValue\" $selected>" . ucfirst($monthName) . "</option>";
-                }
-                ?>
-            </select>
-        </div>
         <div class="form-group">
             <label for="fecha_inicio">Fecha Desde</label>
             <input type="date" id="fecha_inicio" name="fecha_inicio" value="<?= htmlspecialchars($filter_inicio ?? '') ?>">
@@ -124,107 +77,3 @@ try {
         </tbody>
     </table>
 </section>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const migrarTcBtn = document.getElementById('migrar-tc-btn');
-    const anioFilter = document.getElementById('filter_anio');
-    const mesFilter = document.getElementById('filter_mes');
-    const fechaInicioFilter = document.getElementById('fecha_inicio');
-    const fechaFinFilter = document.getElementById('fecha_fin');
-
-    const yearMonthGroup = [anioFilter, mesFilter];
-    const dateRangeGroup = [fechaInicioFilter, fechaFinFilter];
-
-    function handleYearMonthChange() {
-        const anio = anioFilter.value;
-        const mes = mesFilter.value;
-
-        if (anio) {
-            let startDate, endDate;
-            if (mes) {
-                // Year and month selected
-                startDate = `${anio}-${mes}-01`;
-                // Get last day of the month. JS month is 0-indexed for constructor, but 'mes' is 1-12.
-                // new Date(year, month, 0) gets the last day of the PREVIOUS month.
-                // So for month 'mes', we use it as is. e.g., for March (3), new Date(year, 3, 0) is last day of March.
-                const lastDay = new Date(anio, parseInt(mes, 10), 0).getDate();
-                endDate = `${anio}-${mes}-${String(lastDay).padStart(2, '0')}`;
-            } else {
-                // Only year selected
-                startDate = `${anio}-01-01`;
-                endDate = `${anio}-12-31`;
-            }
-            fechaInicioFilter.value = startDate;
-            fechaFinFilter.value = endDate;
-            fechaInicioFilter.disabled = true;
-            fechaFinFilter.disabled = true;
-        } else {
-            // Year not selected, so enable date pickers
-            fechaInicioFilter.value = '';
-            fechaFinFilter.value = '';
-            fechaInicioFilter.disabled = false;
-            fechaFinFilter.disabled = false;
-        }
-    }
-
-    function handleDateChange() {
-        const disableYearMonth = fechaInicioFilter.value !== '' || fechaFinFilter.value !== '';
-        yearMonthGroup.forEach(el => {
-            el.disabled = disableYearMonth;
-            if (disableYearMonth) el.value = '';
-        });
-    }
-
-    yearMonthGroup.forEach(el => el.addEventListener('change', handleYearMonthChange));
-    dateRangeGroup.forEach(el => el.addEventListener('input', handleDateChange));
-
-    // Set initial state on page load
-    handleYearMonthChange();
-    handleDateChange();
-
-    migrarTcBtn.addEventListener('click', function () {
-        const anio = anioFilter.value;
-        const mes = mesFilter.value;
-
-        if (!anio || anio === "" || !mes || mes === "") {
-            showAlertModal('Por favor, seleccione un año y un mes para la migración.');
-            return;
-        }
-
-        const url = '<?php echo NODE_RED; ?>/maestros/migraratc';
-        const data = {
-            Emp_cCodigo: '<?php echo Emp_cCodigo; ?>',
-            Pan_cAnio: anio,
-            Per_cPeriodo: mes
-        };
-
-        fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(result => {
-            if (result.status === 'success') {
-                if (result.data && result.data.inserted > 0) {
-                    showAlertModal(`Se insertaron ${result.data.inserted} registros.`);
-                } else {
-                    showAlertModal('No se encontraron registros nuevos para migrar.');
-                }
-            } else {
-                showAlertModal(result.message || 'Ocurrió un error durante la migración.');
-            }
-        })
-        .catch(error => {
-            console.error('Error en la migración:', error);
-            showAlertModal('No se pudo conectar con el servicio de migración. Verifique la consola para más detalles.');
-        });
-    });
-});
-</script>

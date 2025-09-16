@@ -47,7 +47,7 @@
                         <ul class="collapse list-unstyled" id="operacionesSubmenu">
                             <li><a href="index.php?page=tipos_cambio"><span class="sidebar-item-text">Tipo de Cambio</span></a></li>                            
                             <li><a href="index.php?page=auxiliares"><span class="sidebar-item-text">Auxiliares</span></a></li>                            
-                            <li><a href="index.php?page=ingreso_documentos"><span class="sidebar-item-text">Ingreso de documentos</span></a></li>
+                            <li><a href="index.php?page=ingreso_documentos"><span class="sidebar-item-text">Ingreso de Documentos</span></a></li>
                         </ul>
                     </li>
 
@@ -58,7 +58,7 @@
 
                         </a>
                         <ul class="collapse list-unstyled" id="reportesSubmenu">
-                            <li><a href="index.php?page=reportes"><span class="sidebar-item-text"> Reportes de Documentos</span></a></li>
+                            <li><a href="index.php?page=reportes"><span class="sidebar-item-text"> Reportes Dinamicos</span></a></li>
                         </ul>
                     </li>
 

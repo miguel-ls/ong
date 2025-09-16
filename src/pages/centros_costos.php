@@ -125,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const requestBody = {
-            "Emp_cCodigo": "088",
+            "Emp_cCodigo": '<?php echo Emp_cCodigo; ?>',
             "Pan_cAnio": year
         };
 

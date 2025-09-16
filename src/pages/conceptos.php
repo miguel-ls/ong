@@ -27,6 +27,7 @@ try {
     .btn-edit { background-color: #ffc107; }
     .btn-delete { background-color: #dc3545; }
     .btn-add { background-color: #28a745; display: inline-block; margin-bottom: 20px; }
+    .btn-migrate { background-color: #17a2b8; display: inline-block; margin-bottom: 20px; margin-left: 10px; }
     .filter-form { background-color: #eef; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end; }
     .filter-form .form-group { display: flex; flex-direction: column; }
     .filter-form .form-group label { margin-bottom: 5px; font-weight: bold; }
@@ -39,6 +40,7 @@ try {
 </header>
 <section>
     <a href="index.php?page=conceptos_form" class="btn btn-add">Añadir Nuevo Concepto</a>
+    <button id="migrar-cuentas-btn" class="btn btn-migrate">Migrar Cuentas</button>
 
     <form action="index.php" method="GET" class="filter-form">
         <input type="hidden" name="page" value="conceptos">
@@ -108,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const anioSelect = document.getElementById('año');
     const selectedAnio = "<?= htmlspecialchars($filter_año ?? '') ?>";
 
+    // Cargar años en el dropdown
     fetch('../src/ajax/get_conceptos_years.php')
         .then(response => response.json())
         .then(data => {
@@ -128,5 +131,48 @@ document.addEventListener('DOMContentLoaded', function() {
         .catch(error => {
             console.error('Error al cargar los años:', error);
         });
+
+    // Lógica para el botón de migración
+    const migrarBtn = document.getElementById('migrar-cuentas-btn');
+    migrarBtn.addEventListener('click', function() {
+        const anio = anioSelect.value;
+        if (!anio || anio === "") {
+            showAlertModal('Por favor, seleccione un año para la migración.');
+            return;
+        }
+
+        const url = '<?php echo NODE_RED; ?>/maestros/migrarcuentas';
+        const data = {
+            Emp_cCodigo: '<?php echo Emp_cCodigo; ?>',
+            Pan_cAnio: anio
+        };
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('La respuesta de la red no fue exitosa: ' + response.statusText);
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.status === 'success') {
+                if (result.data && result.data.inserted > 0) {
+                    showAlertModal(`Se insertaron ${result.data.inserted} registros.`);
+                } else {
+                    showAlertModal('No se encontraron registros nuevos para migrar.');
+                }
+            } else {
+                showAlertModal(result.message || 'Ocurrió un error durante la migración.');
+            }
+        })
+        .catch(error => {
+            console.error('Error en la migración:', error);
+            showAlertModal('No se pudo conectar con el servicio de migración. Verifique la consola para más detalles.');
+        });
+    });
 });
 </script>

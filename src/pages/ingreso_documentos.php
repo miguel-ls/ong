@@ -15,6 +15,7 @@ $f_fecha_hasta = $_GET['fecha_hasta'] ?? null;
 $f_id_tipo_documento = $_GET['id_tipo_documento'] ?? null;
 $f_serie_numero = $_GET['serie_numero'] ?? null;
 $f_auxiliar = $_GET['auxiliar'] ?? null;
+$f_id_centro_costo = $_GET['id_centro_costo'] ?? null;
 $f_moneda = $_GET['moneda'] ?? null;
 
 // Construir la cadena de consulta para la paginación
@@ -36,7 +37,7 @@ try {
     $years_list = $pdo->query("CALL sp_get_years_with_documents()")->fetchAll(PDO::FETCH_ASSOC);
 
     // Llamar al SP con los filtros y la paginación
-    $stmt = $pdo->prepare("CALL sp_read_all_documentos(?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("CALL sp_read_all_documentos(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $params = [
         empty($f_anio) ? null : $f_anio,
         empty($f_fecha_desde) ? null : $f_fecha_desde,
@@ -44,6 +45,7 @@ try {
         empty($f_id_tipo_documento) ? null : $f_id_tipo_documento,
         empty($f_serie_numero) ? null : $f_serie_numero,
         empty($f_auxiliar) ? null : $f_auxiliar,
+        empty($f_id_centro_costo) ? null : $f_id_centro_costo,
         empty($f_moneda) ? null : $f_moneda,
         $page_size,
         $current_page
@@ -126,6 +128,15 @@ try {
         <div class="form-group">
             <label for="auxiliar">Auxiliar</label>
             <input type="text" id="auxiliar" name="auxiliar" value="<?= htmlspecialchars($f_auxiliar ?? '') ?>">
+        </div>
+        <div class="form-group">
+            <label for="centro_costo">Centro de Costo</label>
+            <select id="centro_costo" name="id_centro_costo">
+                <option value="">Todos</option>
+                 <?php foreach($centros_costo_list as $cc): ?>
+                    <option value="<?= $cc['id'] ?>" <?= (($f_id_centro_costo ?? null) == $cc['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cc['nombre']) ?></option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="form-group">
             <label for="moneda">Moneda</label>

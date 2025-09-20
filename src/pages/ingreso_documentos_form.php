@@ -121,7 +121,7 @@ $centros_costo = [];
                                     </div>
                                 </div>
                                 <div class="row">
-                                     <div class="col-md-4 mb-3">
+                                     <div class="col-md-6 mb-3">
                                         <label for="id_proyecto" class="form-label">Proyecto</label>
                                         <select class="form-select" id="id_proyecto" name="id_proyecto" required>
                                             <option value="">Seleccione</option>
@@ -130,16 +130,10 @@ $centros_costo = [];
                                             <?php endforeach; ?>
                                         </select>
                                     </div>
-                                    <div class="col-md-4 mb-3">
+                                    <div class="col-md-6 mb-3">
                                         <label for="id_sub_proyecto" class="form-label">Sub-Proyecto</label>
                                         <select class="form-select" id="id_sub_proyecto" name="id_sub_proyecto" required>
                                             <option value="">Seleccione un proyecto primero</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4 mb-3">
-                                        <label for="id_centro_costo" class="form-label">Centro de Costo</label>
-                                         <select class="form-select" id="id_centro_costo" name="id_centro_costo" required>
-                                            <option value="">Seleccione</option>
                                         </select>
                                     </div>
                                 </div>
@@ -353,7 +347,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const addRowBtn = document.getElementById('addRowBtn');
     const rowTemplate = document.getElementById('detalleRowTemplate');
     const distribucionRowTemplate = document.getElementById('distribucionRowTemplate');
-    const headerCentroCostoSelect = document.getElementById('id_centro_costo');
     const proyectoSelect = document.getElementById('id_proyecto');
     const subProyectoSelect = document.getElementById('id_sub_proyecto');
     const fechaInput = document.getElementById('fecha_emision');
@@ -662,7 +655,6 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
             .then(data => {
                 centrosCostoOptions = data; // Cache CC options
-                updateSelectWithOptions(headerCentroCostoSelect, data, 'Seleccione Centro de Costo');
             });
 
         const fetchConceptos = fetch(`../src/ajax/get_conceptos_for_dropdown.php?año=${year}`)
@@ -692,9 +684,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (isEditMode) {
-                if (initialHeader.id_centro_costo) {
-                    headerCentroCostoSelect.value = initialHeader.id_centro_costo;
-                }
                 if (initialHeader.id_proyecto) {
                     fetchSubProyectos(initialHeader.id_proyecto, initialHeader.id_sub_proyecto);
                 }

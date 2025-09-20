@@ -15,7 +15,6 @@ $f_fecha_hasta = $_GET['fecha_hasta'] ?? null;
 $f_id_tipo_documento = $_GET['id_tipo_documento'] ?? null;
 $f_serie_numero = $_GET['serie_numero'] ?? null;
 $f_auxiliar = $_GET['auxiliar'] ?? null;
-$f_id_centro_costo = $_GET['id_centro_costo'] ?? null;
 $f_moneda = $_GET['moneda'] ?? null;
 
 // Construir la cadena de consulta para la paginación
@@ -45,7 +44,6 @@ try {
         empty($f_id_tipo_documento) ? null : $f_id_tipo_documento,
         empty($f_serie_numero) ? null : $f_serie_numero,
         empty($f_auxiliar) ? null : $f_auxiliar,
-        empty($f_id_centro_costo) ? null : $f_id_centro_costo,
         empty($f_moneda) ? null : $f_moneda,
         $page_size,
         $current_page
@@ -130,15 +128,6 @@ try {
             <input type="text" id="auxiliar" name="auxiliar" value="<?= htmlspecialchars($f_auxiliar ?? '') ?>">
         </div>
         <div class="form-group">
-            <label for="centro_costo">Centro de Costo</label>
-            <select id="centro_costo" name="id_centro_costo">
-                <option value="">Todos</option>
-                 <?php foreach($centros_costo_list as $cc): ?>
-                    <option value="<?= $cc['id'] ?>" <?= (($f_id_centro_costo ?? null) == $cc['id']) ? 'selected' : '' ?>><?= htmlspecialchars($cc['nombre']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div class="form-group">
             <label for="moneda">Moneda</label>
             <select id="moneda" name="moneda">
                 <option value="">Todas</option>
@@ -159,7 +148,6 @@ try {
                 <th>Tipo Documento</th>
                 <th>Serie y Número</th>
                 <th>Auxiliar</th>
-                <th>Centro de Costo</th>
                 <th>Moneda</th>
                 <th>Total</th>
                 <th style="width: 90px;">Acciones</th>
@@ -168,7 +156,7 @@ try {
         <tbody>
             <?php if (empty($documentos)): ?>
                 <tr>
-                    <td colspan="10" style="text-align: center;">No hay documentos que coincidan con los filtros.</td>
+                    <td colspan="9" style="text-align: center;">No hay documentos que coincidan con los filtros.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($documentos as $doc): ?>
@@ -183,7 +171,6 @@ try {
                     <td><?= htmlspecialchars($doc['tipo_documento']) ?></td>
                     <td><?= htmlspecialchars($doc['serie_documento'] . '-' . $doc['numero_documento']) ?></td>
                     <td><?= htmlspecialchars($doc['auxiliar']) ?></td>
-                    <td><?= htmlspecialchars($doc['centro_costo']) ?></td>
                     <td><?= htmlspecialchars($doc['moneda']) ?></td>
                     <td style="text-align: right;"><?= htmlspecialchars(number_format($doc['total'], 2)) ?></td>
                     <td class="col-acciones">

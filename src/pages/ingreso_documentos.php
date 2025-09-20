@@ -36,7 +36,7 @@ try {
     $years_list = $pdo->query("CALL sp_get_years_with_documents()")->fetchAll(PDO::FETCH_ASSOC);
 
     // Llamar al SP con los filtros y la paginación
-    $stmt = $pdo->prepare("CALL sp_read_all_documentos(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $pdo->prepare("CALL sp_read_all_documentos(?, ?, ?, ?, ?, ?, ?, ?, ?)");
     $params = [
         empty($f_anio) ? null : $f_anio,
         empty($f_fecha_desde) ? null : $f_fecha_desde,

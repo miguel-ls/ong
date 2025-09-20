@@ -186,14 +186,15 @@ $centros_costo = [];
                     <table class="table table-sm table-bordered">
                         <thead class="table-light">
                             <tr>
+                                <th style="width: 3%;"></th> <!-- For expand/collapse icon -->
                                 <th style="width: 5%;">#</th>
                                 <th style="width: 10%;">Cant.</th>
                                 <th style="width: 25%;">Concepto</th>
                                 <th style="width: 20%;">Descripción</th>
-                                <th style="width: 15%;">Dist. CC</th>
+                                <th style="width: 10%;">Dist. CC</th>
                                 <th style="width: 10%;">P. Unit.</th>
                                 <th style="width: 10%;">Total</th>
-                                <th style="width: 5%;">Acción</th>
+                                <th style="width: 7%;">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="detalleBody">
@@ -275,7 +276,12 @@ $centros_costo = [];
 
 <!-- Plantilla para la fila de detalle -->
 <template id="detalleRowTemplate">
-    <tr>
+    <tr class="detail-main-row">
+        <td class="text-center">
+            <a href="#" class="toggle-subgrid" data-bs-toggle="tooltip" title="Ver/Ocultar Desglose">
+                <i class="fas fa-plus-circle text-success"></i>
+            </a>
+        </td>
         <td class="item-number">1</td>
         <td><input type="number" class="form-control form-control-sm" name="cantidad" step="0.01" required></td>
         <td>
@@ -290,6 +296,14 @@ $centros_costo = [];
         <td><input type="number" class="form-control form-control-sm" name="precio_unitario" step="0.0001" required></td>
         <td><input type="text" class="form-control form-control-sm total-row" name="precio_total" readonly></td>
         <td><button type="button" class="btn btn-sm btn-danger removeRowBtn">X</button></td>
+    </tr>
+    <tr class="subgrid-row" style="display: none;">
+        <td colspan="9" class="p-0">
+            <div class="subgrid-container p-2" style="background-color: #f8f9fa;">
+                <!-- Subgrid content will be injected here by JavaScript -->
+                <span class="text-muted">Cargando desglose...</span>
+            </div>
+        </td>
     </tr>
 </template>
 
@@ -358,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const addDistribucionRowBtn = document.getElementById('addDistribucionRowBtn');
     const saveDistribucionBtn = document.getElementById('saveDistribucionBtn');
     const totalPorcentajeSpan = document.getElementById('totalPorcentaje');
-    let activeDetailRow = null; // To track which detail row is being edited
+    let activeDetailRow = null; // To track which detail row is being edited in the modal
 
     // --- CONSTANTS AND STATE ---
     const IGV_RATE = 0.18;
@@ -370,59 +384,74 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- FUNCTIONS ---
 
     function addRow(detail = null) {
-        const newRow = rowTemplate.content.cloneNode(true);
-        const tr = newRow.querySelector('tr');
+        const templateContent = rowTemplate.content.cloneNode(true);
+        const mainRow = templateContent.querySelector('.detail-main-row');
+        const subgridRow = templateContent.querySelector('.subgrid-row');
 
-        // Store distribution data on the row itself
-        // When loading in edit mode, detail.distribucion is a JSON string from the DB, so it must be parsed.
+        // Store distribution data on the main row itself
         const distribucionData = detail && detail.distribucion ? JSON.parse(detail.distribucion) : [];
-        tr.dataset.distribucion = JSON.stringify(distribucionData);
+        mainRow.dataset.distribucion = JSON.stringify(distribucionData);
 
         if (detail) {
-            tr.querySelector('[name="cantidad"]').value = detail.cantidad;
-            tr.querySelector('[name="precio_unitario"]').value = detail.precio_unitario;
-            tr.querySelector('[name="descripcion"]').value = detail.descripcion || '';
-            tr.querySelector('[name="id_concepto"]').value = detail.id_concepto;
+            mainRow.querySelector('[name="cantidad"]').value = detail.cantidad;
+            mainRow.querySelector('[name="precio_unitario"]').value = detail.precio_unitario;
+            mainRow.querySelector('[name="descripcion"]').value = detail.descripcion || '';
+            mainRow.querySelector('[name="id_concepto"]').value = detail.id_concepto;
         }
 
-        detalleBody.appendChild(tr);
+        detalleBody.appendChild(templateContent); // Appends both mainRow and subgridRow
         updateItemNumbers();
 
-        tr.querySelector('.removeRowBtn').addEventListener('click', () => {
-            tr.remove();
+        mainRow.querySelector('.removeRowBtn').addEventListener('click', (e) => {
+            const rowToRemove = e.target.closest('tr');
+            const subgridToRemove = rowToRemove.nextElementSibling;
+            rowToRemove.remove();
+            subgridToRemove.remove();
             updateAllCalculations();
             updateItemNumbers();
         });
 
-        tr.querySelectorAll('[name="cantidad"], [name="precio_unitario"]').forEach(input => {
-            input.addEventListener('input', () => updateRowCalculations(tr));
+        mainRow.querySelectorAll('[name="cantidad"], [name="precio_unitario"]').forEach(input => {
+            input.addEventListener('input', () => updateRowCalculations(mainRow));
         });
 
-        tr.querySelector('.distribucion-btn').addEventListener('click', () => {
-            openDistribucionModal(tr);
+        mainRow.querySelector('.distribucion-btn').addEventListener('click', () => {
+            openDistribucionModal(mainRow);
         });
 
-        updateRowCalculations(tr);
+        mainRow.querySelector('.toggle-subgrid').addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleSubgrid(mainRow);
+        });
+
+        updateRowCalculations(mainRow);
     }
 
     function updateItemNumbers() {
-        const rows = detalleBody.querySelectorAll('tr');
+        const rows = detalleBody.querySelectorAll('.detail-main-row');
         rows.forEach((row, index) => {
             row.querySelector('.item-number').textContent = index + 1;
         });
     }
 
-    function updateRowCalculations(row) {
-        const qty = parseFloat(row.querySelector('[name="cantidad"]').value) || 0;
-        const price = parseFloat(row.querySelector('[name="precio_unitario"]').value) || 0;
+    function updateRowCalculations(mainRow) {
+        const qty = parseFloat(mainRow.querySelector('[name="cantidad"]').value) || 0;
+        const price = parseFloat(mainRow.querySelector('[name="precio_unitario"]').value) || 0;
         const total = qty * price;
-        row.querySelector('.total-row').value = total.toFixed(4);
+        mainRow.querySelector('.total-row').value = total.toFixed(4);
+
+        // If subgrid is visible, rerender it with the new total
+        const subgridRow = mainRow.nextElementSibling;
+        if (subgridRow && subgridRow.style.display !== 'none') {
+            renderSubgrid(mainRow);
+        }
+
         updateAllCalculations();
     }
 
     function updateAllCalculations() {
         let subtotal = 0;
-        detalleBody.querySelectorAll('tr').forEach(row => {
+        detalleBody.querySelectorAll('.detail-main-row').forEach(row => {
             subtotal += parseFloat(row.querySelector('.total-row').value) || 0;
         });
 
@@ -485,7 +514,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     saveDistribucionBtn.addEventListener('click', () => {
         const total = parseFloat(totalPorcentajeSpan.textContent);
-        if (Math.abs(total - 100) > 0.01) {
+        if (Math.abs(total - 100) > 0.01 && total > 0) { // Allow saving empty distribution
             alert('El porcentaje total debe ser exactamente 100%.');
             return;
         }
@@ -495,22 +524,88 @@ document.addEventListener('DOMContentLoaded', function() {
         distribucionBody.querySelectorAll('tr').forEach(row => {
             const ccId = row.querySelector('[name="id_centro_costo_dist"]').value;
             const porcentaje = row.querySelector('[name="porcentaje_dist"]').value;
-            if (!ccId || !porcentaje || parseFloat(porcentaje) <= 0) {
+            if (ccId && porcentaje && parseFloat(porcentaje) > 0) {
+                newDistribucionData.push({ id_centro_costo: ccId, porcentaje: porcentaje });
+            } else if (ccId || porcentaje) { // If one is filled but not the other
                 isValid = false;
             }
-            newDistribucionData.push({ id_centro_costo: ccId, porcentaje: porcentaje });
         });
 
         if (!isValid) {
-            alert('Por favor, complete todos los campos de la distribución con valores válidos.');
+            alert('Por favor, complete todos los campos de la distribución con valores válidos, o déjelos vacíos para eliminarlos.');
             return;
         }
 
         activeDetailRow.dataset.distribucion = JSON.stringify(newDistribucionData);
+
+        // If the subgrid for this row is open, re-render it
+        const subgridRow = activeDetailRow.nextElementSibling;
+        if (subgridRow && subgridRow.style.display !== 'none') {
+            renderSubgrid(activeDetailRow);
+        }
+
         distribucionModal.hide();
     });
 
     addDistribucionRowBtn.addEventListener('click', () => addDistribucionRow());
+
+    function getCentroCostoNameById(id) {
+        const option = centrosCostoOptions.find(opt => opt.id == id);
+        return option ? option.nombre : 'Desconocido';
+    }
+
+    function renderSubgrid(mainRow) {
+        const subgridContainer = mainRow.nextElementSibling.querySelector('.subgrid-container');
+        const distribucionData = JSON.parse(mainRow.dataset.distribucion || '[]');
+        const rowTotal = parseFloat(mainRow.querySelector('.total-row').value) || 0;
+
+        if (distribucionData.length === 0) {
+            subgridContainer.innerHTML = '<span class="text-muted fst-italic">No hay distribución definida.</span>';
+            return;
+        }
+
+        let tableHtml = `
+            <table class="table table-sm table-borderless mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Centro de Costo</th>
+                        <th class="text-end">Porcentaje</th>
+                        <th class="text-end">Importe</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        distribucionData.forEach(dist => {
+            const importe = (rowTotal * parseFloat(dist.porcentaje)) / 100;
+            tableHtml += `
+                <tr>
+                    <td>${htmlspecialchars(getCentroCostoNameById(dist.id_centro_costo))}</td>
+                    <td class="text-end">${parseFloat(dist.porcentaje).toFixed(2)}%</td>
+                    <td class="text-end">${importe.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+
+        tableHtml += '</tbody></table>';
+        subgridContainer.innerHTML = tableHtml;
+    }
+
+    function toggleSubgrid(mainRow) {
+        const subgridRow = mainRow.nextElementSibling;
+        const icon = mainRow.querySelector('.toggle-subgrid i');
+
+        if (subgridRow.style.display === 'none') {
+            renderSubgrid(mainRow);
+            subgridRow.style.display = 'table-row';
+            icon.classList.remove('fa-plus-circle', 'text-success');
+            icon.classList.add('fa-minus-circle', 'text-danger');
+        } else {
+            subgridRow.style.display = 'none';
+            icon.classList.remove('fa-minus-circle', 'text-danger');
+            icon.classList.add('fa-plus-circle', 'text-success');
+        }
+    }
 
     // --- Data Fetching & Initialization ---
     function fetchSubProyectos(id_proyecto, selected_id = null) {
@@ -660,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const detailData = [];
         let formIsValid = true;
-        detalleBody.querySelectorAll('tr').forEach(row => {
+        detalleBody.querySelectorAll('.detail-main-row').forEach(row => {
             const rowData = {};
             row.querySelectorAll('input, select').forEach(input => {
                 if (input.name) rowData[input.name] = input.value;

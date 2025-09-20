@@ -1,11 +1,11 @@
 -- =================================================================
--- PARCHE PARA ELIMINAR LÓGICA DE CENTRO DE COSTO DE LA GRILLA PRINCIPAL
+-- PARCHE PARA RESTAURAR LA COLUMNA DE CENTRO DE COSTO EN LA GRILLA
 -- Fecha: 2025-09-20
 -- Autor: Jules AI
--- Descripción: Este parche simplifica el SP `sp_read_all_documentos`
--- eliminando el parámetro de filtro por centro de costo y la columna
--- de centro de costo del resultado, ya que esta lógica ha sido
--- eliminada de la interfaz de usuario.
+-- Descripción: Este parche actualiza el SP `sp_read_all_documentos`
+-- para volver a mostrar la información de los centros de costo en la
+-- grilla principal, usando una lista separada por comas. El filtro
+-- por centro de costo permanece eliminado.
 -- =================================================================
 
 DROP PROCEDURE IF EXISTS sp_read_all_documentos;
@@ -17,7 +17,6 @@ CREATE PROCEDURE `sp_read_all_documentos`(
     IN p_id_tipo_documento INT,
     IN p_serie_numero VARCHAR(31),
     IN p_auxiliar VARCHAR(255),
-    -- p_id_centro_costo REMOVED
     IN p_moneda VARCHAR(10),
     IN p_page_size INT,
     IN p_page_number INT
@@ -42,6 +41,8 @@ BEGIN
     -- Query para obtener los datos paginados
     SET @data_sql = CONCAT(
         'SELECT d.id, d.fecha_emision, td.nombre as tipo_documento, d.serie_documento, d.numero_documento, a.razon_social_nombres as auxiliar, d.moneda, d.total, d.total_soles, d.total_dolares, ',
+        -- Subconsulta para obtener la lista de centros de costo
+        '(SELECT GROUP_CONCAT(DISTINCT cc.nombre SEPARATOR '', '') FROM documentos_detalle dd JOIN documento_detalle_distribucion ddd ON dd.id = ddd.id_documento_detalle JOIN centros_costos cc ON ddd.id_centro_costo = cc.id WHERE dd.id_documento = d.id) as centro_costo, ',
         -- Subconsulta para verificar si hay adjuntos
         '(EXISTS(SELECT 1 FROM documento_adjuntos WHERE id_documento = d.id)) as tiene_adjuntos ',
         'FROM documentos d JOIN tipos_documento td ON d.id_tipo_documento = td.id JOIN auxiliares a ON d.id_auxiliar = a.id ',

@@ -154,9 +154,16 @@ $centros_costo = [];
                         <!-- Pestaña de Adjuntos -->
                         <div class="tab-pane fade" id="adjuntos-tab-pane" role="tabpanel" aria-labelledby="adjuntos-tab" tabindex="0">
                             <div class="mb-3">
+                                <label for="adjuntos" class="form-label">Añadir nuevos adjuntos</label>
                                 <input type="file" class="form-control" id="adjuntos" name="adjuntos[]" multiple>
                             </div>
+                            <div id="file-preview-list" class="mb-3">
+                                <!-- La vista previa de los nuevos archivos aparecerá aquí -->
+                            </div>
+
                             <?php if (!empty($adjuntos)): ?>
+                                <hr>
+                                <h6 class="mb-3">Archivos adjuntos existentes</h6>
                                 <div class="mb-3">
                                     <ul class="list-group" id="lista-adjuntos">
                                         <?php foreach ($adjuntos as $adjunto): ?>
@@ -358,6 +365,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalDolaresDisplay = document.getElementById('totalDolaresDisplay');
     const totalDolaresRow = document.getElementById('totalDolaresRow');
     const templateConceptoSelect = rowTemplate.content.querySelector('[name="id_concepto"]');
+    const adjuntosInput = document.getElementById('adjuntos');
+    const filePreviewList = document.getElementById('file-preview-list');
 
     // Modal elements
     const distribucionModal = new bootstrap.Modal(document.getElementById('distribucionCCModal'));
@@ -373,6 +382,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const initialDetails = <?= json_encode($details) ?>;
     const initialHeader = <?= json_encode($header) ?>;
     let centrosCostoOptions = []; // Cache for CC options
+    let filesToUpload = []; // Array to manage files for preview and submission
 
     // --- FUNCTIONS ---
 
@@ -541,6 +551,44 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     addDistribucionRowBtn.addEventListener('click', () => addDistribucionRow());
+
+    // --- File Preview Functions ---
+    function renderFilePreview() {
+        filePreviewList.innerHTML = '';
+        if (filesToUpload.length === 0) {
+            filePreviewList.innerHTML = '<p class="text-muted fst-italic">No hay nuevos archivos seleccionados.</p>';
+            return;
+        }
+
+        const ul = document.createElement('ul');
+        ul.className = 'list-group';
+
+        filesToUpload.forEach((file, index) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.textContent = file.name;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-danger';
+            removeBtn.innerHTML = '&times;';
+            removeBtn.addEventListener('click', () => {
+                filesToUpload.splice(index, 1);
+                renderFilePreview(); // Re-render the list
+            });
+
+            li.appendChild(removeBtn);
+            ul.appendChild(li);
+        });
+        filePreviewList.appendChild(ul);
+    }
+
+    adjuntosInput.addEventListener('change', () => {
+        // Create a new list from the selected files
+        filesToUpload = Array.from(adjuntosInput.files);
+        renderFilePreview();
+    });
+
 
     function getCentroCostoNameById(id) {
         const option = centrosCostoOptions.find(opt => opt.id == id);
@@ -767,9 +815,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         submissionData.append('details', JSON.stringify(detailData));
 
-        const files = document.getElementById('adjuntos').files;
-        for (let i = 0; i < files.length; i++) {
-            submissionData.append('adjuntos[]', files[i]);
+        // Use the managed files array instead of the input's file list
+        for (const file of filesToUpload) {
+            submissionData.append('adjuntos[]', file);
         }
 
         fetch('../src/actions/documentos_process.php', {
@@ -796,6 +844,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // --- INITIALIZATION ---
     new TomSelect('#id_auxiliar', { create: true, sortField: { field: 'text', direction: 'asc' } });
+
+    renderFilePreview(); // Initial render for the file preview area
     initializeForm();
 });
 </script>

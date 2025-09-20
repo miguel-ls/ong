@@ -97,14 +97,59 @@ try {
             }
 
             // Insert new details for both create and update
-            $stmt_insert_detail = $pdo->prepare("CALL sp_create_documento_detalle(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt_insert_detail = $pdo->prepare("CALL sp_create_documento_detalle(?, ?, ?, ?, ?, ?, ?, ?, ?, @new_detalle_id)");
+            $stmt_insert_distribucion = $pdo->prepare("CALL sp_create_documento_detalle_distribucion(?, ?, ?)");
+
             foreach ($details as $index => $item) {
                 $item_total = (float)$item['cantidad'] * (float)$item['precio_unitario'];
                 $item_total_soles = $is_soles ? $item_total : $item_total * $tc;
                 $item_total_dolares = !$is_soles ? $item_total : $item_total / $tc;
                 $descripcion = $item['descripcion'] ?? '';
-                $id_centro_costo = $item['id_centro_costo'] ?? null;
-                $stmt_insert_detail->execute([$doc_id, $index + 1, $item['cantidad'], $descripcion, $item['id_concepto'], $id_centro_costo, $item['precio_unitario'], $item_total, $item_total_soles, $item_total_dolares]);
+
+                // 1. Insertar el detalle y obtener el nuevo ID
+                $stmt_insert_detail->execute([
+                    $doc_id,
+                    $index + 1,
+                    $item['cantidad'],
+                    $descripcion,
+                    $item['id_concepto'],
+                    $item['precio_unitario'],
+                    $item_total,
+                    $item_total_soles,
+                    $item_total_dolares
+                ]);
+                $stmt_insert_detail->closeCursor(); // Muy importante al usar OUT parameters
+                $new_detalle_id = $pdo->query("SELECT @new_detalle_id as new_id")->fetch(PDO::FETCH_ASSOC)['new_id'];
+
+                if (!$new_detalle_id) {
+                    throw new Exception("No se pudo crear el item del detalle: " . ($descripcion ?: ('Item ' . $index + 1)));
+                }
+
+                // 2. Insertar la distribución para este detalle
+                if (isset($item['distribucion']) && is_array($item['distribucion'])) {
+                    $total_porcentaje = 0;
+                    foreach($item['distribucion'] as $dist) {
+                        $total_porcentaje += (float)$dist['porcentaje'];
+                    }
+
+                    // Validar que la suma de porcentajes sea (aproximadamente) 100
+                    if (abs($total_porcentaje - 100) > 0.01 && count($item['distribucion']) > 0) {
+                        throw new Exception("La suma de porcentajes para el item '".($descripcion ?: ($index + 1))."' no es 100%. Suma actual: $total_porcentaje%");
+                    }
+
+                    foreach ($item['distribucion'] as $distribucion_item) {
+                        if (!empty($distribucion_item['id_centro_costo']) && !empty($distribucion_item['porcentaje'])) {
+                            $stmt_insert_distribucion->execute([
+                                $new_detalle_id,
+                                $distribucion_item['id_centro_costo'],
+                                $distribucion_item['porcentaje']
+                            ]);
+                        }
+                    }
+                } else {
+                     // Opcional: Lanzar un error si no se proporciona distribución para un item
+                     throw new Exception("No se proporcionó distribución de centro de costo para el item: " . ($descripcion ?: ('Item ' . $index + 1)));
+                }
             }
 
             // -- Procesamiento de Archivos Adjuntos --

@@ -190,7 +190,7 @@ $centros_costo = [];
                                 <th style="width: 10%;">Cant.</th>
                                 <th style="width: 25%;">Concepto</th>
                                 <th style="width: 20%;">Descripción</th>
-                                <th style="width: 15%;">CC</th>
+                                <th style="width: 15%;">Dist. CC</th>
                                 <th style="width: 10%;">P. Unit.</th>
                                 <th style="width: 10%;">Total</th>
                                 <th style="width: 5%;">Acción</th>
@@ -202,6 +202,41 @@ $centros_costo = [];
                     </table>
                     <button type="button" id="addRowBtn" class="btn btn-sm btn-success">Añadir Fila</button>
                 </fieldset>
+
+                <!-- Modal para Distribución de Centros de Costo -->
+                <div class="modal fade" id="distribucionCCModal" tabindex="-1" aria-labelledby="distribucionCCModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="distribucionCCModalLabel">Distribuir Centro de Costo</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <table class="table table-sm table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 60%;">Centro de Costo</th>
+                                            <th style="width: 30%;">Porcentaje (%)</th>
+                                            <th style="width: 10%;">Acción</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="distribucionBody">
+                                        <!-- Filas de distribución se insertarán aquí -->
+                                    </tbody>
+                                </table>
+                                <button type="button" id="addDistribucionRowBtn" class="btn btn-sm btn-success">Añadir Centro de Costo</button>
+                                <div class="mt-3">
+                                    <strong>Total Porcentaje: <span id="totalPorcentaje">0.00</span>%</strong>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" id="saveDistribucionBtn" class="btn btn-primary">Guardar Distribución</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
 
                 <!-- Totales -->
                 <div class="row justify-content-end">
@@ -250,13 +285,23 @@ $centros_costo = [];
         </td>
         <td><input type="text" class="form-control form-control-sm" name="descripcion"></td>
         <td>
-            <select class="form-select form-select-sm" name="id_centro_costo" required>
-                <option value="">Seleccione</option>
-            </select>
+            <button type="button" class="btn btn-sm btn-info distribucion-btn">Distribuir</button>
         </td>
         <td><input type="number" class="form-control form-control-sm" name="precio_unitario" step="0.0001" required></td>
         <td><input type="text" class="form-control form-control-sm total-row" name="precio_total" readonly></td>
         <td><button type="button" class="btn btn-sm btn-danger removeRowBtn">X</button></td>
+    </tr>
+</template>
+
+<template id="distribucionRowTemplate">
+    <tr>
+        <td>
+            <select class="form-select form-select-sm" name="id_centro_costo_dist" required>
+                <option value="">Seleccione un CC</option>
+            </select>
+        </td>
+        <td><input type="number" class="form-control form-control-sm" name="porcentaje_dist" step="0.01" min="0" max="100" required></td>
+        <td><button type="button" class="btn btn-sm btn-danger removeDistribucionRowBtn">X</button></td>
     </tr>
 </template>
 
@@ -293,6 +338,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const detalleBody = document.getElementById('detalleBody');
     const addRowBtn = document.getElementById('addRowBtn');
     const rowTemplate = document.getElementById('detalleRowTemplate');
+    const distribucionRowTemplate = document.getElementById('distribucionRowTemplate');
     const headerCentroCostoSelect = document.getElementById('id_centro_costo');
     const proyectoSelect = document.getElementById('id_proyecto');
     const subProyectoSelect = document.getElementById('id_sub_proyecto');
@@ -305,13 +351,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalDolaresDisplay = document.getElementById('totalDolaresDisplay');
     const totalDolaresRow = document.getElementById('totalDolaresRow');
     const templateConceptoSelect = rowTemplate.content.querySelector('[name="id_concepto"]');
-    const templateCentroCostoSelect = rowTemplate.content.querySelector('[name="id_centro_costo"]');
+
+    // Modal elements
+    const distribucionModal = new bootstrap.Modal(document.getElementById('distribucionCCModal'));
+    const distribucionBody = document.getElementById('distribucionBody');
+    const addDistribucionRowBtn = document.getElementById('addDistribucionRowBtn');
+    const saveDistribucionBtn = document.getElementById('saveDistribucionBtn');
+    const totalPorcentajeSpan = document.getElementById('totalPorcentaje');
+    let activeDetailRow = null; // To track which detail row is being edited
 
     // --- CONSTANTS AND STATE ---
     const IGV_RATE = 0.18;
     const isEditMode = <?= $is_edit ? 'true' : 'false' ?>;
     const initialDetails = <?= json_encode($details) ?>;
     const initialHeader = <?= json_encode($header) ?>;
+    let centrosCostoOptions = []; // Cache for CC options
 
     // --- FUNCTIONS ---
 
@@ -319,20 +373,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const newRow = rowTemplate.content.cloneNode(true);
         const tr = newRow.querySelector('tr');
 
-        const conceptSelect = tr.querySelector('[name="id_concepto"]');
-        const centroCostoSelect = tr.querySelector('[name="id_centro_costo"]');
+        // Store distribution data on the row itself
+        // When loading in edit mode, detail.distribucion is a JSON string from the DB, so it must be parsed.
+        const distribucionData = detail && detail.distribucion ? JSON.parse(detail.distribucion) : [];
+        tr.dataset.distribucion = JSON.stringify(distribucionData);
 
         if (detail) {
             tr.querySelector('[name="cantidad"]').value = detail.cantidad;
             tr.querySelector('[name="precio_unitario"]').value = detail.precio_unitario;
             tr.querySelector('[name="descripcion"]').value = detail.descripcion || '';
-            conceptSelect.value = detail.id_concepto;
-            centroCostoSelect.value = detail.id_centro_costo;
-        } else {
-            const headerCentroCostoId = headerCentroCostoSelect.value;
-            if (headerCentroCostoId) {
-                centroCostoSelect.value = headerCentroCostoId;
-            }
+            tr.querySelector('[name="id_concepto"]').value = detail.id_concepto;
         }
 
         detalleBody.appendChild(tr);
@@ -346,6 +396,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         tr.querySelectorAll('[name="cantidad"], [name="precio_unitario"]').forEach(input => {
             input.addEventListener('input', () => updateRowCalculations(tr));
+        });
+
+        tr.querySelector('.distribucion-btn').addEventListener('click', () => {
+            openDistribucionModal(tr);
         });
 
         updateRowCalculations(tr);
@@ -380,15 +434,85 @@ document.addEventListener('DOMContentLoaded', function() {
         igvDisplay.textContent = igv.toFixed(2);
         totalDisplay.textContent = total.toFixed(2);
         totalDolaresDisplay.textContent = (monedaSelect.value === 'SOLES' && tc > 0 ? total / tc : total).toFixed(2);
-
-
         updateTotalsVisibility();
     }
 
     function updateTotalsVisibility() {
-        totalDolaresRow.style.display = (monedaSelect.value === 'SOLES') ? 'none' : '';
+        totalDolaresRow.style.display = (monedaSelect.value === 'SOLES') ? 'none' : 'table-row';
     }
 
+    // --- Distribucion Modal Functions ---
+    function openDistribucionModal(detailRow) {
+        activeDetailRow = detailRow;
+        distribucionBody.innerHTML = '';
+        const distribucionData = JSON.parse(activeDetailRow.dataset.distribucion || '[]');
+        if (distribucionData.length > 0) {
+            distribucionData.forEach(dist => addDistribucionRow(dist));
+        } else {
+            addDistribucionRow(); // Add one empty row to start
+        }
+        updateTotalPorcentaje();
+        distribucionModal.show();
+    }
+
+    function addDistribucionRow(dist = null) {
+        const newRow = distribucionRowTemplate.content.cloneNode(true);
+        const ccSelect = newRow.querySelector('[name="id_centro_costo_dist"]');
+        updateSelectWithOptions(ccSelect, centrosCostoOptions, 'Seleccione un CC');
+
+        if (dist) {
+            ccSelect.value = dist.id_centro_costo;
+            newRow.querySelector('[name="porcentaje_dist"]').value = dist.porcentaje;
+        }
+
+        newRow.querySelector('.removeDistribucionRowBtn').addEventListener('click', (e) => {
+            e.target.closest('tr').remove();
+            updateTotalPorcentaje();
+        });
+
+        newRow.querySelector('[name="porcentaje_dist"]').addEventListener('input', updateTotalPorcentaje);
+        distribucionBody.appendChild(newRow);
+    }
+
+    function updateTotalPorcentaje() {
+        let total = 0;
+        distribucionBody.querySelectorAll('[name="porcentaje_dist"]').forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        totalPorcentajeSpan.textContent = total.toFixed(2);
+        totalPorcentajeSpan.style.color = Math.abs(total - 100) < 0.01 ? 'green' : 'red';
+    }
+
+    saveDistribucionBtn.addEventListener('click', () => {
+        const total = parseFloat(totalPorcentajeSpan.textContent);
+        if (Math.abs(total - 100) > 0.01) {
+            alert('El porcentaje total debe ser exactamente 100%.');
+            return;
+        }
+
+        const newDistribucionData = [];
+        let isValid = true;
+        distribucionBody.querySelectorAll('tr').forEach(row => {
+            const ccId = row.querySelector('[name="id_centro_costo_dist"]').value;
+            const porcentaje = row.querySelector('[name="porcentaje_dist"]').value;
+            if (!ccId || !porcentaje || parseFloat(porcentaje) <= 0) {
+                isValid = false;
+            }
+            newDistribucionData.push({ id_centro_costo: ccId, porcentaje: porcentaje });
+        });
+
+        if (!isValid) {
+            alert('Por favor, complete todos los campos de la distribución con valores válidos.');
+            return;
+        }
+
+        activeDetailRow.dataset.distribucion = JSON.stringify(newDistribucionData);
+        distribucionModal.hide();
+    });
+
+    addDistribucionRowBtn.addEventListener('click', () => addDistribucionRow());
+
+    // --- Data Fetching & Initialization ---
     function fetchSubProyectos(id_proyecto, selected_id = null) {
         subProyectoSelect.innerHTML = '<option value="">Cargando...</option>';
         if (!id_proyecto) {
@@ -424,18 +548,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return str.replace(/[&<>"']/g, m => map[m]);
     }
 
-    function updateSelectWithOptions(selectElement, options, placeholder = 'Seleccione') {
-        const currentValue = selectElement.value;
+    function updateSelectWithOptions(selectElement, options, placeholder = 'Seleccione', selectedValue = null) {
+        const currentValue = selectedValue || selectElement.value;
         selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-        let valueExists = false;
         if (Array.isArray(options)) {
             options.forEach(opt => {
                 const isSelected = opt.id == currentValue;
                 selectElement.options[selectElement.options.length] = new Option(opt.nombre, opt.id, isSelected, isSelected);
-                if(isSelected) valueExists = true;
             });
         }
-        if(valueExists) selectElement.value = currentValue;
+        if (currentValue) selectElement.value = currentValue;
     }
 
     function loadDropdownData(year) {
@@ -444,8 +566,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const fetchCentros = fetch(`../src/ajax/get_centros_costos_for_dropdown.php?año=${year}`)
             .then(response => response.ok ? response.json() : Promise.reject('Error de red'))
             .then(data => {
+                centrosCostoOptions = data; // Cache CC options
                 updateSelectWithOptions(headerCentroCostoSelect, data, 'Seleccione Centro de Costo');
-                updateSelectWithOptions(templateCentroCostoSelect, data, 'Seleccione Centro de Costo');
             });
 
         const fetchConceptos = fetch(`../src/ajax/get_conceptos_for_dropdown.php?año=${year}`)
@@ -467,6 +589,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const initialYear = new Date(fechaEmision + 'T00:00:00').getFullYear();
 
         loadDropdownData(initialYear).then(() => {
+            // Populate concept dropdowns in existing rows before adding new ones
+            const conceptSelects = document.querySelectorAll('[name="id_concepto"]');
+            conceptSelects.forEach(select => {
+                const currentValue = select.value;
+                updateSelectWithOptions(select, templateConceptoSelect.options, 'Seleccione Concepto', currentValue);
+            });
+
             if (isEditMode) {
                 if (initialHeader.id_centro_costo) {
                     headerCentroCostoSelect.value = initialHeader.id_centro_costo;
@@ -474,6 +603,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (initialHeader.id_proyecto) {
                     fetchSubProyectos(initialHeader.id_proyecto, initialHeader.id_sub_proyecto);
                 }
+                // Clear body before re-populating
+                detalleBody.innerHTML = '';
                 initialDetails.forEach(detail => addRow(detail));
             } else {
                 addRow();
@@ -521,20 +652,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const submissionData = new FormData();
         const headerData = {};
         for (const element of form.elements) {
-            if (element.name && element.type !== 'file' && !element.closest('#detalleBody')) {
+            if (element.name && element.type !== 'file' && !element.closest('#detalleBody') && !element.closest('#distribucionCCModal')) {
                 headerData[element.name] = element.value;
             }
         }
         submissionData.append('header', JSON.stringify(headerData));
 
         const detailData = [];
+        let formIsValid = true;
         detalleBody.querySelectorAll('tr').forEach(row => {
             const rowData = {};
             row.querySelectorAll('input, select').forEach(input => {
                 if (input.name) rowData[input.name] = input.value;
             });
+
+            const distribucion = JSON.parse(row.dataset.distribucion || '[]');
+            if(distribucion.length === 0) {
+                formIsValid = false;
+            }
+            rowData.distribucion = distribucion;
             detailData.push(rowData);
         });
+
+        if (!formIsValid) {
+            alert('Cada item del detalle debe tener una distribución de Centros de Costo definida. Haga clic en "Distribuir" para cada fila.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Guardar Documento';
+            return;
+        }
+
         submissionData.append('details', JSON.stringify(detailData));
 
         const files = document.getElementById('adjuntos').files;
@@ -551,7 +697,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.success) {
                 window.location.href = `index.php?page=ingreso_documentos&success=${encodeURIComponent(data.message)}`;
             } else {
-                alert(data.message);
+                alert('Error: ' + data.message);
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Guardar Documento';
             }

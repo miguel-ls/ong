@@ -17,6 +17,9 @@
 </head>
 <body>
     <div class="login-container">
+        <div class="text-center mb-3">
+            <img src="images/LOGO-solo.png" alt="Logo del Sistema" style="width: 80px; height: 80px; border-radius: 50%;">
+        </div>
         <h1>Iniciar Sesión</h1>
         <?php
         if (isset($_GET['error'])) {

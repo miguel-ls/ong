@@ -7,7 +7,7 @@ define('DB_NAME', 'ong_db');    // Nombre de la BD
 define('DB_CHARSET', 'utf8mb4');
 
 // Configuración de la aplicación
-define('APP_URL', 'http://localhost/ong'); // URL base de la aplicación
+define('APP_URL', 'http://localhost/peronal/ong'); // URL base de la aplicación
 
 // Configuración para la migración de auxiliares
 define('Emp_cCodigo', '088');

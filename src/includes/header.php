@@ -19,7 +19,7 @@
             <aside class="sidebar">
             <div class="logo">
                 <button id="sidebarToggleBtn" class="btn btn-link text-white"><i class="fas fa-bars"></i></button>
-                <span class="logo-text">ERP-Plus Docs.</span>
+                <span class="logo-text">ERPPlus GesDoc ®</span>
             </div>
             <nav>
                 <ul>

@@ -18,7 +18,7 @@
 <body>
     <div class="login-container">
         <div class="mb-3">
-            <img src="images/LOGO-solo.png" alt="Logo del Sistema" style="width: 80px; height: 80px; border-radius: 50%; display: block; margin-left: auto; margin-right: auto;">
+            <img src="images/LOGO.jpg" alt="Logo del Sistema" style="width: 80px; height: 80px; border-radius: 50%; display: block; margin-left: auto; margin-right: auto;">
         </div>
         <h1>Iniciar Sesión</h1>
         <?php

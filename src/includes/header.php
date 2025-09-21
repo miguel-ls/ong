@@ -22,7 +22,7 @@
             </div>
             <div class="logo">
                 <button id="sidebarToggleBtn" class="btn btn-link text-white"><i class="fas fa-bars"></i></button>
-                <span class="logo-text">ERPPlus GesDoc ®</span>
+                <span class="logo-text">ERPPlus GestDoc ®</span>
             </div>
             <nav>
                 <ul>

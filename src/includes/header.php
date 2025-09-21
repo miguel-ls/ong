@@ -17,6 +17,9 @@
     <div class="container-fluid">
         <div class="main-wrapper">
             <aside class="sidebar">
+            <div class="sidebar-header text-center py-3">
+                <img src="https://placehold.co/150x150/FFFFFF/4F81BD/png?text=Logo" alt="Logo del Sistema" style="width: 80px; height: 80px; border-radius: 50%; border: 2px solid #fff;">
+            </div>
             <div class="logo">
                 <button id="sidebarToggleBtn" class="btn btn-link text-white"><i class="fas fa-bars"></i></button>
                 <span class="logo-text">ERPPlus GesDoc ®</span>

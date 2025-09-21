@@ -46,29 +46,59 @@ foreach ($filters as $filter) {
 
 // --- Query Building ---
 try {
-    // 1. SELECT clause
     if (empty($selectedColumns)) {
         echo json_encode(['error' => 'No columns selected.', 'data' => []]);
         exit;
     }
-    $selectClause = implode(', ', array_map(function($col) use ($dictionary) {
+
+    // --- Logic for Prorated Calculation ---
+    $isProrated = false;
+    // Check if any selected column or filter column requires proration logic
+    $allInvolvedColumns = array_merge($selectedColumns, array_column($filters, 'column'));
+    foreach ($allInvolvedColumns as $col) {
+        if (strpos($col, 'cc.') === 0 || strpos($col, 'ddd.') === 0) {
+            $isProrated = true;
+            break;
+        }
+    }
+
+    // --- 1. SELECT clause ---
+    $selectClauseParts = [];
+    $groupByParts = [];
+    $numericColsToProrate = ['dd.precio_total', 'dd.total_soles', 'dd.total_dolares'];
+
+    foreach ($selectedColumns as $col) {
         // Find the friendly name for the alias
+        $friendlyName = $col; // Fallback
         foreach($dictionary['tables'] as $tableInfo) {
             if(isset($tableInfo['columns'][$col])) {
-                return $col . ' AS `' . $tableInfo['columns'][$col]['friendly_name'] . '`';
+                $friendlyName = $tableInfo['columns'][$col]['friendly_name'];
+                break;
             }
         }
-        return $col; // Fallback
-    }, $selectedColumns));
+
+        if ($isProrated && in_array($col, $numericColsToProrate)) {
+            // If we need to prorate, wrap numeric fields in SUM and apply the percentage
+            $selectClauseParts[] = "SUM($col * (ddd.porcentaje / 100)) AS `$friendlyName`";
+        } else {
+            // Otherwise, select the column directly
+            $selectClauseParts[] = "$col AS `$friendlyName`";
+            if ($isProrated) {
+                // If we are prorating, we must group by all non-summed columns
+                $groupByParts[] = $col;
+            }
+        }
+    }
+    $selectClause = implode(', ', $selectClauseParts);
 
 
-    // 2. FROM and JOIN clauses
+    // --- 2. FROM and JOIN clauses ---
     $fromClause = 'FROM ' . $dictionary['base_table'] . ' ' . $dictionary['tables'][$dictionary['base_table']]['alias'];
     $joinClause = '';
     $joinedTables = [$dictionary['base_table']];
 
     $requiredTables = [];
-    foreach (array_merge($selectedColumns, array_column($filters, 'column')) as $col) {
+     foreach ($allInvolvedColumns as $col) {
         list($alias, ) = explode('.', $col);
         foreach($dictionary['tables'] as $tableName => $tableInfo) {
             if ($tableInfo['alias'] === $alias) {
@@ -76,8 +106,13 @@ try {
             }
         }
     }
+    // If we are prorating, we implicitly need the distribution table
+    if ($isProrated) {
+        $requiredTables[] = 'centros_costos';
+    }
     $requiredTables = array_unique($requiredTables);
 
+    // Build joins based on required tables
     foreach ($dictionary['joins'] as $parentTable => $joins) {
         foreach($joins as $childTable => $joinSql) {
             if (in_array($childTable, $requiredTables) && !in_array($childTable, $joinedTables)) {
@@ -88,7 +123,7 @@ try {
     }
 
 
-    // 3. WHERE clause
+    // --- 3. WHERE clause ---
     $whereClause = '';
     $params = [];
     if (!empty($filters)) {
@@ -105,9 +140,16 @@ try {
         $whereClause = 'WHERE ' . implode(' AND ', $whereConditions);
     }
 
+    // --- 4. GROUP BY clause ---
+    $groupByClause = '';
+    if ($isProrated && !empty($groupByParts)) {
+        $groupByClause = 'GROUP BY ' . implode(', ', $groupByParts);
+    }
+
+
     // --- Execution ---
     $pdo = getDbConnection();
-    $sql = "SELECT $selectClause $fromClause $joinClause $whereClause LIMIT 2000"; // Add a sane limit
+    $sql = "SELECT $selectClause $fromClause $joinClause $whereClause $groupByClause LIMIT 2000";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);

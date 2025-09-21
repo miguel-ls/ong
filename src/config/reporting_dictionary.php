@@ -44,6 +44,13 @@ $reportingDictionary = [
                 'cc.nombre' => ['friendly_name' => 'Nombre C.Costo', 'type' => 'string'],
             ]
         ],
+        'documento_detalle_distribucion' => [
+            'friendly_name' => 'Distribución de C.Costo',
+            'alias' => 'ddd',
+            'columns' => [
+                'ddd.porcentaje' => ['friendly_name' => 'Porcentaje C.Costo', 'type' => 'numeric'],
+            ]
+        ],
         'conceptos' => [
             'friendly_name' => 'Conceptos',
             'alias' => 'c',
@@ -91,7 +98,7 @@ $reportingDictionary = [
     'joins' => [
         'documentos_detalle' => [
             'documentos' => 'INNER JOIN documentos d ON dd.id_documento = d.id',
-            'centros_costos' => 'LEFT JOIN centros_costos cc ON dd.id_centro_costo = cc.id',
+            'centros_costos' => 'INNER JOIN documento_detalle_distribucion ddd ON dd.id = ddd.id_documento_detalle INNER JOIN centros_costos cc ON ddd.id_centro_costo = cc.id',
             'conceptos' => 'LEFT JOIN conceptos c ON dd.id_concepto = c.id',
         ],
         'documentos' => [

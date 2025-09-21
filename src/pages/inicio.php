@@ -39,18 +39,22 @@
 </section>
 
 <!-- Gráfico de Barras -->
-<section class="card mb-4">
-    <div class="card-header">
-        Total de Documentos en Soles por Mes y Centro de Costo
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <section class="card mb-4">
+            <div class="card-header">
+                Total de Documentos en Soles por Mes y Centro de Costo
+            </div>
+            <div class="card-body">
+                <canvas id="barChart"></canvas>
+            </div>
+        </section>
     </div>
-    <div class="card-body">
-        <canvas id="barChart"></canvas>
-    </div>
-</section>
+</div>
 
 <!-- Gráficos Circulares -->
-<section class="row">
-    <div class="col-lg-6 mb-4">
+<section class="row justify-content-center">
+    <div class="col-lg-4 mb-4">
         <div class="card h-100">
             <div class="card-header">
                 Importes en Soles por Centro de Costo (Mes Actual)
@@ -60,7 +64,7 @@
             </div>
         </div>
     </div>
-    <div class="col-lg-6 mb-4">
+    <div class="col-lg-4 mb-4">
         <div class="card h-100">
             <div class="card-header">
                 Importes por Tipo de Documento (Mes y C.Costo Actual)

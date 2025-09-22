@@ -58,12 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         actualizarBarChart(anio);
         actualizarPieChart1(anio, mes);
-        if (idCentroCosto) {
-            actualizarPieChart2(anio, mes, idCentroCosto);
-        } else {
-            // Si no hay centro de costo seleccionado, limpiar el gráfico 2 o mostrar un mensaje
-            if (pieChart2) pieChart2.destroy();
-        }
+        actualizarPieChart2(anio, mes, idCentroCosto);
     }
 
     function actualizarBarChart(anio) {
@@ -146,6 +141,14 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(data => {
                 if (pieChart2) pieChart2.destroy();
 
+                // Actualizar título de la tarjeta
+                const cardHeader = ctxPie2.canvas.closest('.card').querySelector('.card-header');
+                const selectedCentroCostoText = filtroCentroCosto.options[filtroCentroCosto.selectedIndex].text;
+                if (idCentroCosto) {
+                    cardHeader.textContent = `Importes por Tipo de Documento (Mes y C.Costo: ${selectedCentroCostoText})`;
+                } else {
+                    cardHeader.textContent = 'Importes por Tipo de Documento (Mes Actual - Todos los C.Costos)';
+                }
                 const labels = data.map(item => item.nombre_tipo_documento);
                 const importes = data.map(item => parseFloat(item.total_soles));
 

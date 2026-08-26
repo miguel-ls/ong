@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentPage = urlParams.get('page');
 
     if (currentPage) {
-        // Find the link that contains the current page in its href
-        const activeLink = document.querySelector(`.sidebar nav a[href*="page=${currentPage}"]`);
+        const menuPage = currentPage.replace(/_form$/, '');
+        const activeLink = document.querySelector(`.sidebar nav a[href="index.php?page=${menuPage}"]`);
 
         if (activeLink) {
             // Add 'active' class to the link itself for styling
@@ -60,13 +60,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const parentSubmenu = activeLink.closest('ul.collapse');
 
             if (parentSubmenu) {
-                // Add 'show' class to expand the submenu
-                parentSubmenu.classList.add('show');
-
-                // Also add an 'active' class to the main dropdown toggle link
                 const dropdownToggle = parentSubmenu.previousElementSibling;
                 if (dropdownToggle && dropdownToggle.matches('.dropdown-toggle')) {
                     dropdownToggle.classList.add('active');
+                    const savedState = localStorage.getItem(`sidebar-submenu-${parentSubmenu.id}`);
+
+                    if (savedState === null) {
+                        parentSubmenu.classList.add('show');
+                        dropdownToggle.setAttribute('aria-expanded', 'true');
+                    }
                 }
             }
         }

@@ -104,6 +104,10 @@ body.sidebar-collapsed .sidebar nav ul li a i {
     display: none; /* Oculto por defecto */
 }
 
+.sidebar nav ul li .collapse.show {
+    display: block;
+}
+
 .sidebar nav ul li .collapse a {
     padding-left: 45px; /* Indentación para sub-menús */
 }
